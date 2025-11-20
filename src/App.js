@@ -6,7 +6,7 @@ import CustomText from './components/CustomText';
 function App() {
   const [fontsLoaded] = useFonts({
     'Pretendard-Regular': require('../assets/Fonts/Pretendard-Regular.otf'),
-    'Pretendard-Medium': require('../assets/Fonts/Pretendard-Medium.otf'),
+    'Pretendard-Bold': require('../assets/Fonts/Pretendard-Bold.otf'),
     'Pretendard-SemiBold': require('../assets/Fonts/Pretendard-SemiBold.otf'),
   });
 
