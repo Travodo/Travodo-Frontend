@@ -1,7 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text } from 'react-native';
 import { useFonts } from 'expo-font';
-import CustomText from './components/CustomText';
+import Checkbox from './components/Checkbox';
+import ToggleSwitch from './components/ToggleSwitch';
+import Button from './components/Button';
+import TextField from './components/TextField';
+import InputField from './components/InputField';
+import ArrowButton from './components/ArrowButton';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -17,10 +22,12 @@ function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      <CustomText>세상에 이런 폰트가 나오다니 천재인듯</CustomText>
-      <CustomText SemiBold>세상에 이런 폰트가 나오다니 천재인듯</CustomText>
-      <CustomText Medium>세상에 이런 폰트가 나오다니 천재인듯</CustomText>
-      <Text>세상에 이런 폰트가 나오다니 천재인듯</Text>
+      <Checkbox size={50} />
+      <ToggleSwitch />
+      <Button text={'로그인'} />
+      <TextField placeholder={'로그인'} />
+      <InputField placeholder={'인증번호'} />
+      <ArrowButton rotateDeg={45} />
     </View>
   );
 }
