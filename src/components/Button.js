@@ -1,34 +1,39 @@
 import { View, Pressable, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
+import { colors } from '../styles/colors';
 
-function Button({ text, style, onPress }) {
+function Button({ text, style, onPress, disable = false }) {
   return (
-    <View style={styles.container}>
-      <Pressable style={[styles.button, style]} onPress={onPress}>
-        <Text style={styles.buttonText}>{text}</Text>
-      </Pressable>
-    </View>
+    <Pressable
+      style={[
+        styles.button,
+        style,
+        !disable
+          ? { backgroundColor: colors.primary[700] }
+          : { backgroundColor: colors.primary[400] },
+      ]}
+      onPress={onPress}
+    >
+      <Text style={styles.buttonText}>{text}</Text>
+    </Pressable>
   );
 }
 
 Button.propTypes = {
   text: PropTypes.string.isRequired,
   style: PropTypes.object,
-  onPress: PropTypes.func.isRequired,
+  onPress: PropTypes.func,
+  disable: PropTypes.bool,
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   button: {
-    width: 332,
-    height: 60,
     borderRadius: 10,
     backgroundColor: '#769FFF',
     justifyContent: 'center',
     alignItems: 'center',
+    width: '80%',
+    paddingVertical: 20,
   },
   buttonText: {
     fontFamily: 'Pretendard-SemiBold',

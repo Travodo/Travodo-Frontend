@@ -2,11 +2,14 @@ import { View, TextInput, StyleSheet } from 'react-native';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
-function InputField({ style, placeholder }) {
+function InputField({ style, placeholder, onChangeText }) {
   return (
-    <View style={styles.container}>
-      <TextInput style={[styles.input, style]} placeholder={placeholder} />
-    </View>
+    <TextInput
+      style={[styles.input, style]}
+      placeholder={placeholder}
+      placeholderTextColor={colors.grayscale[500]}
+      onChangeText={onChangeText}
+    />
   );
 }
 
@@ -16,20 +19,16 @@ InputField.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   input: {
     fontFamily: 'Pretendard-Regular',
     fontSize: 12,
     borderWidth: 1,
     borderRadius: 6,
     width: 247,
-    height: 50,
-    borderColor: '#EAEAEA',
-    padding: 10,
+    borderColor: colors.grayscale[300],
     textAlign: 'center',
+    color: '#000',
+    padding: 10,
   },
 });
 

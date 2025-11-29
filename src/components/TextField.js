@@ -22,22 +22,15 @@ TextField.propTypes = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   input: {
     width: 332,
-    height: 52,
     borderRadius: 8,
-    borderColor: colors.grayscale[100],
+    borderColor: colors.grayscale[200],
     fontFamily: 'Pretendard-Regular',
-    backgroundColor: '#fff',
     borderWidth: 1,
     paddingLeft: 20,
     fontSize: 12,
-    paddingTop: 12,
-    paddingBottom: 12,
+    paddingVertical: 15,
   },
 });
 

@@ -1,8 +1,9 @@
 import { View, Pressable, Animated, StyleSheet } from 'react-native';
 import { useRef, useState } from 'react';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
-function ToggleSwitch() {
+function ToggleSwitch({ onPress }) {
   const [isToggled, setIsToggled] = useState(false);
   const toggleAnim = useRef(new Animated.Value(0)).current;
 
@@ -29,7 +30,14 @@ function ToggleSwitch() {
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={Togglepress}>
+      <Pressable
+        onPress={() => {
+          Togglepress();
+          if (onPress) {
+            onPress();
+          }
+        }}
+      >
         <Animated.View style={[styles.togglebackground, { backgroundColor }]}>
           <Animated.View style={[styles.circle, { transform: [{ translateX: circlePosition }] }]} />
         </Animated.View>
@@ -37,6 +45,10 @@ function ToggleSwitch() {
     </View>
   );
 }
+
+ToggleSwitch.propTypes = {
+  onPress: PropTypes.func,
+};
 
 const styles = StyleSheet.create({
   container: {

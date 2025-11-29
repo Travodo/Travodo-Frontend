@@ -7,6 +7,7 @@ import Button from './components/Button';
 import TextField from './components/TextField';
 import InputField from './components/InputField';
 import ArrowButton from './components/ArrowButton';
+import ListItem from './components/ListItem';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -23,11 +24,14 @@ function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
       <Checkbox size={50} />
-      <ToggleSwitch />
+      <ToggleSwitch onPress={() => console.log('click')} />
       <Button text={'로그인'} />
       <TextField placeholder={'로그인'} />
       <InputField placeholder={'인증번호'} />
       <ArrowButton rotateDeg={45} />
+      <ListItem text={'asdasdasd'} />
+      <ListItem text={'asdasdasd'} toggleDisable={true} />
+      <ListItem text={'asdasdasd'} arrowDisable={true} />
     </View>
   );
 }
