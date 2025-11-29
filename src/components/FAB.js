@@ -22,7 +22,7 @@ export default function FAB({ icon = "add", onPress }) {
 
     const rotateInterpolate = rotation.interpolate({
         inputRange: [0,1],
-        outputRange: ["315deg", "0deg"]
+        outputRange: ["0deg", "315deg"]
     });
 
     const animatedStyle = {
