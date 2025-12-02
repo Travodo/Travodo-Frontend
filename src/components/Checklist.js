@@ -2,35 +2,51 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Checkbox from './Checkbox';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
-export default function ChecklistItem({ content, name }) {
+export default function ChecklistItem({ 
+  content, 
+  name, 
+  checkboxSize=24,
+  nameBackground="#769FFF", 
+  borderRadius=20, 
+  paddingVertical=8, 
+  paddingHorizontal=12 }) {
   const [isChecked, setIsChecked] = useState(false);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingVertical, paddingHorizontal }, ]}>
       <View style={styles.left}>
         <Pressable onPress={() => setIsChecked(!isChecked)}>
-          <Checkbox size={24} />
+          <Checkbox size={checkboxSize} />
         </Pressable>
         <Text style={[styles.text, isChecked && styles.checkedText]}>
           {content}
         </Text>
       </View>
 
-      <View style={styles.nameBox}>
+      <View style={[styles.nameBox, { backgroundColor: nameBackground, borderRadius }, ]}>
         <Text style={styles.nameText}>{name}</Text>
       </View>
     </View>
   );
 }
 
+ChecklistItem.propTypes = {
+  content: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  checkboxSize: PropTypes.number,
+  nameBackground: PropTypes.string,
+  borderRadius: PropTypes.number,
+  paddingVertical: PropTypes.number,
+  paddingHorizontal: PropTypes.number,
+};
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
-    paddingHorizontal: 12
   },
 
   left: {
