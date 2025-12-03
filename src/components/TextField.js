@@ -8,7 +8,7 @@ function TextField({ style, placeholder, onChangeText }) {
       <TextInput
         style={[styles.input, style]}
         placeholder={placeholder}
-        placeholderTextColor={'#B9B9B9'}
+        placeholderTextColor={colors.grayscale[500]}
         onChangeText={onChangeText}
       />
     </View>

@@ -2,7 +2,7 @@ import { View, Pressable, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../styles/colors';
 
-function Button({ text, style, onPress, disable = false }) {
+function Button({ text, style, onPress, disable = false, textStyle }) {
   return (
     <Pressable
       style={[
@@ -10,11 +10,11 @@ function Button({ text, style, onPress, disable = false }) {
         style,
         !disable
           ? { backgroundColor: colors.primary[700] }
-          : { backgroundColor: colors.primary[400] },
+          : { backgroundColor: colors.grayscale[400] },
       ]}
       onPress={onPress}
     >
-      <Text style={styles.buttonText}>{text}</Text>
+      <Text style={[styles.buttonText, textStyle]}>{text}</Text>
     </Pressable>
   );
 }
@@ -24,6 +24,7 @@ Button.propTypes = {
   style: PropTypes.object,
   onPress: PropTypes.func,
   disable: PropTypes.bool,
+  textStyle: PropTypes.object,
 };
 
 const styles = StyleSheet.create({
