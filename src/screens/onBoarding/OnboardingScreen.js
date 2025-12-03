@@ -1,31 +1,37 @@
 import React, { useRef, useState } from "react";
-import { View, FlatList, Animated, Dimensions, Text, Pressable } from "react-native";
-import SlideItem from "./SlideItem";
+import { View, FlatList, Animated, Dimensions } from "react-native";
+import SlideItem from "../../components/SlideItem";
 import { SafeAreaView } from "react-native-safe-area-context";
 import styles from "./styles";
 import Button from "../../components/Button";
+
+import TravodoLogo from "../../../assets/onBoardingImage/travodo_logo.svg";
+import OnBoarding1 from "../../../assets/onBoardingImage/onBoarding1.svg";
+import OnBoarding2 from "../../../assets/onBoardingImage/onBoarding2.svg";
+import OnBoarding3 from "../../../assets/onBoardingImage/onBoarding3.svg";
+import OnBoarding4 from "../../../assets/onBoardingImage/onBoarding4.svg";
 
 const { width } = Dimensions.get("window");
 
 const slides = [
   {
     id: "1",
-    imageTop: require("../../../assets/onBoardingImage/travodo_logo.png"),
-    imageMain: require("../../../assets/onBoardingImage/onBoarding1.jpg"),
+    imageTop: TravodoLogo,
+    imageMain: OnBoarding1
   },
   {
     id: "2",
-    imageTop: require("../../../assets/onBoardingImage/onBoarding2.jpg"),
+    imageTop: OnBoarding2,
     description: "Travodo와 함께라면, \n짐 싸는 설렘만 남아요!",
   },
   {
     id: "3",
-    imageTop: require("../../../assets/onBoardingImage/onBoarding3.jpg"),
+    imageTop: OnBoarding3,
     description: "흩어져도 괜찮아요, \n동행자와 연결된 여행!",
   },
   {
     id: "4",
-    imageTop: require("../../../assets/onBoardingImage/onBoarding4.jpg"),
+    imageTop: OnBoarding4,
     description: "여행 계획을 공유하고, \n수많은 꿀팁을 가져오세요!",
   },
 ];

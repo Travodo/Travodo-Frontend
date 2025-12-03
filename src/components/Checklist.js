@@ -8,24 +8,25 @@ export default function ChecklistItem({
   content, 
   name, 
   checkboxSize=24,
-  nameBackground="#769FFF", 
-  borderRadius=20, 
-  paddingVertical=8, 
-  paddingHorizontal=12 }) {
+  containerStyle,
+  nameBoxStyle,
+  textStyle
+}) {
   const [isChecked, setIsChecked] = useState(false);
 
   return (
-    <View style={[styles.container, { paddingVertical, paddingHorizontal }, ]}>
+    <View style={[styles.container, containerStyle]}>
       <View style={styles.left}>
         <Pressable onPress={() => setIsChecked(!isChecked)}>
           <Checkbox size={checkboxSize} />
         </Pressable>
-        <Text style={[styles.text, isChecked && styles.checkedText]}>
+
+        <Text style={[styles.text, textStyle, isChecked && styles.checkedText]}>
           {content}
         </Text>
       </View>
 
-      <View style={[styles.nameBox, { backgroundColor: nameBackground, borderRadius }, ]}>
+      <View style={[styles.nameBox, nameBoxStyle ]}>
         <Text style={styles.nameText}>{name}</Text>
       </View>
     </View>
@@ -36,10 +37,9 @@ ChecklistItem.propTypes = {
   content: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   checkboxSize: PropTypes.number,
-  nameBackground: PropTypes.string,
-  borderRadius: PropTypes.number,
-  paddingVertical: PropTypes.number,
-  paddingHorizontal: PropTypes.number,
+  containerStyle: PropTypes.object,
+  nameBoxStyle: PropTypes.object,
+  textStyle: PropTypes.object
 };
 
 const styles = StyleSheet.create({
