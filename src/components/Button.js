@@ -29,17 +29,20 @@ Button.propTypes = {
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: '#769FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 330,
+    width: 340,
+    height: 55,
     paddingVertical: 20,
+    marginBottom: 40
   },
+
   buttonText: {
     fontFamily: 'Pretendard-SemiBold',
     fontSize: 16,
-    color: '#fff',
+    color: colors.grayscale[100],
   },
 });
 
