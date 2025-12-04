@@ -33,10 +33,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#769FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 340,
-    height: 55,
+    width: 330,
     paddingVertical: 20,
-    marginBottom: 40
+    marginBottom: 40,
   },
 
   buttonText: {
