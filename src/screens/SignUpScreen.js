@@ -1,14 +1,15 @@
 import { View, StyleSheet, Text } from 'react-native';
+import { useEffect } from 'react';
 import SignInScreen from './SignInScreen';
 import TextField from '../components/TextField';
 import { colors } from '../styles/colors';
 import Button from '../components/Button';
 import KakaoLoginButton from '../components/KakaoLoginButton';
 
-function SignUpScreen() {
+function SignUpScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <View style={{ gap: 28 }}>
+      <View style={{ gap: 52 }}>
         <View>
           <Text style={styles.title}>닉네임</Text>
           <View style={styles.rowContainer}>
@@ -37,26 +38,25 @@ function SignUpScreen() {
               onPress={() => console.log('인증요청')}
             />
           </View>
+          <View style={styles.rowContainer}>
+            <TextField
+              placeholder={'인증코드 6자리를 입력해주세요.'}
+              style={[styles.shortInput, { marginBottom: 4 }]}
+            />
+            <Button
+              text={'확인'}
+              style={styles.shortButton}
+              textStyle={styles.shortButtonText}
+              disable={true}
+              onPress={() => console.log('확인')}
+            />
+          </View>
         </View>
       </View>
-      <View style={styles.rowContainer}>
-        <TextField
-          placeholder={'인증코드 6자리를 입력해주세요.'}
-          style={[styles.shortInput, { marginBottom: 4 }]}
-        />
-        <Button
-          text={'확인'}
-          style={styles.shortButton}
-          textStyle={styles.shortButtonText}
-          disable={true}
-          onPress={() => console.log('확인')}
-        />
-      </View>
-
       <Button
         text={'가입하기'}
         style={styles.signUpButton}
-        onPress={() => console.log('가입하기')}
+        onPress={() => navigation.replace('Sign In')}
       />
       <View style={styles.anotherLogin}>
         <View style={styles.line} />
@@ -72,6 +72,8 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
+    flex: 1,
   },
   title: {
     color: colors.grayscale[700],

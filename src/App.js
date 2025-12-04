@@ -3,11 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SignInScreen from './screens/SignInScreen';
-import OnboardingScreen from '../src/screens/onBoarding/OnboardingScreen';
-
-const Stack = createNativeStackNavigator();
+import AuthStack from './navigations/AuthStack';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -23,21 +19,8 @@ function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Onboarding"
-          component={OnboardingScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="SignIn"
-          component={SignInScreen}
-          options={{
-            title: '로그인',
-            headerTitleAlign: 'center',
-          }}
-        />
-      </Stack.Navigator>
+      <StatusBar style="auto " />
+      <AuthStack />
     </NavigationContainer>
   );
 }

@@ -1,11 +1,18 @@
 import { View, StyleSheet, Pressable, Text, Image } from 'react-native';
+import { useEffect } from 'react';
 import Logo from '../../assets/Logo/TravodoLogo.svg';
 import TextField from '../components/TextField';
 import { colors } from '../styles/colors';
 import Button from '../components/Button';
 import KakaoLoginButton from '../components/KakaoLoginButton';
 
-function SignInScreen() {
+function SignInScreen({ navigation }) {
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  });
+
   return (
     <View style={styles.container}>
       <View>
@@ -28,7 +35,7 @@ function SignInScreen() {
         >
           계정이 없으신가요?
         </Text>
-        <Pressable onPress={() => console.log('회원가입')}>
+        <Pressable onPress={() => navigation.push('Sign Up')}>
           <Text
             style={{ fontFamily: 'Pretendard-SemiBold', fontSize: 12, color: colors.primary[700] }}
           >
@@ -51,6 +58,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#fff',
   },
   buttonContainer: {
     flexDirection: 'row',

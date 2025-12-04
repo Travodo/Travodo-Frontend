@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, FlatList, Animated, Dimensions } from 'react-native';
 import SlideItem from '../../components/SlideItem';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,6 +41,12 @@ export default function OnboardingScreen({ navigation }) {
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  });
+
   const handleScroll = (event) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / width);
     setCurrentIndex(index);
@@ -50,7 +56,7 @@ export default function OnboardingScreen({ navigation }) {
     if (currentIndex < slides.length - 1) {
       flatListRef.current.scrollToIndex({ index: currentIndex + 1, animated: true });
     } else {
-      navigation.replace('SignIn');
+      navigation.replace('Sign In');
     }
   };
 
