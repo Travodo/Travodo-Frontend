@@ -1,9 +1,7 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text } from 'react-native';
 import { useFonts } from 'expo-font';
-import { NavigationContainer } from '@react-navigation/native';
-import AuthStack from './navigations/AuthStack';
+import RootNavigaton from './navigations/RootNavigation'; 
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -18,21 +16,11 @@ function App() {
   }
 
   return (
-    <NavigationContainer>
-      <StatusBar style="auto " />
-      <AuthStack />
-    </NavigationContainer>
+    <>
+      <StatusBar style="auto" />
+      <RootNavigaton />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'blue',
-  },
-});
 
 export default App;

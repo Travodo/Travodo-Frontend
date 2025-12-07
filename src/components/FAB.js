@@ -1,13 +1,13 @@
-import React from "react";
-import { TouchableOpacity, StyleSheet, Animated } from "react-native";
+import React, { useRef, useState } from "react";
+import { Text, TouchableOpacity, StyleSheet, Animated, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRef, useState } from "react";
 import { colors } from "../styles/colors";
 import PropTypes from "prop-types";
 
 export default function FAB({ 
     icon = "add", 
-    onPress,
+    onCreatePress,
+    onJoinPress,
     size=56,
     borderRadius=28,
     bottom=20,
@@ -26,8 +26,6 @@ export default function FAB({
         }).start();
 
         setToggled(!toggled);
-
-        if (onPress) onPress();
     };
 
     const rotateInterpolate = rotation.interpolate({
@@ -35,23 +33,69 @@ export default function FAB({
         outputRange: ["0deg", "315deg"]
     });
 
+    const createY = rotation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -22],
+    });
+
+    const joinY = rotation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -13],
+    });
+
+    const opacityAnim = rotation.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [0, 0.7, 1],
+    });
+
     const animatedStyle = {
         transform: [{ rotate: rotateInterpolate }],
     };
 
     return (
-        <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.8}>
-            <Animated.View style={animatedStyle}>
-                <MaterialIcons name={icon} size={28} color={colors.grayscale[100]} />
+    <View style={[styles.wrapper, { bottom, right }]}>
+        <Animated.View
+        pointerEvents={toggled ? 'auto' : 'none'}
+        style={[
+            styles.subButttonWrapper,
+            { transform: [{ translateY: createY }], opacity: opacityAnim },
+        ]}>
+            <TouchableOpacity style={styles.subButton} onPress={onCreatePress}>
+                <Text style={styles.subText}>여행 생성</Text>
+            </TouchableOpacity>
+        </Animated.View>
+        
+        <Animated.View
+        pointerEvents={toggled ? 'auto' : 'none'}
+        style={[
+            styles.subButttonWrapper,
+            { transform: [{ translateY: joinY }], opacity: opacityAnim },
+        ]}>
+            <TouchableOpacity style={styles.subButton} onPress={onJoinPress}>
+                <Text style={styles.subText}>여행 참가</Text>
+            </TouchableOpacity>
+        </Animated.View>
+
+        <TouchableOpacity
+        style={[
+            styles.container,
+            { width: size, height: size, borderRadius, backgroundColor },
+        ]}
+        onPress={handlePress}
+        activeOpacity={0.8}>
+
+            <Animated.View style={[animatedStyle, styles.iconWrapper]}>
+                <MaterialIcons name={icon} size={28} color={iconColor} />
             </Animated.View>
         </TouchableOpacity>
+        </View>
     );
 }
 
-
 FAB.propTypes = {
   icon: PropTypes.string,
-  onPress: PropTypes.func,
+  onCreatePress: PropTypes.func,
+  onJoinPress: PropTypes.func,
   size: PropTypes.number,
   borderRadius: PropTypes.number,
   bottom: PropTypes.number,
@@ -61,20 +105,61 @@ FAB.propTypes = {
 };
 
 const styles = StyleSheet.create({
-    container: {
+    wrapper: {
         position: "absolute",
-        bottom: 10,
-        right: 20,
-        backgroundColor: colors.primary[700],
-        borderRadius: 28,
-        width: 56,
-        height: 56,
-        alignItems: "center",
-        elevation: 6,
-        shadowColor: colors.grayscale[1000],
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 3 },
-        shadowRadius: 3,
-        justifyContent: 'center'
+        alignItems: "flex-end",
+        bottom: 20,
+        width: 250,
     },
+
+    iconWrapper: {
+        position: "absolute",
+        alignItems: "center",
+        justifyContent: "center",
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+    },
+
+    container: {
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 6,
+    shadowColor: colors.grayscale[1000],
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 3,
+  },
+
+  subButtonWrapper: {
+    position: "absolute",
+    alignItems: "flex-end",
+    justifyContent: "center",
+    zIndex: -1,
+  },
+
+  subButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.grayscale[100],
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 17,
+    minWidth: 70,
+    marginBottom: 5,
+    elevation: 4,
+    shadowColor: colors.grayscale[1000],
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+  },
+
+  subText: {
+    color: colors.grayscale[800],
+    fontSize: 16,
+    fontFamily: 'Pretendard-SemiBold',
+    textAlign: "center"
+  },
 });
