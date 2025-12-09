@@ -4,19 +4,12 @@ import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
-
-const calculateDday = (startDate) => {
-    const today = new Date();
-    const start = new Date(startDate.replace(/\./g, '-'));
-
-    const diffTime = start - today;
-    const diffDays = Math.ceil(diffTime / (1000*60*60*24));
-    return diffDays;
-};
+import Header from '../../components/Header';
 
 export default function HomeScreen({ navigation }) {
     return (
         <View style={styles.container}>
+            <Header title="Travodo" />
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 <Text style={styles.headerText}>나의 캘린더</Text>
@@ -30,18 +23,18 @@ export default function HomeScreen({ navigation }) {
 
                     <TripCard trip={{
                         title: '일본 오사카',
-                        dDay: calculateDday('2026.09.03'),
-                        startDate: '2026.09.03',
-                        endDate: '2026.09.05',
+                        dDay: 3,
+                        startDate: '2025.09.03',
+                        endDate: '2025.09.05',
                         color: '#3C74D4'
                     }}
                     />
                     <TripCard
                     trip={{
                         title: '강릉',
-                        dDay: calculateDday('2026.09.26'),
-                        startDate: '2026.09.26',
-                        endDate: '2026.09.27',
+                        dDay: 26,
+                        startDate: '2025.09.26',
+                        endDate: '2025.09.27',
                         color: '#FFE386'
                     }}
                     />

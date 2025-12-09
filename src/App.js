@@ -1,7 +1,7 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import SettingsScreen from './screens/Setting/SettingsScreen';
+import RootNavigaton from './navigations/RootNavigation'; 
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -18,7 +18,7 @@ function App() {
   return (
     <>
       <StatusBar style="auto" />
-      <SettingsScreen />
+      <RootNavigaton />
     </>
   );
 }
