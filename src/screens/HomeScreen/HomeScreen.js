@@ -4,12 +4,10 @@ import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
-import Header from '../../components/Header';
 
 export default function HomeScreen({ navigation }) {
     return (
         <View style={styles.container}>
-            <Header title="Travodo" />
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 <Text style={styles.headerText}>나의 캘린더</Text>
