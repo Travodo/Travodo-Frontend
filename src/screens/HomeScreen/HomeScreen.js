@@ -4,6 +4,7 @@ import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
+import { upcomingTrips } from './TripList';
 
 export default function HomeScreen({ navigation }) {
     return (
@@ -19,23 +20,9 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.sectionTitle}>다가오는 여행</Text>
                     <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>
 
-                    <TripCard trip={{
-                        title: '일본 오사카',
-                        dDay: 3,
-                        startDate: '2025.09.03',
-                        endDate: '2025.09.05',
-                        color: '#3C74D4'
-                    }}
-                    />
-                    <TripCard
-                    trip={{
-                        title: '강릉',
-                        dDay: 26,
-                        startDate: '2025.09.26',
-                        endDate: '2025.09.27',
-                        color: '#FFE386'
-                    }}
-                    />
+                    {upcomingTrips.map((trip, i) => (
+                        <TripCard key={i} trip={trip} />
+                    ))}
                 </View>
             </ScrollView>
 
