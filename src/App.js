@@ -1,7 +1,7 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import LogoutScreen from './screens/Setting/LogoutScreen';
+import ProfileScreen from './screens/Setting/LogoutScreen';
 
 export default function App() {
 
@@ -19,7 +19,7 @@ export default function App() {
   return (
     <>
       <StatusBar style="auto" />
-      <LogoutScreen />
+      <ProfileScreen />
     </>
   );
 }

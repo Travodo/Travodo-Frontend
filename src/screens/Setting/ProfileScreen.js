@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, StyleSheet, Image } from 'react-native';
+import { Alert, View, Text, TouchableOpacity, ScrollView, SafeAreaView, StyleSheet, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
 
 export default function ProfileScreen() {
+
+    const Logout = () => {
+        Alert.alert(
+            "로그아웃 하시겠습니까?",
+            "",
+            [
+                { text: "취소", style : "cancel"},
+                { text: "확인", onPress: () => console.log("로그아웃 처리 실행")}
+            ],
+            { cancelable: true }
+        );
+    };
+
     return (
         <SafeAreaView style={styles.container}>
         <ScrollView style={styles.container}>
@@ -26,7 +39,7 @@ export default function ProfileScreen() {
                 <InfoRow label="성별" value="남성" />
                 <InfoRow label="연락처" value="+821012345678" />
 
-                <TouchableOpacity>
+                <TouchableOpacity onPress={Logout}>
                     <Text style={styles.link}>로그아웃</Text>
                 </TouchableOpacity>
 
