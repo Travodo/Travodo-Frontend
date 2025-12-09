@@ -1,7 +1,7 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import ProfileScreen from './screens/Setting/LogoutScreen';
+import LasttripScreen from './screens/Setting/LasttripScreen';
 
 export default function App() {
 
@@ -19,7 +19,7 @@ export default function App() {
   return (
     <>
       <StatusBar style="auto" />
-      <ProfileScreen />
+      <LasttripScreen />
     </>
   );
 }

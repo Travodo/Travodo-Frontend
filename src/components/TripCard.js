@@ -3,13 +3,27 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors } from "../styles/colors";
 
 export default function TripCard({ trip }) {
-    const renderDDay = () => (trip.dDay === 0 ? '오늘!' : `D-${trip.dDay}`);
+    const renderStatusText = () => {
+        if (trip.dDay !== undefined && trip.dDay !== null) {
+        return trip.dDay === 0 ? '오늘!' : `D-${trip.dDay}`;
+        }
+
+        if (trip.startDate) {
+            return null;
+        }
+    };
+
+    const statusText = renderStatusText();
 
     return (
         <View style={[styles.card, { borderLeftColor: trip.color }]} >
             <Text style={styles.title}>{trip.title}</Text>
-            <Text style={styles.dDay}>{renderDDay()}</Text>
-            <Text style={styles.date}>{trip.startDate} - {trip.endDate}</Text>
+
+            {statusText && <Text style={styles.dDay}>{statusText}</Text>}
+
+        <Text style={styles.date}>
+            {trip.startDate} - {trip.endDate}
+        </Text>
         </View>
     );
 }
@@ -17,11 +31,11 @@ export default function TripCard({ trip }) {
 const styles = StyleSheet.create({
     card: {
         backgroundColor: colors.grayscale[200],
-        borderRadius: 10,
+        borderRadius: 13,
         borderLeftWidth: 6,
         paddingLeft: 16,
-        paddingVertical: 13,
-        marginBottom: 15,
+        paddingVertical: 16,
+        marginBottom: 17,
         shadowColor: colors.grayscale[1000],
         shadowOpacity: 0.05,
         shadowOffset: { width: 0, height: 2 },
@@ -30,5 +44,5 @@ const styles = StyleSheet.create({
 
     title: { fontSize: 16, fontWeight: '600', fontFamily: 'Pretendard-Medium', },
     dDay: { fontSize: 15, color: '#769FFF', marginVertical: 2 },
-    date: { fontSize: 13, color: colors.grayscale[700] }
+    date: { fontSize: 13, color: colors.grayscale[700], marginVertical: 4 }
 });
