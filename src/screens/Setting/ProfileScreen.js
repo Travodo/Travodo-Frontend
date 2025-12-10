@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
 
-export default function ProfileScreen() {
+function ProfileScreen() {
 
     const Logout = () => {
         Alert.alert(
@@ -60,6 +60,8 @@ const InfoRow = ({ label, value }) => (
         </View>
     </View>
 );
+
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
     container: {

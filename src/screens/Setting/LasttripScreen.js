@@ -9,7 +9,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const scale = SCREEN_WIDTH / 375;
 const normalize = (size) => Math.round(size * scale);
 
-export default function LasttripScreen() {
+function LasttripScreen() {
   const [sortOrder, setSortOrder] = useState('latest');
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -80,6 +80,8 @@ export default function LasttripScreen() {
     </SafeAreaView>
   );
 }
+
+export default LasttripScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.grayscale[100] },

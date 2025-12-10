@@ -4,7 +4,7 @@ import ToggleSwitch from '../../components/ToggleSwitch';
 import { colors } from '../../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const SettingItem = ({ label, type, value, onToggle, onPress }) => {
+function SettingItem ({ label, type, value, onToggle, onPress }) {
     return (
         <TouchableOpacity
         style={styles.itemContainer}
@@ -21,7 +21,9 @@ const SettingItem = ({ label, type, value, onToggle, onPress }) => {
         )}
         </TouchableOpacity>
     );
-};
+}
+
+export default SettingItem;
 
 const styles = StyleSheet.create({
     itemContainer: {
@@ -45,5 +47,3 @@ const styles = StyleSheet.create({
         color: colors.grayscale[1000],
     },
 });
-
-export default SettingItem;

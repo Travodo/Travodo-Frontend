@@ -3,7 +3,7 @@ import { View, Text, ScrollView, SafeAreaView, StyleSheet } from 'react-native';
 import SettingItem from './SettingItem';
 import { colors } from '../../styles/colors';
 
-export default function SettingsScreen({ navigation }) {
+function SettingsScreen({ navigation }) {
     const [dDayAlarm, setDdayAlarm] = useState(true);
     const [updateAlarm, setUpdateAlarm] = useState(false);
     const [adAlarm, setAdAlarm] = useState(false);
@@ -32,6 +32,8 @@ export default function SettingsScreen({ navigation }) {
         </SafeAreaView>
     );
 }
+
+export default SettingsScreen;
 
 const styles = StyleSheet.create({
     container: {
