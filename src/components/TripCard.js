@@ -1,12 +1,5 @@
 import React, { useState, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Dimensions,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from "react-native";
 import { colors } from "../styles/colors";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -125,7 +118,8 @@ export default function TripCard({ trip }) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: normalize(20) },
+
+  wrapper: { marginTop: normalize(10), marginBottom: normalize(5) },
 
   card: {
     backgroundColor: colors.grayscale[200],

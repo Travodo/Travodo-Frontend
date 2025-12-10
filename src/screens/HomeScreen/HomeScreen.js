@@ -1,12 +1,20 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
-import { upcomingTrips } from './TripList';
+import { upcomingTrips as dummyTrips } from '../../data/TripList';
 
 export default function HomeScreen({ navigation }) {
+    const [trips, setTrips] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setTrips(dummyTrips);
+        setLoading(false);
+    }, []);
+
     return (
         <View style={styles.container}>
 
@@ -20,9 +28,14 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.sectionTitle}>다가오는 여행</Text>
                     <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>
 
-                    {upcomingTrips.map((trip, i) => (
-                        <TripCard key={i} trip={trip} />
-                    ))}
+
+                    { loading ? (
+                        <ActivityIndicator size="large" color={colors.primary[700]} />
+                    ) : (
+                        trips.map((trip) => (
+                            <TripCard key={trip.id} trip={trip} />
+                        ))
+                    )}
                 </View>
             </ScrollView>
 
@@ -37,7 +50,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.grayscale[100],
-        paddingHorizontal: 20
+        paddingHorizontal: 20,
     },
 
     headerText: {
