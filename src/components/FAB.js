@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     wrapper: {
         position: "absolute",
         alignItems: "flex-end",
-        bottom: 20,
+        bottom: 30,
         width: 250,
     },
 
