@@ -6,12 +6,28 @@ import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
 import { upcomingTrips as dummyTrips } from '../../data/TripList';
 
-export default function HomeScreen({ navigation }) {
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const scale = SCREEN_WIDTH / 375;
+const normalize = (size) => Math.round(size * scale);
+
+function HomeScreen({ navigation }) {
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const calculateDday = (startDate) => {
+        const today = new Date();
+        const start = new Date(startDate.replace(/\./g, '-'));
+        const diffTime = start - today;
+        const diffDays = Math.ceil(diffTime / (1000*60*60*24));
+        return diffDays;
+    };
+
     useEffect(() => {
-        setTrips(dummyTrips);
+        const updatedTrips = dummyTrips.map((trip) => ({
+            ...trip,
+            dDay: calculateDday(trip.startDate),
+        }));
+        setTrips(updatedTrips);
         setLoading(false);
     }, []);
 
@@ -45,40 +61,41 @@ export default function HomeScreen({ navigation }) {
     );
 }
 
+export default HomeScreen;
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.grayscale[100],
-        paddingHorizontal: 20,
+        paddingHorizontal: normalize(20),
     },
 
     headerText: {
         fontFamily: 'Pretendard-SemiBold',
-        fontSize: 20,
-        marginTop: 24
+        fontSize: normalize(20),
+        marginTop: normalize(24),
     },
 
     subText: {
         fontFamily: 'Pretendard-Regular',
-        fontSize: 15,
+        fontSize: normalize(15),
         color: colors.grayscale[700],
-        marginBottom: 12
+        marginBottom: normalize(12),
     },
 
     section: {
-        marginTop: 40
+        marginTop: normalize(40),
     },
 
     sectionTitle: {
         fontFamily: 'Pretendard-SemiBold',
-        fontSize: 18,
-        fontWeight: '600'
+        fontSize: normalize(18),
     },
     
     sectionSub: {
         fontFamily: 'Pretendard-Regular',
-        fontSize: 14,
+        fontSize: normalize(14),
         color: colors.grayscale[700],
-        marginBottom: 12
+        marginBottom: normalize(12),
     },
 });
