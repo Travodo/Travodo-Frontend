@@ -1,7 +1,12 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
+import TravelCompleteScreen from './screens/HomeScreen/TravelCompleteScreen';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -16,9 +21,12 @@ export default function App() {
   }
 
   return (
-    <>
+    <NavigationContainer>
       <StatusBar style="auto" />
-      <TravelCreateScreen />
-    </>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
+        <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }

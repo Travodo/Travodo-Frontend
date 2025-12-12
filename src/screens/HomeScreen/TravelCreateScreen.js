@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import Button from '../../components/Button';
@@ -22,7 +24,7 @@ const initialTripData = {
   period: '',
   destination: '',
   name: '',
-  memberCount: '',
+  companions: '',
 };
 
 function TravelCreateScreen({ navigation }) {
@@ -32,6 +34,7 @@ function TravelCreateScreen({ navigation }) {
   const [tripData, setTripData] = useState(initialTripData);
 
   const handleConfirm = (date) => {
+    console.log('선택된 날짜:', date);
     if (visiblePicker === 'start') setStartDate(date);
     if (visiblePicker === 'end') setEndDate(date);
     setVisiblePicker(null);
@@ -51,7 +54,16 @@ function TravelCreateScreen({ navigation }) {
   };
 
   const handleCreateTrip = () => {
-    console.log('여행 생성 데이터:', tripData);
+    const newTripData = {
+      destination: tripData.destination,
+      name: tripData.name,
+      startDate: startDate,
+      endDate: endDate,
+      code: Math.floor(10000 + Math.random() * 90000).toString(),
+    };
+
+    console.log('여행 생성 데이터:', newTripData);
+    navigation.navigate('TravelComplete', { tripData: newTripData });
   };
 
   const renderFormInput = (label, value, field, placeholder, keyboardType = 'default') => (
@@ -62,6 +74,7 @@ function TravelCreateScreen({ navigation }) {
           <TouchableOpacity
             style={[styles.inputTouchable, { flex: 1 }]}
             onPress={() => {
+              console.log('시작 날짜 버튼 클릭');
               Keyboard.dismiss();
               setVisiblePicker('start');
             }}
@@ -69,16 +82,17 @@ function TravelCreateScreen({ navigation }) {
           >
             <View style={styles.dateButtonInner}>
               <Text style={[styles.dateText, !startDate && styles.placeholderText]}>
-                {startDate || '시작 날짜를 선택해주세요'}
+                {startDate || '시작 날짜 선택'}
               </Text>
             </View>
           </TouchableOpacity>
 
-          <Text style={styles.hyphen}> - </Text>
+          <Text style={styles.hyphen}>-</Text>
 
           <TouchableOpacity
             style={[styles.inputTouchable, { flex: 1 }]}
             onPress={() => {
+              console.log('종료 날짜 버튼 클릭');
               Keyboard.dismiss();
               setVisiblePicker('end');
             }}
@@ -86,7 +100,7 @@ function TravelCreateScreen({ navigation }) {
           >
             <View style={styles.dateButtonInner}>
               <Text style={[styles.dateText, !endDate && styles.placeholderText]}>
-                {endDate || '종료 날짜를 선택해주세요'}
+                {endDate || '종료 날짜 선택'}
               </Text>
             </View>
           </TouchableOpacity>
@@ -104,29 +118,39 @@ function TravelCreateScreen({ navigation }) {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: normalize(40) }}>
-      <Text style={styles.title}>여행 생성</Text>
-      <Text style={styles.subtitle}>새로운 곳으로 여행을 떠나보세요!</Text>
-      <View style={styles.calendarWrapper}>
-        <CalendarView selectedRange={{ start: startDate, end: endDate }} />
-      </View>
-      <View style={styles.form}>
-        {renderFormInput('여행 기간', tripData.period, 'period', '날짜를 선택해주세요')}
-        {renderFormInput('여행지', tripData.destination, 'destination', '예) 서울, 제주')}
-        {renderFormInput('여행 이름', tripData.name, 'name', '예) 가족 여행, 친구들과의 여행')}
-        {renderFormInput('여행 인원', tripData.memberCount, 'memberCount', '인원 수', 'numeric')}
-      </View>
-      <Button text="여행 생성하기" onPress={handleCreateTrip} />
-      {visiblePicker && (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: normalize(40) }}>
+        <Text style={styles.title}>여행 생성</Text>
+        <Text style={styles.subtitle}>새로운 곳으로 여행을 떠나보세요!</Text>
+
+        <View style={styles.calendarWrapper}>
+          <CalendarView selectedRange={{ start: startDate, end: endDate }} />
+        </View>
+
+        <View style={styles.form}>
+          {renderFormInput('여행 기간', tripData.period, 'period', '날짜를 선택해주세요')}
+          {renderFormInput('여행지', tripData.destination, 'destination', '예) 서울, 제주')}
+          {renderFormInput('여행 이름', tripData.name, 'name', '예) 가족 여행, 친구들과의 여행')}
+          {renderFormInput('동행자', tripData.companions, 'companions', '쉼표(,)로 구분해 입력')}
+        </View>
+
+        <Button text="여행 생성하기" onPress={handleCreateTrip} />
+
         <DatePickerModal
-          isVisible={true}
+          isVisible={visiblePicker !== null}
           mode={visiblePicker}
           onConfirm={handleConfirm}
-          onCancel={() => setVisiblePicker(null)}
+          onCancel={() => {
+            console.log('취소됨');
+            setVisiblePicker(null);
+          }}
           initialDate={visiblePicker === 'start' ? startDate : endDate}
         />
-      )}
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -214,5 +238,6 @@ const styles = StyleSheet.create({
   hyphen: {
     fontSize: normalize(20),
     color: colors.grayscale[800],
+    alignSelf: 'center',
   },
 });

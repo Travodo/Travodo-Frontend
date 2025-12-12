@@ -32,13 +32,14 @@ const formatDate = (date) => {
 
 export default function DatePickerModal({ isVisible, onConfirm, onCancel, mode, initialDate }) {
   const [date, setDate] = useState(parseDateString(initialDate));
-  const slideAnim = useRef(new Animated.Value(200)).current; // ✅ 여기에 위치!
+  const slideAnim = useRef(new Animated.Value(200)).current;
 
   useEffect(() => {
     if (isVisible) {
+      setDate(parseDateString(initialDate));
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 210,
+        duration: 250,
         useNativeDriver: true,
       }).start();
     } else {
@@ -48,10 +49,6 @@ export default function DatePickerModal({ isVisible, onConfirm, onCancel, mode, 
         useNativeDriver: true,
       }).start();
     }
-  }, [isVisible]);
-
-  useEffect(() => {
-    if (isVisible) setDate(parseDateString(initialDate));
   }, [isVisible, initialDate]);
 
   const handleDateChange = (event, selectedDate) => {
@@ -63,14 +60,13 @@ export default function DatePickerModal({ isVisible, onConfirm, onCancel, mode, 
   };
 
   return (
-    <Modal visible={isVisible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal visible={isVisible} transparent animationType="none" onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onCancel} />
         <Animated.View style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.modalTitle}>
             {mode === 'start' ? '시작 날짜 선택' : '종료 날짜 선택'}
           </Text>
-
           <View style={styles.pickerContainer}>
             <DateTimePicker
               value={date}
@@ -80,11 +76,7 @@ export default function DatePickerModal({ isVisible, onConfirm, onCancel, mode, 
               style={styles.datePicker}
             />
           </View>
-
-          <TouchableOpacity
-            style={[styles.confirmBtn, { width: normalize(140), alignSelf: 'center' }]}
-            onPress={handleConfirm}
-          >
+          <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
             <Text style={styles.confirmText}>확인</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -97,9 +89,8 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-
   modal: {
     backgroundColor: colors.grayscale[100],
     borderTopLeftRadius: normalize(20),
@@ -107,7 +98,6 @@ const styles = StyleSheet.create({
     paddingVertical: normalize(20),
     paddingHorizontal: normalize(24),
   },
-
   modalTitle: {
     fontSize: normalize(16),
     fontFamily: 'Pretendard-SemiBold',
@@ -115,25 +105,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: normalize(15),
   },
-
   pickerContainer: {
     alignItems: 'center',
     marginBottom: normalize(20),
   },
-
   datePicker: {
     width: '100%',
     height: normalize(180),
   },
-
   confirmBtn: {
     backgroundColor: colors.primary[700],
-    borderRadius: normalize(10),
-    marginBottom: normalize(24),
+    borderRadius: normalize(12),
+    marginTop: normalize(10),
     alignItems: 'center',
     paddingVertical: normalize(14),
+    marginBottom: normalize(8),
   },
-
   confirmText: {
     color: colors.grayscale[100],
     fontFamily: 'Pretendard-SemiBold',

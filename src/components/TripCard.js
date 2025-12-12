@@ -1,15 +1,34 @@
-import React, { useState, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from "react-native";
-import { colors } from "../styles/colors";
-import { MaterialIcons } from "@expo/vector-icons";
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { colors } from '../styles/colors';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const scale = SCREEN_WIDTH / 375;
 const normalize = (size) => Math.round(size * scale);
+
+const calculateDDay = (startDateString) => {
+  if (!startDateString) return null;
+
+  const formattedDate = startDateString.replace(/[.\-]/g, '/');
+  const startDate = new Date(formattedDate);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  startDate.setHours(0, 0, 0, 0);
+
+  const timeDiff = startDate.getTime() - today.getTime();
+  const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+  return dayDiff;
+};
 
 export default function TripCard({ trip }) {
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
+
+  const dDay = calculateDDay(trip.startDate);
 
   const toggleExpand = () => {
     const finalValue = expanded ? 0 : 1;
@@ -32,18 +51,24 @@ export default function TripCard({ trip }) {
   });
 
   const renderDDay = () => {
-    if (trip.dDay !== undefined && trip.dDay !== null) {
-         return (
-             <Text style={styles.dDay}>
-                {trip.dDay === 0 ? '오늘!' : `D-${trip.dDay}`}
-                 </Text>
-                 ); }
-                  return null; 
-                 };
+    if (dDay === null) return null;
+
+    let dDayText;
+    if (dDay > 0) {
+      dDayText = `D-${dDay}`;
+    } else if (dDay === 0) {
+      dDayText = '오늘!';
+    } else {
+      dDayText = `D+${Math.abs(dDay)}`;
+    }
+
+    const dDayStyle = dDay > 0 ? styles.dDay : styles.dDayPassed;
+
+    return <Text style={dDayStyle}>{dDayText}</Text>;
+  };
 
   return (
-    <View style={styles.wrapper }>
-
+    <View style={styles.wrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={toggleExpand}
@@ -54,7 +79,7 @@ export default function TripCard({ trip }) {
           <Text style={styles.title}>{trip.title}</Text>
           {renderDDay()}
           <MaterialIcons
-            name={expanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+            name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
             size={normalize(26)}
             color={colors.grayscale[900]}
           />
@@ -74,7 +99,6 @@ export default function TripCard({ trip }) {
           },
         ]}
       >
-        
         <View style={styles.detailInner}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>여행지 </Text>
@@ -96,7 +120,9 @@ export default function TripCard({ trip }) {
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>동행자 </Text>
             <Text style={styles.detailValue}>
-              {trip.companions.join(", ")}
+              {trip.companions && trip.companions.length > 0
+                ? trip.companions.join(', ')
+                : '동행자 없음'}
             </Text>
           </View>
 
@@ -118,7 +144,6 @@ export default function TripCard({ trip }) {
 }
 
 const styles = StyleSheet.create({
-
   wrapper: { marginTop: normalize(10), marginBottom: normalize(5) },
 
   card: {
@@ -135,9 +160,9 @@ const styles = StyleSheet.create({
   },
 
   headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
   circle: {
@@ -149,7 +174,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: normalize(17),
-    fontFamily: "Pretendard-SemiBold",
+    fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
     flex: 1,
     marginLeft: normalize(6),
@@ -166,11 +191,11 @@ const styles = StyleSheet.create({
     marginTop: normalize(6),
     fontSize: normalize(13),
     color: colors.grayscale[700],
-    fontFamily: "Pretendard-Medium",
+    fontFamily: 'Pretendard-Medium',
   },
 
   detailBox: {
-    overflow: "hidden",
+    overflow: 'hidden',
     borderRadius: normalize(12),
     marginTop: normalize(6),
     backgroundColor: colors.grayscale[100],
@@ -182,13 +207,13 @@ const styles = StyleSheet.create({
   },
 
   detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: normalize(20),
   },
 
   detailLabel: {
-    fontFamily: "Pretendard-SemiBold",
+    fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
     fontSize: normalize(14),
     minWidth: normalize(64),
@@ -197,7 +222,7 @@ const styles = StyleSheet.create({
 
   detailText: {
     marginBottom: normalize(20),
-    fontFamily: "Pretendard-Medium",
+    fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[600],
   },
 
@@ -209,8 +234,8 @@ const styles = StyleSheet.create({
   },
 
   buttonRow: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginTop: normalize(7),
   },
 
@@ -225,7 +250,7 @@ const styles = StyleSheet.create({
 
   shareText: {
     color: colors.grayscale[100],
-    fontFamily: "Pretendard-SemiBold",
+    fontFamily: 'Pretendard-SemiBold',
     fontSize: normalize(14),
   },
 
@@ -240,7 +265,31 @@ const styles = StyleSheet.create({
 
   disabledText: {
     color: colors.grayscale[100],
-    fontFamily: "Pretendard-SemiBold",
+    fontFamily: 'Pretendard-SemiBold',
     fontSize: normalize(14),
+  },
+
+  dDay: {
+    fontSize: normalize(13),
+    fontFamily: 'Pretendard-SemiBold',
+    color: colors.primary[700],
+    backgroundColor: colors.primary[100],
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(6),
+    marginRight: 'auto',
+    marginLeft: normalize(12),
+  },
+
+  dDayPassed: {
+    fontSize: normalize(13),
+    fontFamily: 'Pretendard-SemiBold',
+    color: colors.grayscale[700],
+    backgroundColor: colors.grayscale[200],
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(6),
+    marginRight: 'auto',
+    marginLeft: normalize(12),
   },
 });
