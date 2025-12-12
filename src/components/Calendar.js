@@ -17,7 +17,7 @@ export default function CalendarView({ selectedRange }) {
     let current = new Date(startDate);
     while (current <= endDate) {
       const key = current.toISOString().split('T')[0];
-      temp[key] = { color: '#769FFF', textColor: 'white' };
+      temp[key] = { color: colors.primary[800], textColor: 'white' };
       current.setDate(current.getDate() + 1);
     }
 
@@ -26,13 +26,13 @@ export default function CalendarView({ selectedRange }) {
 
     temp[startKey] = {
       startingDay: true,
-      color: '#769FFF',
+      color: colors.primary[800],
       textColor: colors.grayscale[100],
     };
 
     temp[endKey] = {
       endingDay: true,
-      color: '#769FFF',
+      color: colors.primary[800],
       textColor: colors.grayscale[100],
     };
 
@@ -45,12 +45,12 @@ export default function CalendarView({ selectedRange }) {
         markedDates={markedDates}
         markingType="period"
         theme={{
-          todayTextColor: '#769FFF',
+          todayTextColor: colors.primary[800],
           backgroundColor: colors.grayscale[200],
           calendarBackground: colors.grayscale[200],
           textDayFontWeight: '500',
           textMonthFontWeight: 'bold',
-          arrowColor: '#769FFF',
+          arrowColor: colors.primary[800],
         }}
       />
     </View>

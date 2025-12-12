@@ -38,7 +38,7 @@ export default function DatePickerModal({ isVisible, onConfirm, onCancel, mode, 
     if (isVisible) {
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 250,
+        duration: 210,
         useNativeDriver: true,
       }).start();
     } else {
@@ -81,7 +81,10 @@ export default function DatePickerModal({ isVisible, onConfirm, onCancel, mode, 
             />
           </View>
 
-          <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
+          <TouchableOpacity
+            style={[styles.confirmBtn, { width: normalize(140), alignSelf: 'center' }]}
+            onPress={handleConfirm}
+          >
             <Text style={styles.confirmText}>확인</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -125,8 +128,8 @@ const styles = StyleSheet.create({
 
   confirmBtn: {
     backgroundColor: colors.primary[700],
-    borderRadius: normalize(12),
-    marginTop: normalize(10),
+    borderRadius: normalize(10),
+    marginBottom: normalize(24),
     alignItems: 'center',
     paddingVertical: normalize(14),
   },
