@@ -1,7 +1,7 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import LasttripScreen from './screens/Setting/LasttripScreen';
+import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -18,7 +18,7 @@ export default function App() {
   return (
     <>
       <StatusBar style="auto" />
-      <LasttripScreen />
+      <TravelCreateScreen />
     </>
   );
 }
