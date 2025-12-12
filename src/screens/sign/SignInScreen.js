@@ -1,10 +1,10 @@
 import { View, StyleSheet, Pressable, Text, Image } from 'react-native';
 import { useEffect } from 'react';
-import Logo from '../../assets/Logo/TravodoLogo.svg';
-import TextField from '../components/TextField';
-import { colors } from '../styles/colors';
-import Button from '../components/Button';
-import KakaoLoginButton from '../components/KakaoLoginButton';
+import Logo from '../../../assets/Logo/TravodoLogo.svg';
+import TextField from '../../components/TextField';
+import { colors } from '../../styles/colors';
+import Button from '../../components/Button';
+import KakaoLoginButton from '../../components/KakaoLoginButton';
 
 function SignInScreen({ navigation }) {
   useEffect(() => {

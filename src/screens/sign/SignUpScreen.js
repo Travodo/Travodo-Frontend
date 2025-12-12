@@ -1,10 +1,10 @@
 import { View, StyleSheet, Text } from 'react-native';
 import { useEffect } from 'react';
 import SignInScreen from './SignInScreen';
-import TextField from '../components/TextField';
-import { colors } from '../styles/colors';
-import Button from '../components/Button';
-import KakaoLoginButton from '../components/KakaoLoginButton';
+import TextField from '../../components/TextField';
+import { colors } from '../../styles/colors';
+import Button from '../../components/Button';
+import KakaoLoginButton from '../../components/KakaoLoginButton';
 
 function SignUpScreen({ navigation }) {
   return (
