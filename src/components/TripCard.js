@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[200],
     borderRadius: 14,
     borderLeftWidth: 6,
-    paddingVertical: 18,
+    paddingVertical: 16,
     paddingHorizontal: 18,
     shadowColor: colors.grayscale[700],
     shadowOpacity: 0.06,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
 
   date: {
-    fontSize: 13,
+    fontSize: 14,
     color: colors.grayscale[700],
     fontFamily: 'Pretendard-Medium',
   },
