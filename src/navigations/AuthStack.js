@@ -1,3 +1,4 @@
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import OnboardingScreen from '../screens/onBoarding/OnboardingScreen';
 import SignInScreen from '../screens/sign/SignInScreen';
@@ -8,11 +9,14 @@ const Stack = createNativeStackNavigator();
 
 const AuthStack = () => {
   return (
-    <Stack.Navigator initialRouteName="empty">
-      <Stack.Screen name="OnBoarding" component={OnboardingScreen} />
-      <Stack.Screen name="Sign In" component={SignInScreen} />
-      <Stack.Screen name="Sign Up" component={SignUpScreen} />
-      <Stack.Screen name="empty" component={ComunityHome} />
+    <Stack.Navigator initialRouteName="OnBoarding">
+      <Stack.Screen
+        name="OnBoarding"
+        component={OnboardingScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="Sign In" component={SignInScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Sign Up" component={SignUpScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };
