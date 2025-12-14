@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
@@ -12,25 +12,36 @@ function Dropdown({
   onSelect,
   dropdownStyle = {},
 }) {
-  const [selectedOption, setSeletedOption] = useState(propSelectedOption);
+  const [selected, setSeleted] = useState(propSelectedOption);
+
+  const maxOptionLength = useMemo(() => {
+    if (!options.length) return 0;
+    return Math.max(...options.map((opt) => opt.length));
+  }, [options]);
+
+  const calculateWidth = useMemo(() => Math.max(100, maxOptionLength * 12 + 40), [maxOptionLength]);
 
   useEffect(() => {
     if (!propSelectedOption && options.length > 0) {
-      setSeletedOption(options[0]);
+      setSeleted(options[0]);
       onSelect?.(options[0]);
     }
   }, [propSelectedOption, options]);
 
   const handleSelect = (option) => {
-    (setSeletedOption(option), onSelect?.(option));
+    (setSeleted(option), onSelect?.(option));
   };
 
   return (
     <View style={styles.wrapper}>
       {label && <Text style={styles.label}>{label}</Text>}
 
-      <TouchableOpacity style={styles.selectBox} onPress={onToggle} activeOpacity={0.8}>
-        <Text style={styles.selectedText}>{selectedOption || '정렬'}</Text>
+      <TouchableOpacity
+        style={[styles.selectBox, { width: calculateWidth }]}
+        onPress={onToggle}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.selectedText}>{selected || '정렬'}</Text>
         <MaterialIcons
           name={visible ? 'arrow-drop-up' : 'arrow-drop-down'}
           size={24}
@@ -39,16 +50,18 @@ function Dropdown({
       </TouchableOpacity>
 
       {visible && (
-        <View style={[styles.dropdown, dropdownStyle]}>
+        <View style={[styles.dropdown, dropdownStyle, { width: calculateWidth }]}>
           {options.map((option, i) => (
             <Pressable
               key={i}
               onPress={() => handleSelect(option)}
-              style={[styles.option, option === selectedOption && styles.activeOptionText]}
+              style={[
+                styles.option,
+                option === selected && styles.activeOptionText,
+                i === options.length - 1 && { borderBottomWidth: 0 },
+              ]}
             >
-              <Text
-                style={[styles.optionText, option === selectedOption && styles.activeOptionText]}
-              >
+              <Text style={[styles.optionText, option === selected && styles.activeOptionText]}>
                 {option}
               </Text>
             </Pressable>
@@ -71,10 +84,11 @@ const styles = StyleSheet.create({
   selectBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 3,
     borderRadius: 6,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.grayscale[400],
     backgroundColor: colors.grayscale[100],
   },
@@ -83,6 +97,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[900],
+    paddingLeft: 3,
   },
 
   dropdown: {
@@ -92,19 +107,18 @@ const styles = StyleSheet.create({
     borderColor: colors.grayscale[400],
     overflow: 'hidden',
     top: '100%',
-    width: 10,
     zIndex: 10,
     elevation: 4,
     backgroundColor: colors.primary[100],
-    marginTop: 5,
+    marginTop: 4,
   },
 
   option: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 7.5,
     textAlign: 'center',
-    borderBottomWidth: 1,
-    borderColor: colors.grayscale[300],
+    borderBottomWidth: 1.2,
+    borderColor: colors.grayscale[400],
+    backgroundColor: colors.grayscale[100],
   },
 
   optionText: {
