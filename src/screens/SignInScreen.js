@@ -1,17 +1,92 @@
-import { View, StyleSheet, Pressable, Text, Image } from 'react-native';
-import { useEffect } from 'react';
+import { View, StyleSheet, Pressable, Text, Image, Alert, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
 import Logo from '../../assets/Logo/TravodoLogo.svg';
 import TextField from '../components/TextField';
 import { colors } from '../styles/colors';
 import Button from '../components/Button';
 import KakaoLoginButton from '../components/KakaoLoginButton';
+import { signInWithKakao, linkKakaoAccount } from '../services/authService';
+import { logKeyHash } from '../utils/getKeyHash';
 
 function SignInScreen({ navigation }) {
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
-  });
+    
+    // 개발 중 Android 키 해시 확인 (콘솔에서 확인 후 카카오 개발자 콘솔에 등록)
+    if (__DEV__) {
+      logKeyHash();
+    }
+  }, [navigation]);
+
+  // 카카오 로그인 처리
+  const handleKakaoLogin = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const result = await signInWithKakao();
+
+      if (result.success) {
+        // 로그인 성공 - 메인 화면으로 이동
+        const nickname = result.data?.nickname || '사용자';
+        Alert.alert('로그인 성공', `환영합니다, ${nickname}님!`, [
+          {
+            text: '확인',
+            onPress: () => {
+              // TODO: 메인 화면으로 네비게이션
+              // navigation.replace('Main');
+            },
+          },
+        ]);
+      } else if (result.needsLink) {
+        // 계정 통합 필요
+        const { email, existingProvider, providerId } = result.linkData;
+        const providerName = existingProvider === 'EMAIL' ? '이메일' : '소셜';
+
+        Alert.alert(
+          '계정 통합',
+          `${providerName}로 가입된 계정이 있습니다.\n계정을 통합하시겠습니까?`,
+          [
+            { text: '취소', style: 'cancel' },
+            {
+              text: '통합하기',
+              onPress: async () => {
+                setIsLoading(true);
+                const linkResult = await linkKakaoAccount(email, providerId);
+                setIsLoading(false);
+
+                if (linkResult.success) {
+                  Alert.alert('성공', '계정이 통합되었습니다!', [
+                    {
+                      text: '확인',
+                      onPress: () => {
+                        // TODO: 메인 화면으로 네비게이션
+                        // navigation.replace('Main');
+                      },
+                    },
+                  ]);
+                } else {
+                  Alert.alert('오류', linkResult.error);
+                }
+              },
+            },
+          ]
+        );
+      } else {
+        // 로그인 실패
+        Alert.alert('로그인 실패', result.error || '로그인에 실패했습니다.');
+      }
+    } catch (error) {
+      Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
+      console.error('카카오 로그인 에러:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -48,7 +123,11 @@ function SignInScreen({ navigation }) {
         <Text style={styles.anotherLoginText}>다른 방법으로 로그인</Text>
         <View style={styles.line} />
       </View>
-      <KakaoLoginButton style={{ marginTop: 35 }} onPress={() => console.log('카카오 로그인')} />
+      {isLoading ? (
+        <ActivityIndicator style={{ marginTop: 35 }} size="large" color={colors.primary[700]} />
+      ) : (
+        <KakaoLoginButton style={{ marginTop: 35 }} onPress={handleKakaoLogin} />
+      )}
     </View>
   );
 }

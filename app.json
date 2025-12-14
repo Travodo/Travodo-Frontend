@@ -2,6 +2,7 @@
   "expo": {
     "name": "travodo-app",
     "slug": "travodo-app",
+    "scheme": "travodo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,20 +14,42 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.travodo.app",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["kakaokompassauth", "kakaolink", "kakaoplus"],
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["kakao4c3ba6aab387cf3f608c90ea34b92e37"]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.travodo.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-web-browser",
+      [
+        "@react-native-seoul/kakao-login",
+        {
+          "kakaoAppKey": "4c3ba6aab387cf3f608c90ea34b92e37",
+          "kotlinVersion": "1.9.0"
+        }
+      ]
+    ],
+    "extra": {
+      "kakaoRestApiKey": "fffcc2af24c6360caff82563ec28d246",
+      "kakaoNativeAppKey": "4c3ba6aab387cf3f608c90ea34b92e37"
+    }
   }
 }
