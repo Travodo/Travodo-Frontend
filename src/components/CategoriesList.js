@@ -1,5 +1,6 @@
 import { FlatList, View, StyleSheet } from 'react-native';
 import Categories from './Categories';
+import PropTypes from 'prop-types';
 
 function CategoriesList({ data, activeCategories, onSelectCategory }) {
   const CategoryItem = ({ item }) => {
@@ -27,6 +28,12 @@ function CategoriesList({ data, activeCategories, onSelectCategory }) {
     />
   );
 }
+
+CategoriesList.propTypes = {
+  data: PropTypes.object.isRequired,
+  activeCategories: PropTypes.bool.isRequired,
+  onSelectCategory: PropTypes.func.isRequired,
+};
 
 const styles = StyleSheet.create({
   firstCategories: {

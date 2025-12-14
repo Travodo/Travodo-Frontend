@@ -1,9 +1,9 @@
-import React, { useState, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from "react-native";
-import { colors } from "../styles/colors";
-import { MaterialIcons } from "@expo/vector-icons";
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { colors } from '../styles/colors';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const scale = SCREEN_WIDTH / 375;
 const normalize = (size) => Math.round(size * scale);
 
@@ -33,17 +33,13 @@ export default function TripCard({ trip }) {
 
   const renderDDay = () => {
     if (trip.dDay !== undefined && trip.dDay !== null) {
-         return (
-             <Text style={styles.dDay}>
-                {trip.dDay === 0 ? '오늘!' : `D-${trip.dDay}`}
-                 </Text>
-                 ); }
-                  return null; 
-                 };
+      return <Text style={styles.dDay}>{trip.dDay === 0 ? '오늘!' : `D-${trip.dDay}`}</Text>;
+    }
+    return null;
+  };
 
   return (
-    <View style={styles.wrapper }>
-
+    <View style={styles.wrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={toggleExpand}
@@ -54,7 +50,7 @@ export default function TripCard({ trip }) {
           <Text style={styles.title}>{trip.title}</Text>
           {renderDDay()}
           <MaterialIcons
-            name={expanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+            name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
             size={normalize(26)}
             color={colors.grayscale[900]}
           />
@@ -74,7 +70,6 @@ export default function TripCard({ trip }) {
           },
         ]}
       >
-        
         <View style={styles.detailInner}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>여행지 </Text>
@@ -95,9 +90,7 @@ export default function TripCard({ trip }) {
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>동행자 </Text>
-            <Text style={styles.detailValue}>
-              {trip.companions.join(", ")}
-            </Text>
+            <Text style={styles.detailValue}>{trip.companions.join(', ')}</Text>
           </View>
 
           <View style={styles.divider} />
@@ -134,9 +127,9 @@ const styles = StyleSheet.create({
   },
 
   headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
   circle: {
@@ -148,7 +141,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: normalize(17),
-    fontFamily: "Pretendard-SemiBold",
+    fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
     flex: 1,
     marginLeft: normalize(6),
@@ -165,11 +158,11 @@ const styles = StyleSheet.create({
     marginTop: normalize(6),
     fontSize: normalize(13),
     color: colors.grayscale[700],
-    fontFamily: "Pretendard-Medium",
+    fontFamily: 'Pretendard-Medium',
   },
 
   detailBox: {
-    overflow: "hidden",
+    overflow: 'hidden',
     borderRadius: normalize(12),
     marginTop: normalize(6),
     backgroundColor: colors.grayscale[100],
@@ -181,13 +174,13 @@ const styles = StyleSheet.create({
   },
 
   detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: normalize(20),
   },
 
   detailLabel: {
-    fontFamily: "Pretendard-SemiBold",
+    fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
     fontSize: normalize(14),
     minWidth: normalize(64),
@@ -196,7 +189,7 @@ const styles = StyleSheet.create({
 
   detailText: {
     marginBottom: normalize(20),
-    fontFamily: "Pretendard-Medium",
+    fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[600],
   },
 
@@ -208,8 +201,8 @@ const styles = StyleSheet.create({
   },
 
   buttonRow: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginTop: normalize(7),
   },
 
@@ -224,7 +217,7 @@ const styles = StyleSheet.create({
 
   shareText: {
     color: colors.grayscale[100],
-    fontFamily: "Pretendard-SemiBold",
+    fontFamily: 'Pretendard-SemiBold',
     fontSize: normalize(14),
   },
 
@@ -239,7 +232,7 @@ const styles = StyleSheet.create({
 
   disabledText: {
     color: colors.grayscale[100],
-    fontFamily: "Pretendard-SemiBold",
+    fontFamily: 'Pretendard-SemiBold',
     fontSize: normalize(14),
   },
 });

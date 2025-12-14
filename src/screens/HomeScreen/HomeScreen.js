@@ -1,16 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
+import TravodoLogo from '../../../assets/Logo/TravodoLogo.svg';
+import OptionButton from '../../components/OptionButton';
+import HeaderScrap from '../../components/HeaderScrap';
 import { colors } from '../../styles/colors';
 import { upcomingTrips as dummyTrips } from '../../data/TripList';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const scale = SCREEN_WIDTH / 375;
-const normalize = (size) => Math.round(size * scale);
-
 function HomeScreen({ navigation }) {
+  useEffect(() => {
+    navigation.setOptions({
+      headerShadowVisible: false,
+      headerLeft: () => <TravodoLogo width={100} height={20} marginLeft={32} />,
+      headerTitle: '',
+      headerRight: () => (
+        <View style={styles.headerRightContainer}>
+          <HeaderScrap
+            style={{ marginRight: 15 }}
+            size={16}
+            onPress={() => console.log('스크랩')}
+          />
+          <OptionButton size={16} onPress={() => console.log('환경설정')} />
+        </View>
+      ),
+    });
+  });
+
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +50,7 @@ function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never">
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
 
@@ -63,38 +80,43 @@ function HomeScreen({ navigation }) {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+  headerRightContainer: {
+    alignItems: 'stretch',
+    flexDirection: 'row',
+    marginRight: 20,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[100],
-    paddingHorizontal: normalize(20),
+    paddingHorizontal: 20,
   },
 
   headerText: {
     fontFamily: 'Pretendard-SemiBold',
-    fontSize: normalize(20),
-    marginTop: normalize(24),
+    fontSize: 20,
+    marginTop: 24,
   },
 
   subText: {
     fontFamily: 'Pretendard-Regular',
-    fontSize: normalize(15),
+    fontSize: 15,
     color: colors.grayscale[700],
-    marginBottom: normalize(12),
+    marginBottom: 12,
   },
 
   section: {
-    marginTop: normalize(40),
+    marginTop: 40,
   },
 
   sectionTitle: {
     fontFamily: 'Pretendard-SemiBold',
-    fontSize: normalize(18),
+    fontSize: 18,
   },
 
   sectionSub: {
     fontFamily: 'Pretendard-Regular',
-    fontSize: normalize(14),
+    fontSize: 14,
     color: colors.grayscale[700],
-    marginBottom: normalize(12),
+    marginBottom: 12,
   },
 });

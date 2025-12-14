@@ -1,23 +1,20 @@
 import { View, StyleSheet, Text } from 'react-native';
 import { useEffect, useState, useMemo } from 'react';
-import TravodoLogo from '../../assets/Logo/TravodoLogo.svg';
-import OptionButton from '../components/OptionButton';
-import HeaderScrap from '../components/HeaderScrap';
-import PostItem from '../components/PostItem';
-import ListItem from '../components/ListItem';
-import PostList from '../components/PostList';
-import Categories from '../components/Categories';
-import CategoriesList from '../components/CategoriesList';
+import TravodoLogo from '../../../assets/Logo/TravodoLogo.svg';
+import OptionButton from '../../components/OptionButton';
+import HeaderScrap from '../../components/HeaderScrap';
+import PostList from '../../components/PostList';
+import CategoriesList from '../../components/CategoriesList';
 
 const ALL_POSTS_DATA = [
   {
     id: 'p1',
-    title: '커플 여행 후기',
-    content: '제주도 추천해요',
-    category: '커플 / 연인',
-    nickname: 'A',
-    hcount: 10,
-    ccount: 2,
+    title: '가평 익스트림 클리어!',
+    content: '안녕하세요. 대학 동기 4명이서 2박 3일 가평을 빡세게 찍고 왔습니다! ',
+    category: '친구 / 지인',
+    nickname: '여행고고',
+    hcount: 584,
+    ccount: 45,
   },
   {
     id: 'p2',
@@ -67,20 +64,20 @@ const CATEGORY_TABS = [
   { id: 'c6', label: '스터디 / 모임' },
 ];
 
-function ComunityHome({ navigation }) {
+function CommunityHome({ navigation }) {
   useEffect(() => {
     navigation.setOptions({
       headerShadowVisible: false,
-      headerLeft: () => <TravodoLogo width={100} height={20} marginLeft={10} />,
+      headerLeft: () => <TravodoLogo width={100} height={20} marginLeft={32} />,
       headerTitle: '',
       headerRight: () => (
         <View style={styles.headerRightContainer}>
           <HeaderScrap
             style={{ marginRight: 15 }}
-            size={20}
+            size={16}
             onPress={() => console.log('스크랩')}
           />
-          <OptionButton size={20} onPress={() => console.log('환경설정')} />
+          <OptionButton size={16} onPress={() => console.log('환경설정')} />
         </View>
       ),
     });
@@ -132,6 +129,7 @@ const styles = StyleSheet.create({
   headerRightContainer: {
     alignItems: 'stretch',
     flexDirection: 'row',
+    marginRight: 20,
   },
   container: {
     backgroundColor: '#fff',
@@ -154,4 +152,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ComunityHome;
+export default CommunityHome;

@@ -1,10 +1,9 @@
 import { FlatList } from 'react-native';
-import PostItem from './PostItem';
-import PropTypes from 'prop-types';
+import CommentItem from './CommentItem';
 
-function PostList({ data }) {
-  return (
-    <FlatList
+function CommentListItem() {
+  return(
+<FlatList
       style={{ flex: 1, width: '100%' }}
       data={data}
       keyExtractor={(item) => item.id}
@@ -13,10 +12,5 @@ function PostList({ data }) {
       bounces={false}
     />
   );
+  )
 }
-
-PostItem.propTypes = {
-  data: PropTypes.object.isRequired,
-};
-
-export default PostList;

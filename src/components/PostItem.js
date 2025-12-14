@@ -3,6 +3,7 @@ import Heart from './Heart';
 import Comment from './Comment';
 import ProfilePicture from '../../assets/ComponentsImage/ProfilePicture.svg';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
 function PostItem({ post }) {
   const { nickname, time, title, content, hcount, ccount } = post;
@@ -30,6 +31,16 @@ function PostItem({ post }) {
     </View>
   );
 }
+
+PostItem.propTypes = {
+  post: PropTypes.object.isRequired,
+  nickname: PropTypes.string.isRequired,
+  time: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  content: PropTypes.string.isRequired,
+  hcount: PropTypes.string.isRequired,
+  ccount: PropTypes.string.isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -61,12 +72,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Pretendard-SemiBold',
-    fontSize: 16,
+    fontSize: 18,
   },
   content: {
     fontFamily: 'Pretendard-Regular',
-    fontSize: 10,
-    alignSelf: 'stretch',
+    fontSize: 12,
   },
   button: {
     flexDirection: 'row',

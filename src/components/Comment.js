@@ -11,6 +11,10 @@ function Comment({ count }) {
   );
 }
 
+Comment.propTypes = {
+  count: PropTypes.string.isRequired,
+};
+
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',

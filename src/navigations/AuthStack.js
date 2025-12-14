@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import OnboardingScreen from '../screens/onBoarding/OnboardingScreen';
 import SignInScreen from '../screens/sign/SignInScreen';
 import SignUpScreen from '../screens/sign/SignUpScreen';
-import ComunityHome from '../screens/ComunityHome';
 
 const Stack = createNativeStackNavigator();
 

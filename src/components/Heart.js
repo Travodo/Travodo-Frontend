@@ -27,14 +27,14 @@ function Heart({ style, count }) {
 
 Heart.propTypes = {
   style: PropTypes.object,
+  count: PropTypes.string.isRequired,
 };
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#fff',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   text: {
     fontFamily: 'Pretendard-Regular',

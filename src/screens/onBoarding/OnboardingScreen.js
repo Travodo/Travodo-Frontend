@@ -36,7 +36,7 @@ const slides = [
   },
 ];
 
-export default function OnboardingScreen({ navigation }) {
+function OnboardingScreen({ navigation }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -94,3 +94,5 @@ export default function OnboardingScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
+export default OnboardingScreen;

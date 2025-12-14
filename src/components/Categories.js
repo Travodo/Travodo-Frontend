@@ -1,6 +1,7 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { colors } from '../styles/colors';
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 function Categories({ property, onPress, disable }) {
   return (
@@ -22,6 +23,12 @@ function Categories({ property, onPress, disable }) {
     </Pressable>
   );
 }
+
+Categories.propTypes = {
+  property: PropTypes.string.isRequired,
+  onPress: PropTypes.func,
+  disable: PropTypes.bool.isRequired,
+};
 
 const styles = StyleSheet.create({
   disasbleContainer: {
