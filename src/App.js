@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Toast from 'react-native-toast-message';
 
 import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
 import TravelCompleteScreen from './screens/HomeScreen/TravelCompleteScreen';
@@ -20,18 +21,21 @@ function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <NavigationContainer>
-      <StatusBar style="auto" />
-      <Stack.Navigator
-        initialRouteName="TravelCreate"
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
-        <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <NavigationContainer>
+        <StatusBar style="auto" />
+        <Stack.Navigator
+          initialRouteName="TravelCreate"
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
+          <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+      <Toast />
+    </>
   );
 }
 

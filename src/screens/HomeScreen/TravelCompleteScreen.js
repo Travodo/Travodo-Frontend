@@ -4,6 +4,7 @@ import { colors } from '../../styles/colors';
 import Button from '../../components/Button';
 import TripCard from '../../components/TripCard';
 import * as Clipboard from 'expo-clipboard';
+import Toast from 'react-native-toast-message';
 
 function TravelCompleteScreen({ route, navigation }) {
   const { tripData } = route.params || {};
@@ -12,6 +13,13 @@ function TravelCompleteScreen({ route, navigation }) {
   const copyCode = async () => {
     if (!code) return;
     await Clipboard.setStringAsync(code);
+    Toast.show({
+      type: 'success',
+      text1: '복사 완료',
+      text2: '클립보드에 복사되었습니다',
+      text1Style: { fontSize: 16 },
+      text2Style: { fontSize: 13 },
+    });
   };
 
   const dummyTrip = {
