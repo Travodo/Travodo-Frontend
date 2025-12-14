@@ -81,6 +81,7 @@ export default function TripCard({ trip }) {
           <View style={[styles.circle, { backgroundColor: trip.color }]} />
           <Text style={styles.title}>{trip.title}</Text>
           {renderDDay()}
+
           <MaterialIcons
             name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
             size={24}
@@ -168,8 +169,9 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 8,
+    justifyContent: 'flex-end',
+    paddingBottom: 5,
+    paddingTop: 2,
   },
 
   circle: {
@@ -188,30 +190,30 @@ const styles = StyleSheet.create({
   },
 
   dDay: {
-    fontSize: 13,
-    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 16,
     color: colors.primary[700],
-    backgroundColor: colors.primary[100],
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    fontFamily: 'Pretendard-SemiBold',
     borderRadius: 6,
-    marginRight: 'auto',
-    marginLeft: 12,
+    backgroundColor: colors.primary[100],
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginLeft: 6,
   },
 
   dDayPassed: {
-    fontSize: 13,
-    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 16,
     color: colors.grayscale[700],
-    backgroundColor: colors.grayscale[200],
-    paddingHorizontal: 8,
+    fontFamily: 'Pretendard-SemiBold',
     paddingVertical: 4,
+    paddingHorizontal: 8,
     borderRadius: 6,
-    marginRight: 'auto',
-    marginLeft: 12,
+    marginHorizontal: 10,
+    backgroundColor: colors.grayscale[200],
   },
 
   date: {
+    marginTop: 0,
+    marginBottom: 5,
     fontSize: 14,
     color: colors.grayscale[700],
     fontFamily: 'Pretendard-Medium',
@@ -232,26 +234,26 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 17,
   },
 
   detailLabel: {
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
-    fontSize: 14,
-    marginRight: 10,
+    fontSize: 15,
     minWidth: 60,
+    marginRight: 10,
   },
 
   detailValue: {
-    fontFamily: 'Pretendard-Regular',
-    fontSize: 14,
+    fontFamily: 'Pretendard-Medium',
+    fontSize: 15,
     color: colors.grayscale[800],
   },
 
   divider: {
     height: 1,
-    backgroundColor: colors.grayscale[300],
+    backgroundColor: colors.grayscale[400],
     marginVertical: 8,
   },
 
@@ -264,9 +266,11 @@ const styles = StyleSheet.create({
 
   shareButton: {
     backgroundColor: colors.primary[700],
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: 24,
+    paddingVertical: 15,
+    paddingHorizontal: 28,
+    borderRadius: 22,
+    marginRight: 4,
+    marginLeft: 5,
   },
 
   shareText: {
@@ -277,9 +281,11 @@ const styles = StyleSheet.create({
 
   disabledButton: {
     backgroundColor: colors.grayscale[400],
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 22,
-    borderRadius: 24,
+    marginHorizontal: 22,
+    borderRadius: 22,
+    marginRight: 4,
   },
 
   disabledText: {

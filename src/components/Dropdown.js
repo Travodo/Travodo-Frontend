@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
 
   optionText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[900],
     textAlign: 'center',
