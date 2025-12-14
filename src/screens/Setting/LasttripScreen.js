@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,21 +9,32 @@ import {
   Pressable,
   Dimensions,
 } from 'react-native';
-import { pastTrips } from '../HomeScreen/TripList';
+import { pastTrips } from '../../data/TripList';
 import { colors } from '../../styles/colors';
+import { getRandomColor } from '../../styles/cardColors';
 import TripCard from '../../components/TripCard';
-import { MaterialIcons } from '@expo/vector-icons';
 import Dropdown from '../../components/Dropdown';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const scale = SCREEN_WIDTH / 375;
-const normalize = (size) => Math.round(size * scale);
 
 function LasttripScreen() {
   const [sortOrder, setSortOrder] = useState('latest');
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [coloredTrips, setColoredTrips] = useState([]);
 
-  const sortedTrips = [...pastTrips].sort((a, b) => {
+  useEffect(() => {
+    const tripsWithColors = pastTrips.map((trip) => {
+      if (trip.color) {
+        return trip;
+      }
+
+      return {
+        ...trip,
+        color: getRandomColor(),
+      };
+    });
+    setColoredTrips(tripsWithColors);
+  }, []);
+
+  const sortedTrips = [...coloredTrips].sort((a, b) => {
     const dateA = a.startDate ? new Date(a.startDate.replace(/\./g, '-')) : new Date(0);
     const dateB = b.startDate ? new Date(b.startDate.replace(/\./g, '-')) : new Date(0);
     return sortOrder === 'latest' ? dateB - dateA : dateA - dateB;
@@ -71,19 +82,19 @@ export default LasttripScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.grayscale[100] },
-  content: { paddingHorizontal: normalize(20), paddingBottom: normalize(30) },
+  content: { paddingHorizontal: 20, paddingBottom: 30 },
 
   sectionTitle: {
-    fontSize: normalize(24),
+    fontSize: 24,
     color: colors.grayscale[1000],
     fontFamily: 'Pretendard-SemiBold',
   },
 
   subTitle: {
-    fontSize: normalize(16),
+    fontSize: 16,
     color: colors.grayscale[800],
     fontFamily: 'Pretendard-Medium',
-    marginBottom: normalize(30),
+    marginBottom: 30,
   },
 
   sortDropdownWrapper: {
@@ -96,40 +107,40 @@ const styles = StyleSheet.create({
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: normalize(10),
-    paddingVertical: normalize(4),
-    borderRadius: normalize(6),
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
 
   sortText: {
-    fontSize: normalize(15),
+    fontSize: 15,
     fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[900],
   },
 
   dropdown: {
     position: 'absolute',
-    borderRadius: normalize(6),
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: colors.grayscale[400],
     overflow: 'hidden',
-    marginTop: normalize(1),
+    marginTop: 1,
     top: '100%',
     left: 0,
     right: 20,
-    width: normalize(105),
+    width: 105,
     zIndex: 10,
     elevation: 4,
     backgroundColor: colors.primary[100],
   },
 
   dropdownText: {
-    paddingVertical: normalize(9),
-    paddingHorizontal: normalize(18),
+    paddingVertical: 9,
+    paddingHorizontal: 18,
     textAlign: 'center',
     fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[800],
-    fontSize: normalize(14),
+    fontSize: 14,
   },
 
   activeText: {
@@ -139,11 +150,11 @@ const styles = StyleSheet.create({
   },
 
   sectionDivider: {
-    height: normalize(2),
+    height: 2,
     backgroundColor: colors.grayscale[400],
-    marginTop: normalize(12),
-    marginBottom: normalize(16),
+    marginTop: 12,
+    marginBottom: 16,
   },
 
-  cardList: { marginTop: normalize(6) },
+  cardList: { marginTop: 6 },
 });

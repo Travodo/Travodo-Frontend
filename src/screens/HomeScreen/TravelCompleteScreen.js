@@ -1,24 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../../styles/colors';
 import Button from '../../components/Button';
 import TripCard from '../../components/TripCard';
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-root-toast';
 
-const { width } = Dimensions.get('window');
-const scale = width / 375;
-const normalize = (size) => Math.round(size * scale);
-
-export default function TravelCompleteScreen({ route, navigation }) {
+function TravelCompleteScreen({ route, navigation }) {
   const { tripData } = route.params || {};
-  const { name, destination, startDate, endDate, code } = tripData || {};
+  const { name, destination, startDate, endDate, code, color } = tripData || {};
 
   const copyCode = async () => {
     if (!code) return;
     await Clipboard.setStringAsync(code);
 
-    Toast.show('✅ 초대 코드가 복사되었습니다!', {
+    Toast.show('초대 코드가 복사되었습니다!', {
       duration: Toast.durations.SHORT,
       position: Toast.positions.BOTTOM - 80,
       shadow: true,
@@ -35,8 +31,14 @@ export default function TravelCompleteScreen({ route, navigation }) {
     location: destination || '여행지',
     startDate: startDate || '2025.01.01',
     endDate: endDate || '2025.01.03',
-    companions: ['나', '친구'],
-    color: colors.primary[700],
+    companions: tripData.companions
+      ? tripData.companions
+          .split(',')
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0)
+      : ['나', '친구'],
+
+    color: color || colors.primary[700],
   };
 
   return (
@@ -58,81 +60,94 @@ export default function TravelCompleteScreen({ route, navigation }) {
   );
 }
 
+export default TravelCompleteScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[100],
     alignItems: 'center',
-    paddingTop: normalize(80),
-    paddingHorizontal: normalize(24),
+    paddingTop: 80,
+    paddingHorizontal: 24,
   },
+
   title: {
-    fontSize: normalize(22),
+    fontSize: 22,
     fontFamily: 'Pretendard-Bold',
     color: colors.grayscale[1000],
-    marginBottom: normalize(8),
-    marginTop: normalize(20),
+    marginBottom: 8,
+    marginTop: 20,
   },
+
   subtitle: {
-    fontSize: normalize(16),
+    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[800],
-    marginBottom: normalize(30),
+    marginBottom: 30,
   },
+
   infoBox: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.grayscale[200],
-    padding: normalize(16),
-    borderRadius: normalize(12),
+    padding: 16,
+    borderRadius: 12,
     width: '100%',
-    marginBottom: normalize(30),
+    marginBottom: 30,
   },
+
   dot: {
-    width: normalize(12),
-    height: normalize(12),
-    borderRadius: normalize(6),
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: colors.primary[700],
-    marginRight: normalize(10),
+    marginRight: 10,
   },
+
   tripName: {
-    fontSize: normalize(15),
+    fontSize: 15,
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[1000],
-    marginBottom: normalize(4),
+    marginBottom: 4,
   },
+
   tripPeriod: {
-    fontSize: normalize(13),
+    fontSize: 13,
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[700],
   },
+
   code: {
-    fontSize: normalize(38),
+    fontSize: 38,
     fontFamily: 'Pretendard-Bold',
     color: colors.grayscale[900],
-    marginBottom: normalize(44),
+    marginBottom: 44,
     letterSpacing: 4,
   },
+
   copyButton: {
     width: '100%',
-    marginBottom: normalize(14),
-    paddingVertical: normalize(16),
+    marginBottom: 14,
+    paddingVertical: 16,
   },
+
   skipButton: {
     backgroundColor: colors.grayscale[300],
-    borderRadius: normalize(10),
-    paddingVertical: normalize(16),
+    borderRadius: 10,
+    paddingVertical: 16,
     alignItems: 'center',
     width: '100%',
   },
+
   skipText: {
     color: colors.grayscale[800],
     fontFamily: 'Pretendard-SemiBold',
-    fontSize: normalize(15),
+    fontSize: 15,
   },
+
   cardWrapper: {
     width: '100%',
-    marginTop: normalize(20),
-    marginBottom: normalize(40),
+    marginTop: 20,
+    marginBottom: 40,
   },
 });

@@ -1,5 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { colors } from '../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -71,79 +78,82 @@ export default function TripCard({ trip }) {
   };
 
   return (
-    <View style={styles.wrapper}>
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={toggleExpand}
-        style={[styles.card, { borderLeftColor: trip.color }]}
-      >
-        <View style={styles.headerRow}>
-          <View style={[styles.circle, { backgroundColor: trip.color }]} />
-          <Text style={styles.title}>{trip.title}</Text>
-          {renderDDay()}
+    <KeyboardAvoidingView>
+      <View style={styles.wrapper}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={toggleExpand}
+          style={[styles.card, { borderLeftColor: trip.color || colors.primary[700] }]}
+        >
+          <View style={styles.headerRow}>
+            <View style={[styles.circle, { backgroundColor: trip.color || colors.primary[700] }]} />
+            <Text style={styles.title}>{trip.title}</Text>
+            {renderDDay()}
 
-          <MaterialIcons
-            name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-            size={24}
-            color={colors.grayscale[900]}
-          />
-        </View>
-
-        <Text style={styles.date}>
-          {trip.startDate} - {trip.endDate}
-        </Text>
-      </TouchableOpacity>
-
-      <Animated.View
-        style={[
-          styles.detailBox,
-          {
-            height: heightInterpolate,
-            opacity: opacityInterpolate,
-          },
-        ]}
-      >
-        <View style={styles.detailInner}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>여행지</Text>
-            <Text style={styles.detailValue}>{trip.location}</Text>
+            <MaterialIcons
+              name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+              size={24}
+              color={colors.grayscale[900]}
+              style={styles.expendIcon}
+            />
           </View>
 
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>여행 기간</Text>
-            <Text style={styles.detailValue}>
-              {trip.startDate} - {trip.endDate}
-            </Text>
+          <Text style={styles.date}>
+            {trip.startDate} - {trip.endDate}
+          </Text>
+        </TouchableOpacity>
+
+        <Animated.View
+          style={[
+            styles.detailBox,
+            {
+              height: heightInterpolate,
+              opacity: opacityInterpolate,
+            },
+          ]}
+        >
+          <View style={styles.detailInner}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>여행지</Text>
+              <Text style={styles.detailValue}>{trip.location}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>여행 기간</Text>
+              <Text style={styles.detailValue}>
+                {trip.startDate} - {trip.endDate}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>여행명</Text>
+              <Text style={styles.detailValue}>{trip.title}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>동행자</Text>
+              <Text style={styles.detailValue}>
+                {trip.companions && trip.companions.length > 0
+                  ? trip.companions.join(', ')
+                  : '동행자 없음'}
+              </Text>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.shareButton}>
+                <Text style={styles.shareText}>공유하기</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.disabledButton}>
+                <Text style={styles.disabledText}>자세히 보기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>여행명</Text>
-            <Text style={styles.detailValue}>{trip.title}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>동행자</Text>
-            <Text style={styles.detailValue}>
-              {trip.companions && trip.companions.length > 0
-                ? trip.companions.join(', ')
-                : '동행자 없음'}
-            </Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.shareButton}>
-              <Text style={styles.shareText}>공유하기</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.disabledButton}>
-              <Text style={styles.disabledText}>자세히 보기</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Animated.View>
-    </View>
+        </Animated.View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
