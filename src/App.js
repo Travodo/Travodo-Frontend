@@ -1,7 +1,8 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import HomeScreen from './screens/HomeScreen/HomeScreen';
+import { NavigationContainer } from '@react-navigation/native';
+import AuthStack from './navigations/AuthStack';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -16,10 +17,10 @@ function App() {
   }
 
   return (
-    <>
+    <NavigationContainer>
       <StatusBar style="auto" />
-      <HomeScreen />
-    </>
+      <AuthStack />
+    </NavigationContainer>
   );
 }
 
