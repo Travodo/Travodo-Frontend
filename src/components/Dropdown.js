@@ -1,29 +1,71 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
-function Dropdown({ sortOrder, visible, onToggle, onSelect }) {
+function Dropdown({
+  label,
+  options = [],
+  selectedOption: propSelectedOption,
+  visible,
+  onToggle,
+  onSelect,
+  dropdownStyle = {},
+}) {
+  const [selected, setSeleted] = useState(propSelectedOption);
+
+  const maxOptionLength = useMemo(() => {
+    if (!options.length) return 0;
+    return Math.max(...options.map((opt) => opt.length));
+  }, [options]);
+
+  const calculateWidth = useMemo(() => Math.max(100, maxOptionLength * 12 + 40), [maxOptionLength]);
+
+  useEffect(() => {
+    if (!propSelectedOption && options.length > 0) {
+      setSeleted(options[0]);
+      onSelect?.(options[0]);
+    }
+  }, [propSelectedOption, options]);
+
+  const handleSelect = (option) => {
+    (setSeleted(option), onSelect?.(option));
+  };
+
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity style={styles.sortButton} onPress={onToggle}>
-        <Text style={styles.sortText}>{sortOrder === 'latest' ? '최신순' : '오래된순'}</Text>
-        <MaterialIcons name="arrow-drop-down" size={22} color={colors.grayscale[800]} />
+      {label && <Text style={styles.label}>{label}</Text>}
+
+      <TouchableOpacity
+        style={[styles.selectBox, { width: calculateWidth }]}
+        onPress={onToggle}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.selectedText}>{selected || '정렬'}</Text>
+        <MaterialIcons
+          name={visible ? 'arrow-drop-up' : 'arrow-drop-down'}
+          size={24}
+          color={colors.grayscale[700]}
+        />
       </TouchableOpacity>
 
       {visible && (
-        <View style={styles.dropdown}>
-          <Pressable onPress={() => onSelect('latest')}>
-            <Text style={[styles.dropdownText, sortOrder === 'latest' && styles.activeText]}>
-              최신순
-            </Text>
-          </Pressable>
-
-          <Pressable onPress={() => onSelect('oldest')}>
-            <Text style={[styles.dropdownText, sortOrder === 'oldest' && styles.activeText]}>
-              오래된순
-            </Text>
-          </Pressable>
+        <View style={[styles.dropdown, dropdownStyle, { width: calculateWidth }]}>
+          {options.map((option, i) => (
+            <Pressable
+              key={i}
+              onPress={() => handleSelect(option)}
+              style={[
+                styles.option,
+                option === selected && styles.activeOptionText,
+                i === options.length - 1 && { borderBottomWidth: 0 },
+              ]}
+            >
+              <Text style={[styles.optionText, option === selected && styles.activeOptionText]}>
+                {option}
+              </Text>
+            </Pressable>
+          ))}
         </View>
       )}
     </View>
@@ -39,47 +81,56 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
-  sortButton: {
+  selectBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 3,
     borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.grayscale[400],
+    backgroundColor: colors.grayscale[100],
   },
 
-  sortText: {
+  selectedText: {
     fontSize: 15,
     fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[900],
+    paddingLeft: 3,
   },
 
   dropdown: {
     position: 'absolute',
     borderRadius: 6,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.grayscale[400],
     overflow: 'hidden',
-    marginTop: 2,
     top: '100%',
-    left: 0,
-    width: 100,
     zIndex: 10,
     elevation: 4,
     backgroundColor: colors.primary[100],
+    marginTop: 4,
   },
 
-  dropdownText: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  option: {
+    paddingVertical: 7.5,
     textAlign: 'center',
-    fontFamily: 'Pretendard-Medium',
-    color: colors.grayscale[800],
-    fontSize: 14,
+    borderBottomWidth: 1.2,
+    borderColor: colors.grayscale[400],
+    backgroundColor: colors.grayscale[100],
   },
 
-  activeText: {
+  optionText: {
+    fontSize: 15,
+    fontFamily: 'Pretendard-Medium',
+    color: colors.grayscale[900],
+    textAlign: 'center',
+  },
+
+  activeOptionText: {
     color: colors.primary[700],
     fontFamily: 'Pretendard-SemiBold',
-    backgroundColor: colors.primary[100],
+    color: colors.primary[700],
   },
 });
