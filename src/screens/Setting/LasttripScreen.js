@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, StyleSheet, TouchableOpacity, Pressable, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+  Dimensions,
+} from 'react-native';
 import { pastTrips } from '../HomeScreen/TripList';
 import { colors } from '../../styles/colors';
 import TripCard from '../../components/TripCard';
 import { MaterialIcons } from '@expo/vector-icons';
+import Dropdown from '../../components/Dropdown';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const scale = SCREEN_WIDTH / 375;
@@ -33,41 +43,17 @@ function LasttripScreen() {
         </View>
 
         <View style={styles.sortDropdownWrapper}>
-          <TouchableOpacity
-            style={styles.sortButton}
-            onPress={() => setDropdownVisible(!dropdownVisible)}
-          >
-            <Text style={styles.sortText}>
-              {sortOrder === 'latest' ? '최신순' : '오래된순'}
-            </Text>
-            <MaterialIcons name="arrow-drop-down" size={22} color={colors.grayscale[800]} />
-          </TouchableOpacity>
-
-          {dropdownVisible && (
-            <View style={styles.dropdown}>
-              <Pressable onPress={() => selectSortOrder('latest')}>
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    sortOrder === 'latest' && styles.activeText,
-                  ]}
-                >
-                  최신순
-                </Text>
-              </Pressable>
-
-              <Pressable onPress={() => selectSortOrder('oldest')}>
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    sortOrder === 'oldest' && styles.activeText,
-                  ]}
-                >
-                  오래된순
-                </Text>
-              </Pressable>
-            </View>
-          )}
+          <Dropdown
+            options={['최신순', '오래된순']}
+            selectedOption={sortOrder === 'latest' ? '최신순' : '오래된순'}
+            visible={dropdownVisible}
+            onToggle={() => setDropdownVisible(!dropdownVisible)}
+            onSelect={(option) => {
+              setSortOrder(option === '최신순' ? 'latest' : 'oldest');
+              setDropdownVisible(false);
+            }}
+            dropdownStyle={{ width: 110, top: 35 }}
+          />
         </View>
 
         <View style={styles.sectionDivider} />

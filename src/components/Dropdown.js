@@ -1,29 +1,58 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
-function Dropdown({ sortOrder, visible, onToggle, onSelect }) {
+function Dropdown({
+  label,
+  options = [],
+  selectedOption: propSelectedOption,
+  visible,
+  onToggle,
+  onSelect,
+  dropdownStyle = {},
+}) {
+  const [selectedOption, setSeletedOption] = useState(propSelectedOption);
+
+  useEffect(() => {
+    if (!propSelectedOption && options.length > 0) {
+      setSeletedOption(options[0]);
+      onSelect?.(options[0]);
+    }
+  }, [propSelectedOption, options]);
+
+  const handleSelect = (option) => {
+    (setSeletedOption(option), onSelect?.(option));
+  };
+
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity style={styles.sortButton} onPress={onToggle}>
-        <Text style={styles.sortText}>{sortOrder === 'latest' ? '최신순' : '오래된순'}</Text>
-        <MaterialIcons name="arrow-drop-down" size={22} color={colors.grayscale[800]} />
+      {label && <Text style={styles.label}>{label}</Text>}
+
+      <TouchableOpacity style={styles.selectBox} onPress={onToggle} activeOpacity={0.8}>
+        <Text style={styles.selectedText}>{selectedOption || '정렬'}</Text>
+        <MaterialIcons
+          name={visible ? 'arrow-drop-up' : 'arrow-drop-down'}
+          size={24}
+          color={colors.grayscale[700]}
+        />
       </TouchableOpacity>
 
       {visible && (
-        <View style={styles.dropdown}>
-          <Pressable onPress={() => onSelect('latest')}>
-            <Text style={[styles.dropdownText, sortOrder === 'latest' && styles.activeText]}>
-              최신순
-            </Text>
-          </Pressable>
-
-          <Pressable onPress={() => onSelect('oldest')}>
-            <Text style={[styles.dropdownText, sortOrder === 'oldest' && styles.activeText]}>
-              오래된순
-            </Text>
-          </Pressable>
+        <View style={[styles.dropdown, dropdownStyle]}>
+          {options.map((option, i) => (
+            <Pressable
+              key={i}
+              onPress={() => handleSelect(option)}
+              style={[styles.option, option === selectedOption && styles.activeOptionText]}
+            >
+              <Text
+                style={[styles.optionText, option === selectedOption && styles.activeOptionText]}
+              >
+                {option}
+              </Text>
+            </Pressable>
+          ))}
         </View>
       )}
     </View>
@@ -39,15 +68,18 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
-  sortButton: {
+  selectBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.grayscale[400],
+    backgroundColor: colors.grayscale[100],
   },
 
-  sortText: {
+  selectedText: {
     fontSize: 15,
     fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[900],
@@ -56,30 +88,35 @@ const styles = StyleSheet.create({
   dropdown: {
     position: 'absolute',
     borderRadius: 6,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.grayscale[400],
     overflow: 'hidden',
-    marginTop: 2,
     top: '100%',
-    left: 0,
-    width: 100,
+    width: 10,
     zIndex: 10,
     elevation: 4,
     backgroundColor: colors.primary[100],
+    marginTop: 5,
   },
 
-  dropdownText: {
+  option: {
     paddingVertical: 8,
     paddingHorizontal: 16,
     textAlign: 'center',
-    fontFamily: 'Pretendard-Medium',
-    color: colors.grayscale[800],
-    fontSize: 14,
+    borderBottomWidth: 1,
+    borderColor: colors.grayscale[300],
   },
 
-  activeText: {
+  optionText: {
+    fontSize: 15,
+    fontFamily: 'Pretendard-Medium',
+    color: colors.grayscale[900],
+    textAlign: 'center',
+  },
+
+  activeOptionText: {
     color: colors.primary[700],
     fontFamily: 'Pretendard-SemiBold',
-    backgroundColor: colors.primary[100],
+    color: colors.primary[700],
   },
 });

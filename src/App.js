@@ -1,14 +1,9 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
-import TravelCompleteScreen from './screens/HomeScreen/TravelCompleteScreen';
+import LasttripScreen from './screens/Setting/LasttripScreen';
 
-const Stack = createNativeStackNavigator();
-
-export default function App() {
+function App() {
   const [fontsLoaded] = useFonts({
     'Pretendard-Regular': require('../assets/Fonts/Pretendard-Regular.otf'),
     'Pretendard-Bold': require('../assets/Fonts/Pretendard-Bold.otf'),
@@ -21,12 +16,11 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
+    <>
       <StatusBar style="auto" />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
-        <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+      <LasttripScreen />
+    </>
   );
 }
+
+export default App;
