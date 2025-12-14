@@ -25,7 +25,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // 응답 인터셉터: 에러 처리
@@ -37,7 +37,7 @@ api.interceptors.response.use(
       await removeToken();
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // 토큰 관리
@@ -95,6 +95,10 @@ export const loginWithEmail = async (data) => {
 
 // 회원가입
 export const signupWithEmail = async (data) => {
+  console.log('=== 회원가입 API 요청 ===');
+  console.log('URL:', API_BASE_URL + '/auth/signup');
+  console.log('요청 데이터:', JSON.stringify(data, null, 2));
+
   const response = await api.post('/auth/signup', data);
   if (response.data.token) {
     await setToken(response.data.token);

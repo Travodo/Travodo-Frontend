@@ -5,10 +5,17 @@ import TextField from '../components/TextField';
 import { colors } from '../styles/colors';
 import Button from '../components/Button';
 import KakaoLoginButton from '../components/KakaoLoginButton';
-import { signInWithKakao, linkKakaoAccount } from '../services/authService';
+import {
+  signInWithKakao,
+  linkKakaoAccount,
+  signInWithEmail,
+  isAuthenticated,
+} from '../services/authService';
 import { logKeyHash } from '../utils/getKeyHash';
 
 function SignInScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -20,7 +27,65 @@ function SignInScreen({ navigation }) {
     if (__DEV__) {
       logKeyHash();
     }
+
+    // 자동 로그인: 토큰이 있으면 홈 화면으로 이동
+    const checkAutoLogin = async () => {
+      const { getToken } = require('../services/api');
+      const token = await getToken();
+      console.log('=== 인증 정보 확인 ===');
+      console.log('저장된 토큰:', token);
+      console.log('토큰 존재 여부:', !!token);
+
+      const loggedIn = await isAuthenticated();
+      console.log('로그인 상태:', loggedIn);
+
+      if (loggedIn) {
+        console.log('→ 홈 화면으로 이동');
+        navigation.replace('MainTab');
+      } else {
+        console.log('→ 로그인 화면 유지');
+      }
+    };
+    checkAutoLogin();
   }, [navigation]);
+
+  // 이메일 로그인 처리
+  const handleEmailLogin = async () => {
+    if (isLoading) return;
+
+    if (!email.trim()) {
+      Alert.alert('알림', '이메일을 입력해주세요.');
+      return;
+    }
+    if (!password.trim()) {
+      Alert.alert('알림', '비밀번호를 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await signInWithEmail(email, password);
+
+      if (result.success) {
+        const nickname = result.data?.nickname || '사용자';
+        Alert.alert('로그인 성공', `환영합니다, ${nickname}님!`, [
+          {
+            text: '확인',
+            onPress: () => {
+              navigation.replace('MainTab');
+            },
+          },
+        ]);
+      } else {
+        Alert.alert('로그인 실패', result.error || '로그인에 실패했습니다.');
+      }
+    } catch (error) {
+      Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
+      console.error('이메일 로그인 에러:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // 카카오 로그인 처리
   const handleKakaoLogin = async () => {
@@ -91,8 +156,21 @@ function SignInScreen({ navigation }) {
       <View>
         <Logo width={150} height={28} margin={90} />
       </View>
-      <TextField style={{ marginBottom: 4 }} placeholder={'이메일 입력'} />
-      <TextField style={{ marginBottom: 8 }} placeholder={'비밀번호 입력'} />
+      <TextField
+        style={{ marginBottom: 4 }}
+        placeholder={'이메일 입력'}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <TextField
+        style={{ marginBottom: 8 }}
+        placeholder={'비밀번호 입력'}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
       <View style={styles.buttonContainer}>
         <Pressable onPress={() => console.log('아이디 찾기')}>
           <Text style={styles.textButton}>아이디 찾기</Text>
@@ -101,7 +179,12 @@ function SignInScreen({ navigation }) {
           <Text style={styles.textButton}>비밀번호 찾기</Text>
         </Pressable>
       </View>
-      <Button style={{ marginTop: 74 }} text={'로그인'} onPress={() => console.log('로그인')} />
+      <Button
+        style={{ marginTop: 74 }}
+        text={'로그인'}
+        onPress={handleEmailLogin}
+        disabled={isLoading}
+      />
       <View style={styles.signUpContainer}>
         <Text
           style={{ fontFamily: 'Pretendard-Medium', color: colors.grayscale[400], fontSize: 12 }}

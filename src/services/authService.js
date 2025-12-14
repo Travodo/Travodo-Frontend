@@ -2,7 +2,17 @@ import {
   login as kakaoLogin,
   getProfile as kakaoGetProfile,
 } from '@react-native-seoul/kakao-login';
-import { loginWithKakao, linkSocialAccount, getToken, removeToken } from './api';
+import {
+  loginWithKakao,
+  linkSocialAccount,
+  getToken,
+  removeToken,
+  loginWithEmail,
+  signupWithEmail,
+  sendEmailVerification,
+  verifyEmailCode,
+  checkNicknameDuplicate,
+} from './api';
 
 /**
  * 카카오 로그인 전체 플로우
@@ -66,6 +76,110 @@ export async function signInWithKakao() {
     }
 
     // 에러 메시지 처리
+    return {
+      success: false,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * 이메일 로그인
+ */
+export async function signInWithEmail(email, password) {
+  try {
+    const response = await loginWithEmail({ email, password });
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    console.error('이메일 로그인 에러:', error);
+    return {
+      success: false,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * 회원가입
+ */
+export async function signUp(nickname, email, password) {
+  try {
+    console.log('=== 회원가입 요청 ===');
+    console.log('닉네임:', nickname);
+    console.log('이메일:', email);
+    const response = await signupWithEmail({ nickname, email, password });
+    console.log('회원가입 응답:', response);
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    console.error('회원가입 에러:', error);
+    console.error('에러 상태:', error.response?.status);
+    console.error('에러 데이터:', JSON.stringify(error.response?.data, null, 2));
+    return {
+      success: false,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * 이메일 인증번호 요청
+ */
+export async function requestEmailVerification(email) {
+  try {
+    const response = await sendEmailVerification(email);
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    console.error('이메일 인증 요청 에러:', error);
+    return {
+      success: false,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * 이메일 인증번호 확인
+ */
+export async function confirmEmailVerification(email, code) {
+  try {
+    const response = await verifyEmailCode(email, code);
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    console.error('이메일 인증 확인 에러:', error);
+    return {
+      success: false,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * 닉네임 중복 확인
+ */
+export async function checkNickname(nickname) {
+  try {
+    const response = await checkNicknameDuplicate(nickname);
+    console.log('=== 닉네임 중복 확인 API 응답 ===');
+    console.log('응답:', JSON.stringify(response, null, 2));
+    return {
+      success: true,
+      data: response,
+    };
+  } catch (error) {
+    console.error('닉네임 중복 확인 에러:', error);
+    console.error('에러 응답:', error.response?.data);
     return {
       success: false,
       error: getErrorMessage(error),
