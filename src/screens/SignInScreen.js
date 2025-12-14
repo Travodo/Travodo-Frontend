@@ -15,7 +15,7 @@ function SignInScreen({ navigation }) {
     navigation.setOptions({
       headerShown: false,
     });
-    
+
     // 개발 중 Android 키 해시 확인 (콘솔에서 확인 후 카카오 개발자 콘솔에 등록)
     if (__DEV__) {
       logKeyHash();
@@ -37,8 +37,7 @@ function SignInScreen({ navigation }) {
           {
             text: '확인',
             onPress: () => {
-              // TODO: 메인 화면으로 네비게이션
-              // navigation.replace('Main');
+              navigation.replace('MainTab');
             },
           },
         ]);
@@ -64,8 +63,7 @@ function SignInScreen({ navigation }) {
                     {
                       text: '확인',
                       onPress: () => {
-                        // TODO: 메인 화면으로 네비게이션
-                        // navigation.replace('Main');
+                        navigation.replace('MainTab');
                       },
                     },
                   ]);
@@ -74,7 +72,7 @@ function SignInScreen({ navigation }) {
                 }
               },
             },
-          ]
+          ],
         );
       } else {
         // 로그인 실패
