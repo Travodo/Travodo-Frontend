@@ -1,7 +1,13 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import LasttripScreen from './screens/Setting/LasttripScreen';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
+import TravelCompleteScreen from './screens/HomeScreen/TravelCompleteScreen';
+
+const Stack = createNativeStackNavigator();
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -11,15 +17,21 @@ function App() {
     'Pretendard-Medium': require('../assets/Fonts/Pretendard-Medium.otf'),
   });
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
-    <>
+    <NavigationContainer>
       <StatusBar style="auto" />
-      <LasttripScreen />
-    </>
+      <Stack.Navigator
+        initialRouteName="TravelCreate"
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
+        <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

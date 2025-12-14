@@ -4,7 +4,6 @@ import { colors } from '../../styles/colors';
 import Button from '../../components/Button';
 import TripCard from '../../components/TripCard';
 import * as Clipboard from 'expo-clipboard';
-import Toast from 'react-native-root-toast';
 
 function TravelCompleteScreen({ route, navigation }) {
   const { tripData } = route.params || {};
@@ -13,17 +12,6 @@ function TravelCompleteScreen({ route, navigation }) {
   const copyCode = async () => {
     if (!code) return;
     await Clipboard.setStringAsync(code);
-
-    Toast.show('초대 코드가 복사되었습니다!', {
-      duration: Toast.durations.SHORT,
-      position: Toast.positions.BOTTOM - 80,
-      shadow: true,
-      animation: true,
-      hideOnPress: true,
-      backgroundColor: '#3C74D4',
-      textColor: colors.grayscale[100],
-      delay: 0,
-    });
   };
 
   const dummyTrip = {
@@ -52,8 +40,11 @@ function TravelCompleteScreen({ route, navigation }) {
 
       <Text style={styles.code}>{code}</Text>
 
-      <Button text="초대 코드 복사하기" style={styles.copyButton} onPress={copyCode} />
-      <TouchableOpacity style={styles.skipButton} onPress={() => navigation.navigate('Home')}>
+      <TouchableOpacity activeOpacity={0.7} style={styles.copyButton} onPress={copyCode}>
+        <Text style={styles.copyText}>초대 코드 복사하기</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.skipButton} onPress={() => navigation.navigate('')}>
         <Text style={styles.skipText}>건너뛰기</Text>
       </TouchableOpacity>
     </View>
@@ -121,14 +112,23 @@ const styles = StyleSheet.create({
     fontSize: 38,
     fontFamily: 'Pretendard-Bold',
     color: colors.grayscale[900],
-    marginBottom: 44,
+    marginBottom: 47,
     letterSpacing: 4,
   },
 
   copyButton: {
+    backgroundColor: colors.primary[700],
+    borderRadius: 10,
     width: '100%',
-    marginBottom: 14,
+    alignItems: 'center',
     paddingVertical: 16,
+    marginBottom: 14,
+  },
+
+  copyText: {
+    color: colors.grayscale[100],
+    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 15,
   },
 
   skipButton: {
