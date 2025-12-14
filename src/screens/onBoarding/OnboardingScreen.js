@@ -36,16 +36,10 @@ const slides = [
   },
 ];
 
-export default function OnboardingScreen({ navigation }) {
+function OnboardingScreen({ navigation }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  });
 
   const handleScroll = (event) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / width);
@@ -94,3 +88,5 @@ export default function OnboardingScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
+export default OnboardingScreen;
