@@ -148,7 +148,7 @@ function SignUpScreen({ navigation }) {
         Alert.alert('회원가입 완료', '회원가입이 완료되었습니다!', [
           {
             text: '확인',
-            onPress: () => navigation.replace('MainTab'),
+            onPress: () => navigation.replace('Sign In'),
           },
         ]);
       } else {
