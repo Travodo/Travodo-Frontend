@@ -49,7 +49,7 @@ export default function CalendarView({ selectedRange }) {
           backgroundColor: colors.grayscale[200],
           calendarBackground: colors.grayscale[200],
           textDayFontWeight: '500',
-          textMonthFontWeight: 'bold',
+          textMonthFontWeight: 'Semibold',
           arrowColor: colors.primary[800],
         }}
       />
