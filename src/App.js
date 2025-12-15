@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Toast from 'react-native-toast-message';
 
+import HomeScreen from './screens/HomeScreen/HomeScreen';
 import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
 import TravelCompleteScreen from './screens/HomeScreen/TravelCompleteScreen';
 
@@ -30,6 +31,7 @@ function App() {
             headerShown: false,
           }}
         >
+          <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
           <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} />
         </Stack.Navigator>

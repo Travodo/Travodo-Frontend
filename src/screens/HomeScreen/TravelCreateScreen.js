@@ -48,16 +48,21 @@ function TravelCreateScreen({ navigation }) {
 
   const handleCreateTrip = () => {
     const color = getRandomColor();
-    console.log('선택된 색상: ', color);
+    const companionString = tripData.companions ?? '';
 
     const newTripData = {
       destination: tripData.destination,
       name: tripData.name,
       startDate: startDate,
       endDate: endDate,
+      companions: companionString
+        .split(',')
+        .map((c) => c.trim())
+        .filter((c) => c.length > 0),
       code: Math.floor(10000 + Math.random() * 90000).toString(),
       color,
     };
+
     navigation.navigate('TravelComplete', { tripData: newTripData });
   };
 

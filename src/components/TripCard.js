@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     color: colors.primary[700],
     fontFamily: 'Pretendard-SemiBold',
     borderRadius: 6,
-    backgroundColor: colors.primary[100],
+    backgroundColor: colors.grayscale[200],
     paddingVertical: 4,
     paddingHorizontal: 8,
     marginLeft: 6,

@@ -27,12 +27,14 @@ function TravelCompleteScreen({ route, navigation }) {
     location: destination || '여행지',
     startDate: startDate || '2025.01.01',
     endDate: endDate || '2025.01.03',
-    companions: tripData.companions
+    companions: Array.isArray(tripData.companions)
       ? tripData.companions
-          .split(',')
-          .map((c) => c.trim())
-          .filter((c) => c.length > 0)
-      : ['나', '친구'],
+      : typeof tripData.companions === 'string'
+        ? tripData.companions
+            .split(',')
+            .map((c) => c.trim())
+            .filter((c) => c.length > 0)
+        : ['나', '친구'],
 
     color: color || colors.primary[700],
   };
@@ -52,7 +54,10 @@ function TravelCompleteScreen({ route, navigation }) {
         <Text style={styles.copyText}>초대 코드 복사하기</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.skipButton} onPress={() => navigation.navigate('')}>
+      <TouchableOpacity
+        style={styles.skipButton}
+        onPress={() => navigation.replace('Home', { tripData })}
+      >
         <Text style={styles.skipText}>건너뛰기</Text>
       </TouchableOpacity>
     </View>

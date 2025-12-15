@@ -4,11 +4,12 @@ import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
-import { upcomingTrips as dummyTrips } from '../../data/TripList';
 
-function HomeScreen({ navigation }) {
+function HomeScreen({ route, navigation }) {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const newTrip = route?.params?.tripData;
 
   const calculateDday = (startDate) => {
     if (!startDate) return null;
@@ -20,13 +21,28 @@ function HomeScreen({ navigation }) {
   };
 
   useEffect(() => {
-    const updatedTrips = dummyTrips.map((trip) => ({
-      ...trip,
-      dDay: calculateDday(trip.startDate),
-    }));
-    setTrips(updatedTrips);
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (newTrip) {
+      setTrips((prevTrips) => [
+        ...prevTrips,
+        {
+          id: Date.now(),
+          title: newTrip.name,
+          location: newTrip.destination,
+          startDate: newTrip.startDate,
+          endDate: newTrip.endDate,
+          companions: newTrip.companions,
+          color: newTrip.color,
+          dDay: calculateDday(newTrip.startDate),
+        },
+      ]);
+
+      navigation.setParams({ tripData: undefined });
+    }
+  }, [newTrip]);
 
   return (
     <View style={styles.container}>
@@ -90,12 +106,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
     marginBottom: 6,
+    marginTop: 30,
   },
 
   sectionSub: {
     fontSize: 14,
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[700],
-    marginBottom: 16,
+    marginBottom: 8,
   },
 });
