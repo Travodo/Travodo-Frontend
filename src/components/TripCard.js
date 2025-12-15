@@ -121,7 +121,7 @@ export default function TripCard({ trip }) {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행 기간</Text>
               <Text style={styles.detailValue}>
-                {trip.startDate} - {trip.endDate}
+                {trip.startDate} ~ {trip.endDate}
               </Text>
             </View>
 
