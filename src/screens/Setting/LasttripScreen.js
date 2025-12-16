@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  Pressable,
-  Dimensions,
-} from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, StyleSheet } from 'react-native';
 import { pastTrips } from '../../data/TripList';
 import { colors } from '../../styles/colors';
 import { getRandomColor } from '../../styles/cardColors';
@@ -85,7 +76,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingBottom: 30 },
 
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 20,
     color: colors.grayscale[1000],
     fontFamily: 'Pretendard-SemiBold',
   },
@@ -93,7 +84,7 @@ const styles = StyleSheet.create({
   subTitle: {
     fontSize: 16,
     color: colors.grayscale[800],
-    fontFamily: 'Pretendard-Medium',
+    fontFamily: 'Pretendard-Regular',
     marginBottom: 30,
   },
 
@@ -152,7 +143,7 @@ const styles = StyleSheet.create({
   sectionDivider: {
     height: 2,
     backgroundColor: colors.grayscale[400],
-    marginTop: 12,
+    marginTop: 8,
     marginBottom: 16,
   },
 

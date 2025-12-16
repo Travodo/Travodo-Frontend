@@ -33,8 +33,15 @@ function TravelCreateScreen({ navigation }) {
   };
 
   const handleConfirm = (date) => {
-    if (visiblePicker === 'start') setStartDate(date);
-    if (visiblePicker === 'end') setEndDate(date);
+    if (visiblePicker === 'start') {
+      setStartDate(date);
+      setEndDate(date);
+    }
+
+    if (visiblePicker === 'end') {
+      setEndDate(date);
+    }
+
     setVisiblePicker(null);
   };
 
@@ -166,16 +173,16 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   title: {
-    fontSize: 22,
-    fontFamily: 'Pretendard-Bold',
-    color: colors.grayscale[900],
+    fontSize: 20,
+    fontFamily: 'Pretendard-SemiBold',
+    color: colors.grayscale[1000],
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
-    fontFamily: 'Pretendard-SemiBold',
-    color: colors.grayscale[700],
-    marginBottom: 20,
+    fontSize: 16,
+    fontFamily: 'Pretendard-Regular',
+    color: colors.grayscale[900],
+    marginBottom: 24,
   },
   calendarWrapper: {
     borderRadius: 18,
@@ -192,8 +199,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
-    marginBottom: 6,
+    fontFamily: 'Pretendard-Medium',
+    marginBottom: 8,
+    marginLeft: 2,
     color: colors.grayscale[900],
   },
   inputTouchable: {

@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingVertical: 16,
-    marginBottom: 14,
+    marginBottom: 6,
   },
 
   copyText: {

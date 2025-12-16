@@ -194,13 +194,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
-    color: colors.grayscale[900],
+    color: colors.grayscale[1000],
     flex: 1,
     marginLeft: 6,
   },
 
   dDay: {
-    fontSize: 16,
+    fontSize: 13,
     color: colors.primary[700],
     fontFamily: 'Pretendard-SemiBold',
     borderRadius: 6,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
 
   dDayPassed: {
-    fontSize: 16,
+    fontSize: 15,
     color: colors.grayscale[700],
     fontFamily: 'Pretendard-SemiBold',
     paddingVertical: 4,
@@ -224,9 +224,9 @@ const styles = StyleSheet.create({
   date: {
     marginTop: 0,
     marginBottom: 5,
-    fontSize: 14,
+    fontSize: 13,
     color: colors.grayscale[700],
-    fontFamily: 'Pretendard-Medium',
+    fontFamily: 'Pretendard-Regular',
   },
 
   detailBox: {

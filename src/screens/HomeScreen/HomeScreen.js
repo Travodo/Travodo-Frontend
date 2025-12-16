@@ -58,6 +58,8 @@ function HomeScreen({ route, navigation }) {
 
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary[700]} />
+          ) : trips.length === 0 ? (
+            <Text style={styles.emptyText}>아직 계획된 여행이 없어요!</Text>
           ) : (
             trips.map((trip) => <TripCard key={trip.id} trip={trip} />)
           )}
@@ -66,8 +68,8 @@ function HomeScreen({ route, navigation }) {
 
       <FAB
         icon="add"
-        onCreatePress={() => navigation.navigate('CreateTrip')}
-        onJoinPress={() => console.log('여행 참가')}
+        onCreatePress={() => navigation.navigate('TravelCreate')}
+        onJoinPress={() => navigation.navigate('Join')}
       />
     </View>
   );
@@ -84,16 +86,16 @@ const styles = StyleSheet.create({
   },
 
   headerText: {
-    fontSize: 22,
-    fontFamily: 'Pretendard-Bold',
-    color: colors.grayscale[900],
+    fontSize: 20,
+    fontFamily: 'Pretendard-SemiBold',
+    color: colors.grayscale[1000],
     marginBottom: 6,
   },
 
   subText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
-    color: colors.grayscale[700],
+    color: colors.grayscale[900],
     marginBottom: 20,
   },
 
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
     marginBottom: 6,
@@ -110,9 +112,17 @@ const styles = StyleSheet.create({
   },
 
   sectionSub: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
-    color: colors.grayscale[700],
+    color: colors.grayscale[800],
     marginBottom: 8,
+  },
+
+  emptyText: {
+    marginTop: 36,
+    textAlign: 'center',
+    fontSize: 18,
+    fontFamily: 'Pretendard-Medium',
+    color: colors.primary[700],
   },
 });

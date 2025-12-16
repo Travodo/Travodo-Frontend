@@ -22,17 +22,30 @@ export default function CalendarView({ trips = [], selectedRange }) {
           current.setDate(current.getDate() + 1);
         }
 
-        marks[startDate.toISOString().split('T')[0]] = {
-          startingDay: true,
-          color,
-          textColor: colors.grayscale[100],
-        };
+        const startKey = startDate.toISOString().split('T')[0];
+        const endKey = endDate.toISOString().split('T')[0];
+        const isSingleDay = startKey === endKey;
 
-        marks[endDate.toISOString().split('T')[0]] = {
-          endingDay: true,
-          color,
-          textColor: colors.grayscale[100],
-        };
+        if (isSingleDay) {
+          marks[startKey] = {
+            startingDay: true,
+            endingDay: true,
+            color,
+            textColor: colors.grayscale[100],
+          };
+        } else {
+          marks[startKey] = {
+            startingDay: true,
+            color,
+            textColor: colors.grayscale[100],
+          };
+
+          marks[endKey] = {
+            endingDay: true,
+            color,
+            textColor: colors.grayscale[100],
+          };
+        }
       });
     }
 
@@ -50,17 +63,30 @@ export default function CalendarView({ trips = [], selectedRange }) {
         current.setDate(current.getDate() + 1);
       }
 
-      marks[startDate.toISOString().split('T')[0]] = {
-        startingDay: true,
-        color: colors.primary[800],
-        textColor: colors.grayscale[100],
-      };
+      const startKey = startDate.toISOString().split('T')[0];
+      const endKey = endDate.toISOString().split('T')[0];
+      const isSingleDay = startKey === endKey;
 
-      marks[endDate.toISOString().split('T')[0]] = {
-        endingDay: true,
-        color: colors.primary[800],
-        textColor: colors.grayscale[100],
-      };
+      if (isSingleDay) {
+        marks[startKey] = {
+          startingDay: true,
+          endingDay: true,
+          color: colors.primary[800],
+          textColor: colors.grayscale[100],
+        };
+      } else {
+        marks[startKey] = {
+          startingDay: true,
+          color: colors.primary[800],
+          textColor: colors.grayscale[100],
+        };
+
+        marks[endKey] = {
+          endingDay: true,
+          color: colors.primary[800],
+          textColor: colors.grayscale[100],
+        };
+      }
     }
 
     return marks;

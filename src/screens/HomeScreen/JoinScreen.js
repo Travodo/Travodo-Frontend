@@ -55,16 +55,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
+    backgroundColor: colors.grayscale[100],
   },
 
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
     marginBottom: 6,
   },
 
   sub: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[900],
     marginBottom: 75,
