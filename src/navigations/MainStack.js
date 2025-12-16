@@ -5,7 +5,7 @@ const Stack = createNativeStackNavigator();
 
 function MainStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator initialRouteName="BottomTab">
       <Stack.Screen name="BottomTab" component={BottomTab} options={{ headerShown: false }} />
       <Stack.Screen
         name="CommunityContent"
@@ -15,3 +15,5 @@ function MainStack() {
     </Stack.Navigator>
   );
 }
+
+export default MainStack;

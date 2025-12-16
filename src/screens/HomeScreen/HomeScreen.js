@@ -64,7 +64,6 @@ const styles = StyleSheet.create({
   headerText: {
     fontFamily: 'Pretendard-SemiBold',
     fontSize: 20,
-    marginTop: 24,
   },
   subText: {
     fontFamily: 'Pretendard-Regular',

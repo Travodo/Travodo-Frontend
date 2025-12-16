@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView } from 'react-native';
 import CommunityTripPlan from '../../components/CommunityTripPlan';
 import ProfileImage from '../../components/ProfileImage';
 import { colors } from '../../styles/colors';

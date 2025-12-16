@@ -1,11 +1,32 @@
-import { View, TextInput, StyleSheet, Pressable } from 'react-native';
+import { View, TextInput, StyleSheet, Pressable, Keyboard, Platform } from 'react-native';
+import { useEffect, useState } from 'react';
 import SendIcon from '../../assets/ComponentsImage/SendIcon.svg';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
 function CommentInput({ onChangeText, onPress }) {
+  const BOTTOM = 20;
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const onShow = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const onHide = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      onShow.remove();
+      onHide.remove();
+    };
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { bottom: keyboardHeight }]}>
       <TextInput
         style={styles.input}
         placeholder="댓글을 입력하세요."
