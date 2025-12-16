@@ -50,7 +50,7 @@ function HomeScreen({ route, navigation }) {
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
 
-        <CalendarView />
+        <CalendarView trips={trips} />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>다가오는 여행</Text>

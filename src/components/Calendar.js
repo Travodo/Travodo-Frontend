@@ -1,43 +1,70 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { colors } from '../styles/colors';
 
-export default function CalendarView({ selectedRange }) {
-  const [markedDates, setMarkedDates] = useState({});
+export default function CalendarView({ trips = [], selectedRange }) {
+  const markedDates = useMemo(() => {
+    const marks = {};
 
-  useEffect(() => {
-    if (!selectedRange || !selectedRange.start || !selectedRange.end) return;
+    if (Array.isArray(trips) && trips.length > 0) {
+      trips.forEach((trip) => {
+        if (!trip.startDate || !trip.endDate) return;
 
-    const { start, end } = selectedRange;
-    const startDate = new Date(start.replace(/\./g, '-'));
-    const endDate = new Date(end.replace(/\./g, '-'));
-    const temp = {};
+        const startDate = new Date(trip.startDate.replace(/\./g, '-'));
+        const endDate = new Date(trip.endDate.replace(/\./g, '-'));
+        const color = trip.color || colors.primary[800];
 
-    let current = new Date(startDate);
-    while (current <= endDate) {
-      const key = current.toISOString().split('T')[0];
-      temp[key] = { color: colors.primary[800], textColor: 'white' };
-      current.setDate(current.getDate() + 1);
+        let current = new Date(startDate);
+        while (current <= endDate) {
+          const key = current.toISOString().split('T')[0];
+          marks[key] = { color, textColor: 'white' };
+          current.setDate(current.getDate() + 1);
+        }
+
+        marks[startDate.toISOString().split('T')[0]] = {
+          startingDay: true,
+          color,
+          textColor: colors.grayscale[100],
+        };
+
+        marks[endDate.toISOString().split('T')[0]] = {
+          endingDay: true,
+          color,
+          textColor: colors.grayscale[100],
+        };
+      });
     }
 
-    const startKey = startDate.toISOString().split('T')[0];
-    const endKey = endDate.toISOString().split('T')[0];
+    if (selectedRange?.start && selectedRange?.end) {
+      const startDate = new Date(selectedRange.start.replace(/\./g, '-'));
+      const endDate = new Date(selectedRange.end.replace(/\./g, '-'));
 
-    temp[startKey] = {
-      startingDay: true,
-      color: colors.primary[800],
-      textColor: colors.grayscale[100],
-    };
+      let current = new Date(startDate);
+      while (current <= endDate) {
+        const key = current.toISOString().split('T')[0];
+        marks[key] = {
+          color: colors.primary[800],
+          textColor: 'white',
+        };
+        current.setDate(current.getDate() + 1);
+      }
 
-    temp[endKey] = {
-      endingDay: true,
-      color: colors.primary[800],
-      textColor: colors.grayscale[100],
-    };
+      marks[startDate.toISOString().split('T')[0]] = {
+        startingDay: true,
+        color: colors.primary[800],
+        textColor: colors.grayscale[100],
+      };
 
-    setMarkedDates(temp);
-  }, [selectedRange]);
+      marks[endDate.toISOString().split('T')[0]] = {
+        endingDay: true,
+        color: colors.primary[800],
+        textColor: colors.grayscale[100],
+      };
+    }
+
+    return marks;
+  }, [trips, selectedRange?.start, selectedRange?.end]);
 
   return (
     <View style={{ flex: 1 }}>
