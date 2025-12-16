@@ -29,6 +29,7 @@ function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never">
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
@@ -36,6 +37,18 @@ function HomeScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>다가오는 여행</Text>
           <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>
+=======
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Text style={styles.headerText}>나의 캘린더</Text>
+        <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
+
+        <CalendarView />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>다가오는 여행</Text>
+          <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>
+
+>>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary[700]} />
           ) : (
@@ -56,34 +69,57 @@ function HomeScreen({ navigation }) {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+<<<<<<< HEAD
   headerRightContainer: {
     alignItems: 'stretch',
     flexDirection: 'row',
     marginRight: 20,
   },
+=======
+>>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[100],
     paddingHorizontal: 20,
   },
+<<<<<<< HEAD
+=======
+
+>>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe
   headerText: {
     fontFamily: 'Pretendard-SemiBold',
     fontSize: 20,
     marginTop: 24,
   },
+<<<<<<< HEAD
+=======
+
+>>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe
   subText: {
     fontFamily: 'Pretendard-Regular',
     fontSize: 15,
     color: colors.grayscale[700],
     marginBottom: 12,
   },
+<<<<<<< HEAD
   section: {
     marginTop: 40,
   },
+=======
+
+  section: {
+    marginTop: 40,
+  },
+
+>>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe
   sectionTitle: {
     fontFamily: 'Pretendard-SemiBold',
     fontSize: 18,
   },
+<<<<<<< HEAD
+=======
+
+>>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe
   sectionSub: {
     fontFamily: 'Pretendard-Regular',
     fontSize: 14,

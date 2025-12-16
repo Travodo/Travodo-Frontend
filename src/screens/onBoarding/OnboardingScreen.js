@@ -41,12 +41,6 @@ function OnboardingScreen({ navigation }) {
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  });
-
   const handleScroll = (event) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / width);
     setCurrentIndex(index);
