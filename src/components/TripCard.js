@@ -42,8 +42,15 @@ const calculateDDay = (startDateString) => {
 export default function TripCard({ trip }) {
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
-
+  const [contentHeight, setContentHeight] = useState(0);
   const dDay = calculateDDay(trip.startDate);
+
+  const onLayout = (event) => {
+    const { height } = event.nativeEvent.layout;
+    if (height !== contentHeight) {
+      setContentHeight(height);
+    }
+  };
 
   const toggleExpand = () => {
     const finalValue = expanded ? 0 : 1;
@@ -57,7 +64,7 @@ export default function TripCard({ trip }) {
 
   const heightInterpolate = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 240],
+    outputRange: [0, contentHeight],
   });
 
   const opacityInterpolate = animation.interpolate({
@@ -112,7 +119,7 @@ export default function TripCard({ trip }) {
             },
           ]}
         >
-          <View style={styles.detailInner}>
+          <View style={styles.detailInner} onLayout={onLayout}>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행지</Text>
               <Text style={styles.detailValue}>{trip.location}</Text>
