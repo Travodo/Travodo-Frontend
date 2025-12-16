@@ -27,6 +27,11 @@ function TravelCreateScreen({ navigation }) {
     companions: '',
   });
 
+  const selectedRange = {
+    start: startDate,
+    end: endDate,
+  };
+
   const handleConfirm = (date) => {
     if (visiblePicker === 'start') setStartDate(date);
     if (visiblePicker === 'end') setEndDate(date);
@@ -125,7 +130,7 @@ function TravelCreateScreen({ navigation }) {
         <Text style={styles.subtitle}>새로운 곳으로 여행을 떠나보세요!</Text>
 
         <View style={styles.calendarWrapper}>
-          <CalendarView selectedRange={{ start: startDate, end: endDate }} />
+          <CalendarView selectedRange={selectedRange} />
         </View>
 
         <View style={styles.form}>

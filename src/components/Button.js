@@ -2,17 +2,25 @@ import { View, Pressable, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../styles/colors';
 
-function Button({ text, style, onPress, disable = false, textStyle }) {
+function Button({ text, style, onPress, disable = false, disabled = false, textStyle }) {
+  const isDisabled = disable || disabled;
+
+  const handlePress = () => {
+    if (!isDisabled && onPress) {
+      onPress();
+    }
+  };
+
   return (
     <Pressable
       style={[
         styles.button,
         style,
-        !disable
+        !isDisabled
           ? { backgroundColor: colors.primary[700] }
           : { backgroundColor: colors.grayscale[400] },
       ]}
-      onPress={onPress}
+      onPress={handlePress}
     >
       <Text style={[styles.buttonText, textStyle]}>{text}</Text>
     </Pressable>
@@ -24,6 +32,7 @@ Button.propTypes = {
   style: PropTypes.object,
   onPress: PropTypes.func,
   disable: PropTypes.bool,
+  disabled: PropTypes.bool,
   textStyle: PropTypes.object,
 };
 
