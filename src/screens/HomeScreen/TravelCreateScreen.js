@@ -71,7 +71,7 @@ function TravelCreateScreen({ navigation }) {
         .split(',')
         .map((c) => c.trim())
         .filter((c) => c.length > 0),
-      code: Math.floor(100000 + Math.random() * 90000).toString(),
+      code: Math.floor(100000 + Math.random() * 900000).toString(),
       color,
     };
 

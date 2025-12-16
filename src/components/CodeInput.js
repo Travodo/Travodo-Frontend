@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import { colors } from '../styles/colors';
 
-const CODE_LENGTH = 5;
+const CODE_LENGTH = 61;
 
 function CodeInput({ value, onChange }) {
   const inputRef = useRef([]);

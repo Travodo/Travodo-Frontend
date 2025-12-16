@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, SafeAreaView, StyleSheet } from 'react-native';
-import SettingItem from './SettingItem';
+import SettingItem from '../../components/SettingItem';
 import { colors } from '../../styles/colors';
 
 function SettingsScreen({ navigation }) {
