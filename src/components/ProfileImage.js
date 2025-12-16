@@ -14,4 +14,8 @@ ProfileImage.propTypes = {
   size: PropTypes.number.isRequired,
 };
 
+ProfileImage.propTypes = {
+  size: PropTypes.number.isRequired,
+};
+
 export default ProfileImage;

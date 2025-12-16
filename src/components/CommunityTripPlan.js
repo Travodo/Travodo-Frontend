@@ -1,13 +1,16 @@
-import { View, Pressable, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
-function CommunityTripPlan({ title, date, location, people, todo }) {
+function CommunityTripPlan({ title, date, location, people, todo, circleColor }) {
   return (
     <View style={styles.wrap}>
       <View style={styles.container}>
         <View style={styles.headerContainer}>
           <View style={styles.titleContainer}>
-            <View style={styles.circle} />
+            <View
+              style={[styles.circle, { backgroundColor: circleColor || colors.primary[700] }]}
+            />
             <Text style={styles.title}>{title}</Text>
           </View>
           <View>
@@ -26,7 +29,7 @@ function CommunityTripPlan({ title, date, location, people, todo }) {
         </View>
         <View style={styles.contentContainer}>
           <Text style={styles.contentForm}>동행 인원</Text>
-          <Text style={styles.contentText}>{people}</Text>
+          <Text style={styles.contentText}>{people}인</Text>
         </View>
         <View style={styles.contentContainer}>
           <Text style={styles.contentForm}>TODO</Text>
@@ -36,6 +39,15 @@ function CommunityTripPlan({ title, date, location, people, todo }) {
     </View>
   );
 }
+
+CommunityTripPlan.propTypes = {
+  title: PropTypes.string.isRequired,
+  date: PropTypes.string.isRequired,
+  location: PropTypes.string.isRequired,
+  people: PropTypes.number.isRequired,
+  todo: PropTypes.object.isRequired,
+  circleColor: PropTypes.string.isRequired,
+};
 
 const styles = StyleSheet.create({
   wrap: {
@@ -60,7 +72,6 @@ const styles = StyleSheet.create({
     width: 17,
     height: 17,
     borderRadius: 10,
-    backgroundColor: 'red',
   },
   title: {
     fontFamily: 'Pretendard-SemiBold',

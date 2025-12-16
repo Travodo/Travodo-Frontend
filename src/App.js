@@ -21,7 +21,7 @@ function App() {
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-      <AuthStack />
+      <MainStack />
     </NavigationContainer>
   );
 }

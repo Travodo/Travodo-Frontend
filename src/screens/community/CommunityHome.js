@@ -1,8 +1,5 @@
 import { View, StyleSheet, Text } from 'react-native';
-import { useEffect, useState, useMemo } from 'react';
-import TravodoLogo from '../../../assets/Logo/TravodoLogo.svg';
-import OptionButton from '../../components/OptionButton';
-import HeaderScrap from '../../components/HeaderScrap';
+import { useState, useMemo } from 'react';
 import PostList from '../../components/PostList';
 import CategoriesList from '../../components/CategoriesList';
 
@@ -65,24 +62,6 @@ const CATEGORY_TABS = [
 ];
 
 function CommunityHome({ navigation }) {
-  useEffect(() => {
-    navigation.setOptions({
-      headerShadowVisible: false,
-      headerLeft: () => <TravodoLogo width={100} height={20} marginLeft={32} />,
-      headerTitle: '',
-      headerRight: () => (
-        <View style={styles.headerRightContainer}>
-          <HeaderScrap
-            style={{ marginRight: 15 }}
-            size={16}
-            onPress={() => console.log('스크랩')}
-          />
-          <OptionButton size={16} onPress={() => console.log('환경설정')} />
-        </View>
-      ),
-    });
-  });
-
   const [isCategories, setIsCategories] = useState(['전체']);
 
   const selectCategories = (categoryLabel) => {
@@ -120,17 +99,12 @@ function CommunityHome({ navigation }) {
           onSelectCategory={selectCategories}
         />
       </View>
-      <PostList data={filteringPosts} />
+      <PostList data={filteringPosts} onPress={() => navigation.navigate('CommunityContent')} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerRightContainer: {
-    alignItems: 'stretch',
-    flexDirection: 'row',
-    marginRight: 20,
-  },
   container: {
     backgroundColor: '#fff',
     flex: 1,

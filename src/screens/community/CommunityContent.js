@@ -1,57 +1,141 @@
-import { View, Text, Pressable, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import CommunityTripPlan from '../../components/CommunityTripPlan';
 import ProfileImage from '../../components/ProfileImage';
 import { colors } from '../../styles/colors';
 import DotButton from '../../components/DotButton';
 import ImageGrid from '../../components/ImageGrid';
-import trip1 from '../../../assets/data/tripimage1.png';
 import Heart from '../../components/Heart';
 import Comment from '../../components/Comment';
-import CommentItem from '../../components/CommentItem';
+import CommentListItem from '../../components/CommentListItem';
+import { useEffect } from 'react';
+import TravodoLogo from '../../../assets/Logo/TravodoLogo.svg';
+import OptionButton from '../../components/OptionButton';
+import HeaderScrap from '../../components/HeaderScrap';
+import PropTypes from 'prop-types';
+import CommentInput from '../../components/CommentInput';
 
-function CommunityContent() {
-  return (
-    <View style={styles.container}>
-      <View style={styles.profileContainer}>
-        <ProfileImage size={25} />
-        <Text style={styles.nickname}>여행고고</Text>
-        <Text style={styles.date}>2주 전</Text>
-        <View style={styles.button}>
-          <DotButton />
+function CommunityContent({
+  navigation,
+  nickname,
+  agoDate,
+  title,
+  content,
+  circleColor,
+  date,
+  location,
+  people,
+  todo,
+  hCount,
+  cCount,
+}) {
+  useEffect(() => {
+    navigation.setOptions({
+      headerShadowVisible: false,
+      headerLeft: () => <TravodoLogo width={100} height={20} marginLeft={32} />,
+      headerTitle: '',
+      headerRight: () => (
+        <View style={styles.headerRightContainer}>
+          <HeaderScrap
+            style={{ marginRight: 15 }}
+            size={16}
+            onPress={() => console.log('스크랩')}
+          />
+          <OptionButton size={16} onPress={() => console.log('환경설정')} />
         </View>
-      </View>
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>가평 익스트림 클리어!</Text>
-      </View>
-      <View style={styles.contentContainer}>
-        <Text style={styles.content}>
-          안녕하세요. {'\n'}대학 동기 4명이서 2박 3일 가평을 빡세게 찍고 왔습니다!{'\n'}저희 모두
-          mbti P였지만, Travodo 덕분에 무사히 여행을 마쳤습니다.{'\n'}저희의 계획 공유해드릴게요!
-        </Text>
-      </View>
-      <View style={styles.tripplan}>
-        <CommunityTripPlan
-          title={'가평 익스트림 클리어!'}
-          date={'2025.09.03 - 2025.09.05'}
-          location={'경기도 가평군'}
-          people={'4인'}
-          todo={'어쩌구 저쩌구'}
-        />
-      </View>
-      <View style={styles.imageContainer}>
-        <ImageGrid imageName={'image1'} />
-        <ImageGrid imageName={'image2'} />
-      </View>
-      <View style={styles.heartncomment}>
-        <Heart size={15} count={'584'} />
-        <Comment size={15} count={'12'} />
-      </View>
-      <View>
-        <CommentItem />
+      ),
+    });
+  });
+
+  const data = [
+    {
+      id: 'c1',
+      nickname: '여행조아',
+      date: '3일 전',
+      comment:
+        '정말 유용한 정보 감사합니다! mbti P라서 계획이 늘 어려웠는데 큰 도움이 됐어요. 바로 저장했습니다!',
+    },
+    {
+      id: 'c2',
+      nickname: '가평마스터',
+      date: '2일 전',
+      comment:
+        '익스트림 좋아하시면 잣향기 푸른숲 트레킹도 강추해요! 산림욕 하고 나면 정말 상쾌합니다. 코스에 넣어보세요.',
+    },
+    {
+      id: 'c3',
+      nickname: '떠나자NOW',
+      date: '1일 전',
+      comment:
+        '와, 2박 3일 동안 이렇게 알차게 보내시다니 대단해요. 사진만 봐도 너무 재밌어 보여요. 다음 여행 계획도 기대하겠습니다!',
+    },
+    {
+      id: 'c4',
+      nickname: '계획형J',
+      date: '15시간 전',
+      comment:
+        'P이신데도 이렇게 완벽한 계획을 짜시다니 놀랍네요! Travodo가 큰 역할을 한 것 같습니다 :)',
+    },
+  ];
+
+  return (
+    <View>
+      <ScrollView contentContainerStyle={styles.scroll} bounces={false} overScrollMode="never">
+        <View style={styles.container}>
+          <View style={styles.profileContainer}>
+            <ProfileImage size={25} />
+            <Text style={styles.nickname}>{nickname}</Text>
+            <Text style={styles.date}>{agoDate}</Text>
+            <View style={styles.button}>
+              <DotButton />
+            </View>
+          </View>
+          <View style={styles.contentContainer}>
+            <Text style={styles.title}>{title}</Text>
+          </View>
+          <View style={styles.contentContainer}>
+            <Text style={styles.content}>{content}</Text>
+          </View>
+          <View style={styles.tripplan}>
+            <CommunityTripPlan
+              circleColor={circleColor}
+              title={title}
+              date={date}
+              location={location}
+              people={people}
+              todo={todo}
+            />
+          </View>
+          <View style={styles.imageContainer}>
+            <ImageGrid imageName={'image1'} />
+            <ImageGrid imageName={'image2'} />
+          </View>
+          <View style={styles.heartncomment}>
+            <Heart size={15} count={hCount} />
+            <Comment size={15} count={cCount} />
+          </View>
+          <CommentListItem data={data} />
+        </View>
+      </ScrollView>
+      <View style={styles.commentInput}>
+        <CommentInput />
       </View>
     </View>
   );
 }
+
+CommunityContent.propTypes = {
+  nickname: PropTypes.string.isRequired,
+  agoDate: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  content: PropTypes.string.isRequired,
+  circleColor: PropTypes.string.isRequired,
+  date: PropTypes.string.isRequired,
+  location: PropTypes.string.isRequired,
+  people: PropTypes.number.isRequired,
+  todo: PropTypes.object.isRequired,
+  hCount: PropTypes.string.isRequired,
+  cCount: PropTypes.string.isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -104,6 +188,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 35,
     marginHorizontal: 26,
+  },
+  headerRightContainer: {
+    alignItems: 'stretch',
+    flexDirection: 'row',
+    marginRight: 20,
+  },
+  commentInput: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
+  scroll: {
+    paddingBottom: 90,
   },
 });
 

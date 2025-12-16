@@ -3,39 +3,47 @@ import ProfileImage from './ProfileImage';
 import Heart from './Heart';
 import DotButtton from './DotButton';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
-function CommentItem() {
+function CommentItem({ nickname, date, comment, hcount }) {
   return (
     <View style={styles.container}>
       <View style={styles.profile}>
         <ProfileImage size={25} />
         <View style={styles.info}>
-          <Text style={styles.nickname}>cjftn0729</Text>
-          <Text style={styles.date}>2주 전</Text>
+          <Text style={styles.nickname}>{nickname}</Text>
+          <Text style={styles.date}>{date}</Text>
         </View>
         <View style={styles.button}>
           <DotButtton />
         </View>
       </View>
       <View>
-        <Text style={styles.comment}>계획 공유 감사합니다!!</Text>
+        <Text style={styles.comment}>{comment}</Text>
       </View>
       <View>
-        <Heart count={67} />
+        <Heart count={hcount} />
       </View>
     </View>
   );
 }
 
+CommentItem.propTypes = {
+  nickname: PropTypes.string.isRequired,
+  date: PropTypes.string.isRequired,
+  comment: PropTypes.string.isRequired,
+  hcount: PropTypes.string.isRequired,
+};
+
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: colors.grayscale[400],
     paddingVertical: 12,
-    paddingHorizontal: 12,
     gap: 12,
+    width: '90%',
+    alignSelf: 'center',
   },
   profile: {
     flexDirection: 'row',
@@ -43,7 +51,7 @@ const styles = StyleSheet.create({
   },
   button: {
     position: 'absolute',
-    marginLeft: 364,
+    right: 0,
   },
   info: {
     flexDirection: 'column',

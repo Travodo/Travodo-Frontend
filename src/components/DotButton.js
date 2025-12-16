@@ -1,4 +1,5 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
 
 function DotButton({ onPress }) {
   return (
@@ -7,6 +8,10 @@ function DotButton({ onPress }) {
     </Pressable>
   );
 }
+
+DotButton.propTypes = {
+  onPress: PropTypes.func.isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {

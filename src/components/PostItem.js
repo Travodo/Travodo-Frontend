@@ -5,34 +5,37 @@ import ProfilePicture from '../../assets/ComponentsImage/ProfilePicture.svg';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
-function PostItem({ post }) {
+function PostItem({ post, onPress }) {
   const { nickname, time, title, content, hcount, ccount } = post;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contents}>
-        <View style={styles.profile}>
-          <ProfilePicture size={25} />
-          <Text style={styles.nickname}>{nickname}</Text>
-          <Text style={styles.days}>{time}</Text>
+    <Pressable onPress={onPress}>
+      <View style={styles.container}>
+        <View style={styles.contents}>
+          <View style={styles.profile}>
+            <ProfilePicture size={25} />
+            <Text style={styles.nickname}>{nickname}</Text>
+            <Text style={styles.days}>{time}</Text>
+          </View>
+          <View>
+            <Text style={styles.title}>{title}</Text>
+          </View>
+          <View>
+            <Text style={styles.content}>{content}</Text>
+          </View>
+          <View style={styles.button}>
+            <Heart count={hcount} />
+            <Comment count={ccount} />
+          </View>
         </View>
-        <View>
-          <Text style={styles.title}>{title}</Text>
-        </View>
-        <View>
-          <Text style={styles.content}>{content}</Text>
-        </View>
-        <View style={styles.button}>
-          <Heart count={hcount} />
-          <Comment count={ccount} />
-        </View>
+        <View style={styles.picture} />
       </View>
-      <View style={styles.picture} />
-    </View>
+    </Pressable>
   );
 }
 
 PostItem.propTypes = {
+  onPress: PropTypes.func.isRequired,
   post: PropTypes.object.isRequired,
   nickname: PropTypes.string.isRequired,
   time: PropTypes.string.isRequired,
