@@ -8,7 +8,12 @@ function CommentListItem({ data }) {
       data={data}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
-        <CommentItem nickname={item.nickname} date={item.date} comment={item.comment} />
+        <CommentItem
+          nickname={item.nickname}
+          date={item.date}
+          comment={item.comment}
+          hcount={item.commentlike}
+        />
       )}
       overScrollMode={'never'}
       bounces={false}

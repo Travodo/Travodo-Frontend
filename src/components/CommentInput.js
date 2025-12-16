@@ -1,21 +1,28 @@
 import { View, TextInput, StyleSheet, Pressable } from 'react-native';
 import SendIcon from '../../assets/ComponentsImage/SendIcon.svg';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
-function CommentInput() {
+function CommentInput({ onChangeText, onPress }) {
   return (
     <View style={styles.container}>
       <TextInput
         style={styles.input}
         placeholder="댓글을 입력하세요."
         placeholderTextColor={colors.grayscale[500]}
+        onChangeText={onChangeText}
       />
-      <Pressable style={styles.button} onPress={() => console.log('전송')}>
+      <Pressable style={styles.button} onPress={onPress}>
         <SendIcon width={20} height={30} />
       </Pressable>
     </View>
   );
 }
+
+CommentInput.propTypes = {
+  onChangeText: PropTypes.string.isRequired,
+  onPress: PropTypes.func,
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -45,7 +52,7 @@ const styles = StyleSheet.create({
   },
   button: {
     position: 'absolute',
-    right: '30',
+    right: 30,
     top: 13,
   },
 });

@@ -27,6 +27,8 @@ function CommunityContent({
   todo,
   hCount,
   cCount,
+  onChangeText,
+  send,
 }) {
   useEffect(() => {
     navigation.setOptions({
@@ -72,6 +74,7 @@ function CommunityContent({
       id: 'c4',
       nickname: '계획형J',
       date: '15시간 전',
+      commentlike: '4',
       comment:
         'P이신데도 이렇게 완벽한 계획을 짜시다니 놀랍네요! Travodo가 큰 역할을 한 것 같습니다 :)',
     },
@@ -117,7 +120,7 @@ function CommunityContent({
         </View>
       </ScrollView>
       <View style={styles.commentInput}>
-        <CommentInput />
+        <CommentInput onChangeText={onChangeText} onPress={send} />
       </View>
     </View>
   );
@@ -135,6 +138,8 @@ CommunityContent.propTypes = {
   todo: PropTypes.object.isRequired,
   hCount: PropTypes.string.isRequired,
   cCount: PropTypes.string.isRequired,
+  onChangeText: PropTypes.string,
+  send: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
