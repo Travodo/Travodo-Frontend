@@ -3,100 +3,71 @@ import { View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { colors } from '../styles/colors';
 
+const toDateKey = (dateString) => {
+  const [y, m, d] = dateString.split('.').map(Number);
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+};
+
 export default function CalendarView({ trips = [], selectedRange }) {
   const markedDates = useMemo(() => {
     const marks = {};
 
-    if (Array.isArray(trips) && trips.length > 0) {
-      trips.forEach((trip) => {
-        if (!trip.startDate || !trip.endDate) return;
+    const markPeriod = (start, end, color) => {
+      const startKey = toDateKey(start);
+      const endKey = toDateKey(end);
 
-        const startDate = new Date(trip.startDate.replace(/\./g, '-'));
-        const endDate = new Date(trip.endDate.replace(/\./g, '-'));
-        const color = trip.color || colors.primary[800];
+      if (startKey === endKey) {
+        marks[startKey] = {
+          startingDay: true,
+          endingDay: true,
+          color,
+          textColor: colors.grayscale[100],
+        };
+        return;
+      }
 
-        let current = new Date(startDate);
-        while (current <= endDate) {
-          const key = current.toISOString().split('T')[0];
-          marks[key] = { color, textColor: 'white' };
-          current.setDate(current.getDate() + 1);
-        }
+      let current = new Date(start.replace(/\./g, '-'));
+      const endDate = new Date(end.replace(/\./g, '-'));
 
-        const startKey = startDate.toISOString().split('T')[0];
-        const endKey = endDate.toISOString().split('T')[0];
-        const isSingleDay = startKey === endKey;
-
-        if (isSingleDay) {
-          marks[startKey] = {
-            startingDay: true,
-            endingDay: true,
-            color,
-            textColor: colors.grayscale[100],
-          };
-        } else {
-          marks[startKey] = {
-            startingDay: true,
-            color,
-            textColor: colors.grayscale[100],
-          };
-
-          marks[endKey] = {
-            endingDay: true,
-            color,
-            textColor: colors.grayscale[100],
-          };
-        }
-      });
-    }
-
-    if (selectedRange?.start && selectedRange?.end) {
-      const startDate = new Date(selectedRange.start.replace(/\./g, '-'));
-      const endDate = new Date(selectedRange.end.replace(/\./g, '-'));
-
-      let current = new Date(startDate);
       while (current <= endDate) {
         const key = current.toISOString().split('T')[0];
         marks[key] = {
-          color: colors.primary[800],
+          color,
           textColor: 'white',
         };
         current.setDate(current.getDate() + 1);
       }
 
-      const startKey = startDate.toISOString().split('T')[0];
-      const endKey = endDate.toISOString().split('T')[0];
-      const isSingleDay = startKey === endKey;
+      marks[startKey] = {
+        startingDay: true,
+        color,
+        textColor: colors.grayscale[100],
+      };
 
-      if (isSingleDay) {
-        marks[startKey] = {
-          startingDay: true,
-          endingDay: true,
-          color: colors.primary[800],
-          textColor: colors.grayscale[100],
-        };
-      } else {
-        marks[startKey] = {
-          startingDay: true,
-          color: colors.primary[800],
-          textColor: colors.grayscale[100],
-        };
+      marks[endKey] = {
+        endingDay: true,
+        color,
+        textColor: colors.grayscale[100],
+      };
+    };
 
-        marks[endKey] = {
-          endingDay: true,
-          color: colors.primary[800],
-          textColor: colors.grayscale[100],
-        };
-      }
+    trips.forEach((trip) => {
+      if (!trip.startDate || !trip.endDate) return;
+      markPeriod(trip.startDate, trip.endDate, trip.color || colors.primary[800]);
+    });
+
+    if (selectedRange?.start && selectedRange?.end) {
+      markPeriod(selectedRange.start, selectedRange.end, colors.primary[800]);
     }
 
     return marks;
   }, [trips, selectedRange?.start, selectedRange?.end]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View>
       <Calendar
-        markedDates={markedDates}
         markingType="period"
+        markedDates={markedDates}
         theme={{
           todayTextColor: colors.primary[800],
           backgroundColor: colors.grayscale[200],
