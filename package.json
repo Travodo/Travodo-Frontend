@@ -33,7 +33,8 @@
     "react-native-svg": "15.12.1",
     "react-native-toast-message": "2.3.3",
     "react-native-wheel-pick": "1.2.6",
-    "react-native-wheel-picker-expo": "0.5.4"
+    "react-native-wheel-picker-expo": "0.5.4",
+    "expo-web-browser": "~15.0.10"
   },
   "private": true,
   "devDependencies": {
