@@ -37,8 +37,8 @@ function JoinScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.button, code.length !== 5 && { opacity: 0.5 }]}
-            disabled={code.length !== 5}
+            style={[styles.button, code.length !== 6 && { opacity: 0.5 }]}
+            disabled={code.length !== 6}
             onPress={handleJoin}
           />
         </View>
