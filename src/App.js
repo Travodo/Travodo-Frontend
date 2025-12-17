@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import PrepareScreen from './screens/preTrip/PrepareScreen';
+import MemoScreen from './screens/preTrip/MemoScreen';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +22,7 @@ function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Prepare" component={PrepareScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="MemoDetail" component={MemoScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
