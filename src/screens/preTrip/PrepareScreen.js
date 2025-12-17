@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
 
   sectionDivider: {
     height: 1.2,
-    backgroundColor: colors.grayscale[400],
+    backgroundColor: colors.grayscale[300],
     marginTop: 28,
     marginBottom: 16,
   },
