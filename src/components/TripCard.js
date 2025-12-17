@@ -56,7 +56,7 @@ export default function TripCard({ trip }) {
     const finalValue = expanded ? 0 : 1;
     Animated.timing(animation, {
       toValue: finalValue,
-      duration: 250,
+      duration: 240,
       useNativeDriver: false,
     }).start();
     setExpanded(!expanded);

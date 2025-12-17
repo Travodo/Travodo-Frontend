@@ -1,45 +1,43 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
 import TripCard from '../../components/TripCard';
 import { colors } from '../../styles/colors';
+import { upcomingTrips } from '../../data/TripList';
+import ChecklistItem from '../../components/Checklist';
 
-function PrepareScreen({ route }) {
-  const trip = route?.params?.trip;
+function PrepareScreen() {
+  const trip = upcomingTrips[0];
 
   return (
-    <ScrollView
-      style={styles.container}
-      stickyHeaderIndices={[0]}
-      showsVerticalScrollIndicator={false}
-    >
-      {trip && (
-        <View style={styles.stickyWrapper}>
-          <TripCard trip={trip} />
-        </View>
-      )}
+    <SafeAreaView style={styles.container}>
+      <Text style={[styles.pageTitle, { marginBottom: 6 }]}>여행 준비 리스트</Text>
+      <Text style={styles.subTitle}>신나는 여행을 준비해 봐요!</Text>
+      <View style={styles.fixedCard}>
+        <TripCard trip={trip} />
+      </View>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.sectionTitle}>공동 준비물</Text>
-        <PrepareItem text="여권" />
-        <PrepareItem text="항공권" />
+
+        <View style={styles.list}>
+          <ChecklistItem content="여권" name="공동" />
+          <ChecklistItem content="항공권" name="공동" />
+        </View>
+
+        <View style={styles.sectionDivider} />
 
         <Text style={styles.sectionTitle}>개인 준비물</Text>
-        <PrepareItem text="세면도구" />
-        <PrepareItem text="충전기" />
-      </View>
-    </ScrollView>
+
+        <View style={styles.list}>
+          <ChecklistItem content="여권" name="차은우" />
+          <ChecklistItem content="항공권" name="이수근" />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 export default PrepareScreen;
-
-function PrepareItem({ text }) {
-  return (
-    <View style={styles.item}>
-      <Text>{text}</Text>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {
@@ -47,10 +45,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[100],
   },
 
-  stickyWrapper: {
+  pageTitle: {
+    fontSize: 20,
+    color: colors.grayscale[1000],
+    fontFamily: 'Pretendard-SemiBold',
+    paddingHorizontal: 20,
+  },
+
+  subTitle: {
+    fontSize: 16,
+    color: colors.grayscale[800],
+    fontFamily: 'Pretendard-Regular',
+    marginBottom: 4,
+    paddingHorizontal: 20,
+  },
+
+  fixedCard: {
     backgroundColor: colors.grayscale[100],
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 2,
     paddingBottom: 8,
     zIndex: 10,
   },
@@ -64,13 +77,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Pretendard-SemiBold',
-    marginVertical: 12,
+    marginTop: 20,
+    marginBottom: 12,
+    color: colors.grayscale[1000],
   },
 
-  item: {
-    backgroundColor: colors.grayscale[200],
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 8,
+  list: {
+    gap: 10,
+  },
+
+  sectionDivider: {
+    height: 1.2,
+    backgroundColor: colors.grayscale[400],
+    marginTop: 28,
+    marginBottom: 16,
   },
 });
