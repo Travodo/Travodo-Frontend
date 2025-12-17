@@ -1,98 +1,80 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { colors } from '../styles/colors';
 
-function getPrevDateStr(dateStr) {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
-}
+const toDateKey = (dateString) => {
+  const [y, m, d] = dateString.split('.').map(Number);
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+};
 
-function getNextDateStr(dateStr) {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
-}
+export default function CalendarView({ trips = [], selectedRange }) {
+  const markedDates = useMemo(() => {
+    const marks = {};
 
-export default function CalendarView() {
-  const [selectedDates, setSelectedDates] = useState([]);
-  const [markedDates, setMarkedDates] = useState({});
+    const markPeriod = (start, end, color) => {
+      const startKey = toDateKey(start);
+      const endKey = toDateKey(end);
 
-  const rebuildMarkedDates = (dates) => {
-    const sorted = [...dates].sort(); 
-    const set = new Set(sorted);
-    const marked = {};
-
-    sorted.forEach((date) => {
-      const prev = getPrevDateStr(date);
-      const next = getNextDateStr(date);
-
-      const hasPrev = set.has(prev);
-      const hasNext = set.has(next);
-
-      if (!hasPrev && !hasNext) {
-    
-        marked[date] = {
+      if (startKey === endKey) {
+        marks[startKey] = {
           startingDay: true,
           endingDay: true,
-          color: '#3C74D4',
-          textColor: 'white',
+          color,
+          textColor: colors.grayscale[100],
         };
-      } else if (!hasPrev && hasNext) {
-   
-        marked[date] = {
-          startingDay: true,
-          color: '#3C74D4',
-          textColor: 'white',
-        };
-      } else if (hasPrev && !hasNext) {
-    
-        marked[date] = {
-          endingDay: true,
-          color: '#3C74D4',
-          textColor: 'white',
-        };
-      } else {
-        marked[date] = {
-          color: '#3C74D4',
-          textColor: 'white',
-        };
+        return;
       }
+
+      let current = new Date(start.replace(/\./g, '-'));
+      const endDate = new Date(end.replace(/\./g, '-'));
+
+      while (current <= endDate) {
+        const key = current.toISOString().split('T')[0];
+        marks[key] = {
+          color,
+          textColor: 'white',
+        };
+        current.setDate(current.getDate() + 1);
+      }
+
+      marks[startKey] = {
+        startingDay: true,
+        color,
+        textColor: colors.grayscale[100],
+      };
+
+      marks[endKey] = {
+        endingDay: true,
+        color,
+        textColor: colors.grayscale[100],
+      };
+    };
+
+    trips.forEach((trip) => {
+      if (!trip.startDate || !trip.endDate) return;
+      markPeriod(trip.startDate, trip.endDate, trip.color || colors.primary[800]);
     });
 
-    setMarkedDates(marked);
-  };
-
-  const handleDayPress = (day) => {
-    const date = day.dateString;
-
-    let nextSelected;
-    if (selectedDates.includes(date)) {
-   
-      nextSelected = selectedDates.filter((d) => d !== date);
-    } else {
-      nextSelected = [...selectedDates, date];
+    if (selectedRange?.start && selectedRange?.end) {
+      markPeriod(selectedRange.start, selectedRange.end, colors.primary[800]);
     }
 
-    setSelectedDates(nextSelected);
-    rebuildMarkedDates(nextSelected);
-  };
+    return marks;
+  }, [trips, selectedRange?.start, selectedRange?.end]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.grayscale[200], borderRadius: 18, overflow: 'hidden' }}>
+    <View>
       <Calendar
-        onDayPress={handleDayPress}
+        markingType="period"
         markedDates={markedDates}
-        markingType="period" 
         theme={{
-          todayTextColor: '#3C74D4',
-          textDayFontWeight: '500',
-          textMonthFontWeight: 'bold',
-          textDayHeaderFontWeight: '600',
+          todayTextColor: colors.primary[800],
           backgroundColor: colors.grayscale[200],
           calendarBackground: colors.grayscale[200],
-          textSectionTitleColor: '#333',
+          textDayFontWeight: '500',
+          textMonthFontWeight: 'bold',
+          arrowColor: colors.primary[800],
         }}
       />
     </View>

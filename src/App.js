@@ -11,9 +11,7 @@ function App() {
     'Pretendard-Medium': require('../assets/Fonts/Pretendard-Medium.otf'),
   });
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
     <NavigationContainer>

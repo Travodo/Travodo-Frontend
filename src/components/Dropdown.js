@@ -86,10 +86,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingVertical: 3,
+    paddingVertical: 0,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: colors.grayscale[400],
+    borderColor: colors.grayscale[100],
     backgroundColor: colors.grayscale[100],
   },
 
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     elevation: 4,
     backgroundColor: colors.primary[100],
-    marginTop: 4,
+    marginTop: 0,
   },
 
   option: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
 
   optionText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[900],
     textAlign: 'center',
