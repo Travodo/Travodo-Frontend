@@ -25,7 +25,7 @@ function JoinScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false} overScrollMode="never">
         <View style={styles.container}>
           <Text style={styles.title}>코드 입력</Text>
           <Text style={styles.sub}>참가하실 여행 초대 코드를 입력하세요!</Text>

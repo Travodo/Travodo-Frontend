@@ -132,7 +132,12 @@ function TravelCreateScreen({ navigation }) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        bounces={false}
+        overScrollMode="never"
+      >
         <Text style={styles.title}>여행 생성</Text>
         <Text style={styles.subtitle}>새로운 곳으로 여행을 떠나보세요!</Text>
 

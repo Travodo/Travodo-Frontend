@@ -38,7 +38,7 @@ function LasttripScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} overScrollMode="never" bounces={false}>
         <View style={styles.titleSection}>
           <Text style={[styles.sectionTitle, { marginBottom: 8, marginTop: 20 }]}>지난 여행</Text>
           <Text style={styles.subTitle}>Travodo와 함께한 여행을 추억하세요!</Text>

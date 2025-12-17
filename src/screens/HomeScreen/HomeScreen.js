@@ -46,7 +46,7 @@ function HomeScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never" bounces={false}>
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
 

@@ -40,7 +40,7 @@ function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} bounces={false} overScrollMode="never">
         <View style={styles.profileSection}>
           <View style={styles.profileWrapper}>
             <ProfileImage width={100} height={100} />

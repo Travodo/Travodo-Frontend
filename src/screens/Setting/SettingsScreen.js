@@ -12,7 +12,7 @@ function SettingsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} bounces={false} overScrollMode="never">
         <Text style={[styles.sectionTitle, { marginBottom: 8, marginTop: 20 }]}>계정 정보</Text>
         <View style={styles.sectionDivider} />
         <SettingItem

@@ -5,10 +5,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Toast from 'react-native-toast-message';
 
-import HomeScreen from './screens/HomeScreen/HomeScreen';
-import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
-import TravelCompleteScreen from './screens/HomeScreen/TravelCompleteScreen';
-import JoinScreen from './screens/HomeScreen/JoinScreen';
+import HomeScreen from './screens/homeScreen/HomeScreen';
+import TravelCreateScreen from './screens/homeScreen/TravelCreateScreen';
+import TravelCompleteScreen from './screens/homeScreen/TravelCompleteScreen';
+import JoinScreen from './screens/homeScreen/JoinScreen';
+import LasttripScreen from './screens/Setting/LasttripScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,7 +28,7 @@ function App() {
       <NavigationContainer>
         <StatusBar style="auto" />
         <Stack.Navigator
-          initialRouteName="TravelCreate"
+          initialRouteName="Join"
           screenOptions={{
             headerShown: false,
           }}
@@ -35,7 +36,7 @@ function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
           <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} />
-          <Stack.Screen name="Join" component={JoinScreen} />
+          <Stack.Screen name="Join" component={LasttripScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast />
