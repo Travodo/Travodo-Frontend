@@ -1,11 +1,29 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, SafeAreaView, Pressable } from 'react-native';
+import { View, Text, TextInput, StyleSheet, SafeAreaView, Pressable, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 
 function MemoScreen({ route, navigation }) {
-  const { title } = route.params;
-  const [content, setContent] = useState(title);
+  const memo = route.params?.memo;
+  const onSave = route.params?.onSave;
+
+  const [title, setTitle] = useState(memo?.title || '');
+  const [content, setContent] = useState(memo?.content || '');
+
+  const handleSave = () => {
+    if (!title.trim()) {
+      Alert.alert('제목을 입력하세요');
+      return;
+    }
+
+    onSave?.({
+      id: memo?.id || Date.now(),
+      title,
+      content,
+    });
+
+    navigation.goBack();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -14,11 +32,17 @@ function MemoScreen({ route, navigation }) {
           <MaterialIcons name="arrow-back-ios" size={22} />
         </Pressable>
 
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {title}
-        </Text>
+        <TextInput
+          style={styles.headerTitleInput}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="메모 제목"
+          numberOfLines={1}
+        />
 
-        <Text style={styles.saveText}>저장</Text>
+        <Pressable onPress={handleSave}>
+          <Text style={styles.saveText}>저장</Text>
+        </Pressable>
       </View>
 
       <TextInput
@@ -56,6 +80,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     fontFamily: 'Pretendard-Medium',
+  },
+
+  headerTitleInput: {
+    flex: 1,
+    fontSize: 18,
+    fontFamily: 'Pretendard-SemiBold',
+    color: colors.grayscale[1000],
+    marginHorizontal: 12,
   },
 
   saveText: {

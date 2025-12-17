@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
   Pressable,
+  TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -21,14 +22,51 @@ function PrepareScreen() {
   const trip = upcomingTrips[0];
   const navigation = useNavigation();
 
-  const travelers = [
-    { id: 1, name: '홍길동', color: '#6B8EFF' },
-    { id: 2, name: '유병재', color: '#FFD66B' },
-    { id: 3, name: '차은우', color: '#FF8A8A' },
-    { id: 4, name: '이수근', color: '#9AD77D' },
-  ];
+  const [travelers, setTravelers] = useState([]);
 
-  const memos = ['100억 부자 유병재 vs 무일푼 차은우', '차은우'];
+  const [isAddingTraveler, setIsAddingTraveler] = useState(false);
+  const [travelerName, setTravelerName] = useState('');
+
+  const colorPool = ['#6B8EFF', '#FFD66B', '#FF8A8A', '#9AD77D'];
+
+  const [shared, setShared] = useState([]);
+  const [personal, setPersonal] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [memos, setMemos] = useState([]);
+
+  const [adding, setAdding] = useState(null);
+  const [text, setText] = useState('');
+
+  const addItem = (setter, list) => {
+    if (!text.trim()) return;
+    setter([...list, text]);
+    setText('');
+    setAdding(null);
+  };
+
+  const deleteItem = (list, setter, index) => {
+    setter(list.filter((_, i) => i !== index));
+  };
+
+  const editItem = (list, setter, index, value) => {
+    setter(list.map((item, i) => (i === index ? value : item)));
+  };
+
+  const handleAddTraveler = () => {
+    if (!travelerName.trim()) return;
+
+    setTravelers((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        name: travelerName,
+        color: colorPool[prev.length % colorPool.length],
+      },
+    ]);
+
+    setTravelerName('');
+    setIsAddingTraveler(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,83 +77,140 @@ function PrepareScreen() {
         <TripCard trip={trip} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>여행자</Text>
 
         <View style={styles.travelerRow}>
-          {travelers.map((traveler) => (
-            <TravelerAvatar key={traveler.id} name={traveler.name} color={traveler.color} />
-          ))}
+          {travelers.length === 0 ? (
+            isAddingTraveler ? (
+              /* 0명 + 입력 중 */
+              <View style={styles.travelerInputBoxCenter}>
+                <TextInput
+                  style={styles.travelerInput}
+                  value={travelerName}
+                  onChangeText={setTravelerName}
+                  placeholder="이름을 입력하세요"
+                  autoFocus
+                  onSubmitEditing={handleAddTraveler}
+                />
+                <Pressable onPress={() => setIsAddingTraveler(false)}>
+                  <MaterialIcons name="close" size={20} />
+                </Pressable>
+              </View>
+            ) : (
+              /* 0명 + 기본 상태 */
+              <Pressable style={styles.centerPlusButton} onPress={() => setIsAddingTraveler(true)}>
+                <Plus width={24} height={24} />
+              </Pressable>
+            )
+          ) : (
+            <>
+              {/* 여행자 목록 */}
+              <View style={styles.travelerList}>
+                {travelers.map((t) => (
+                  <TravelerAvatar key={t.id} name={t.name} color={t.color} />
+                ))}
+              </View>
 
-          <Pressable style={styles.TravelerplusButton}>
-            <Plus width={24} height={24} />
-          </Pressable>
+              {/* 오른쪽 + / 입력 */}
+              {isAddingTraveler ? (
+                <View style={styles.travelerInputBox}>
+                  <TextInput
+                    style={styles.travelerInput}
+                    value={travelerName}
+                    onChangeText={setTravelerName}
+                    placeholder="이름 입력"
+                    autoFocus
+                    onSubmitEditing={handleAddTraveler}
+                  />
+                  <Pressable onPress={() => setIsAddingTraveler(false)}>
+                    <MaterialIcons name="close" size={20} />
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable style={styles.rightPlusButton} onPress={() => setIsAddingTraveler(true)}>
+                  <Plus width={24} height={24} />
+                </Pressable>
+              )}
+            </>
+          )}
         </View>
 
         <View style={styles.sectionDivider} />
 
-        <Text style={styles.sectionTitle}>공동 준비물</Text>
+        {renderSection(
+          '공동 준비물',
+          shared,
+          setShared,
+          'shared',
+          adding,
+          setAdding,
+          text,
+          setText,
+          addItem,
+          deleteItem,
+          editItem,
+        )}
 
-        <View style={styles.list}>
-          <ChecklistItem content="여권" name="공동" />
-          <ChecklistItem content="항공권" name="공동" />
-        </View>
+        {renderSection(
+          '개인 준비물',
+          personal,
+          setPersonal,
+          'personal',
+          adding,
+          setAdding,
+          text,
+          setText,
+          addItem,
+          deleteItem,
+          editItem,
+        )}
 
-        <View style={styles.plusCenter}>
-          <Pressable style={styles.plusButton}>
-            <Plus width={24} height={24} />
-          </Pressable>
-        </View>
-
-        <View style={styles.sectionDivider} />
-
-        <Text style={styles.sectionTitle}>개인 준비물</Text>
-
-        <View style={styles.list}>
-          <ChecklistItem content="여권" name="차은우" />
-          <ChecklistItem content="항공권" name="이수근" />
-        </View>
-
-        <View style={styles.plusCenter}>
-          <Pressable style={styles.plusButton}>
-            <Plus width={24} height={24} />
-          </Pressable>
-        </View>
-
-        <View style={styles.sectionDivider} />
-
-        <Text style={styles.sectionTitle}>여행 활동</Text>
-
-        <View style={styles.list}>
-          <ChecklistItem content="부산대 근처 모모스 커피 본점" />
-          <ChecklistItem content="광안리 요트 투어" />
-        </View>
-
-        <View style={styles.plusCenter}>
-          <Pressable style={styles.plusButton}>
-            <Plus width={24} height={24} />
-          </Pressable>
-        </View>
-
-        <View style={styles.sectionDivider} />
+        {renderSection(
+          '여행 활동',
+          activities,
+          setActivities,
+          'activities',
+          adding,
+          setAdding,
+          text,
+          setText,
+          addItem,
+          deleteItem,
+          editItem,
+        )}
 
         <Text style={styles.sectionTitle}>메모장</Text>
 
-        <View style={styles.memoList}>
-          {memos.map((memo, index) => (
-            <Pressable
-              key={index}
-              onPress={() => navigation.navigate('MemoDetail', { title: memo })}
-              style={({ pressed }) => [styles.memoRow, pressed && { opacity: 0.6 }]}
-            >
-              <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
-              <Text style={styles.memoText}>{memo}</Text>
-            </Pressable>
-          ))}
-        </View>
+        {memos.map((memo) => (
+          <Pressable
+            key={memo.id}
+            style={styles.memoRow}
+            onPress={() =>
+              navigation.navigate('Memo', {
+                memo,
+                onSave: (updatedMemo) => {
+                  setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
+                },
+              })
+            }
+          >
+            <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
+            <Text style={styles.memoText}>{memo.title}</Text>
+          </Pressable>
+        ))}
 
         <View style={styles.plusCenter}>
-          <Pressable style={styles.plusButton}>
+          <Pressable
+            style={styles.plusButton}
+            onPress={() =>
+              navigation.navigate('Memo', {
+                onSave: (newMemo) => {
+                  setMemos((prev) => [...prev, newMemo]);
+                },
+              })
+            }
+          >
             <Plus width={24} height={24} />
           </Pressable>
         </View>
@@ -126,7 +221,6 @@ function PrepareScreen() {
           <TouchableOpacity style={styles.startButton}>
             <Text style={styles.startText}>여행 시작</Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.deleteButton}>
             <Text style={styles.deleteText}>삭제하기</Text>
           </TouchableOpacity>
@@ -136,13 +230,75 @@ function PrepareScreen() {
   );
 }
 
+function renderSection(
+  title,
+  list,
+  setter,
+  key,
+  adding,
+  setAdding,
+  text,
+  setText,
+  addItem,
+  deleteItem,
+  editItem,
+) {
+  return (
+    <>
+      <Text style={styles.sectionTitle}>{title}</Text>
+
+      {list.map((item, index) => (
+        <View key={index} style={{ marginBottom: 10 }}>
+          <ChecklistItem
+            key={index}
+            content={item}
+            onDelete={() => deleteItem(list, setter, index)}
+            onEdit={(value) => editItem(list, setter, index, value)}
+          />
+        </View>
+      ))}
+
+      {adding === key && (
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            value={text}
+            onChangeText={setText}
+            autoFocus
+            placeholder="내용을 입력하세요"
+            onSubmitEditing={() => addItem(setter, list)}
+          />
+          <Pressable onPress={() => setAdding(null)}>
+            <MaterialIcons name="close" size={22} />
+          </Pressable>
+        </View>
+      )}
+
+      <View style={styles.plusCenter}>
+        <Pressable style={styles.plusButton} onPress={() => setAdding(key)}>
+          <Plus width={24} height={24} />
+        </Pressable>
+      </View>
+
+      <View style={styles.sectionDivider} />
+    </>
+  );
+}
+
+function PlusCenter({ onPress }) {
+  return (
+    <View style={styles.plusCenter}>
+      <Pressable style={styles.plusButton} onPress={onPress}>
+        <Plus width={24} height={24} />
+      </Pressable>
+    </View>
+  );
+}
+
 export default PrepareScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.grayscale[100],
-  },
+  container: { flex: 1, backgroundColor: colors.grayscale[100] },
 
   pageTitle: {
     fontSize: 20,
@@ -160,16 +316,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  fixedCard: {
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-  },
+  fixedCard: { paddingHorizontal: 20, paddingBottom: 8 },
 
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 80,
-  },
+  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 80 },
 
   sectionTitle: {
     fontSize: 18,
@@ -179,11 +328,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[1000],
   },
 
-  travelerRow: {
-    flexDirection: 'row',
-    gap: 5,
-    marginBottom: 5,
-  },
+  travelerRow: { flexDirection: 'row', gap: 5, marginBottom: 5 },
 
   TravelerplusButton: {
     marginLeft: 'auto',
@@ -193,37 +338,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  list: {
-    gap: 10,
-  },
+  list: { gap: 10 },
 
-  memoList: {
-    gap: 14,
-  },
+  memoList: { gap: 14 },
 
-  memoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
+  memoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
 
-  memoText: {
-    fontSize: 16,
-    fontFamily: 'Pretendard-Regular',
-    color: colors.grayscale[1000],
-  },
+  memoText: { fontSize: 16, fontFamily: 'Pretendard-Regular', color: colors.grayscale[1000] },
 
-  plusCenter: {
-    alignItems: 'center',
-    marginTop: 12,
-  },
+  plusCenter: { alignItems: 'center', marginTop: 12 },
 
-  plusButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  plusButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 
   sectionDivider: {
     height: 1.2,
@@ -232,12 +357,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    marginTop: 10,
-  },
+  buttonRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 10 },
 
   startButton: {
     backgroundColor: colors.primary[700],
@@ -247,11 +367,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 7,
   },
 
-  startText: {
-    color: colors.grayscale[100],
-    fontFamily: 'Pretendard-SemiBold',
-    fontSize: 16,
-  },
+  startText: { color: colors.grayscale[100], fontFamily: 'Pretendard-SemiBold', fontSize: 16 },
 
   deleteButton: {
     backgroundColor: colors.grayscale[400],
@@ -261,9 +377,77 @@ const styles = StyleSheet.create({
     marginHorizontal: 7,
   },
 
-  deleteText: {
-    color: colors.grayscale[100],
-    fontFamily: 'Pretendard-SemiBold',
+  deleteText: { color: colors.grayscale[100], fontFamily: 'Pretendard-SemiBold', fontSize: 16 },
+
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+
+  input: {
+    flex: 1,
     fontSize: 16,
+    fontFamily: 'Pretendard-Regular',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayscale[300],
+    paddingVertical: 6,
+  },
+
+  travelerRow: {
+    marginTop: 8,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  /* 여행자들 가로 리스트 */
+  travelerList: {
+    flexDirection: 'row',
+    gap: 6,
+    flex: 1,
+  },
+
+  /* 처음(0명)일 때 가운데 + */
+  centerPlusButton: {
+    width: '100%',
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    marginBottom: -20,
+  },
+
+  /* 여행자 있을 때 오른쪽 + */
+  rightPlusButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 'auto',
+  },
+
+  travelerInputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 'auto',
+  },
+
+  travelerInput: {
+    minWidth: 100,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayscale[300],
+    fontFamily: 'Pretendard-Regular',
+    paddingVertical: 4,
+  },
+
+  travelerInputBoxCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    justifyContent: 'center',
+    width: '100%',
   },
 });
