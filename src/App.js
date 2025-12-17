@@ -1,7 +1,11 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
-import MainStack from './navigations/MainStack';
+import { createStackNavigator } from '@react-navigation/stack';
+import PrepareScreen from './screens/preTrip/PrepareScreen';
+
+const Stack = createStackNavigator();
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -15,8 +19,9 @@ function App() {
 
   return (
     <NavigationContainer>
-      <StatusBar style="auto" />
-      <MainStack />
+      <Stack.Navigator>
+        <Stack.Screen name="Prepare" component={PrepareScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
