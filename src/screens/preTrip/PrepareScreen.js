@@ -39,17 +39,33 @@ function PrepareScreen() {
 
   const addItem = (setter, list) => {
     if (!text.trim()) return;
-    setter([...list, text]);
+    setter([...list, { id: Date.now().toString(), content: text }]);
     setText('');
     setAdding(null);
+  };
+
+  const addTraveler = () => {
+    if (!travelerName.trim()) return;
+
+    setTravelers((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        name: travelerName,
+        color: colorPool[prev.length % colorPool.length],
+      },
+    ]);
+
+    setTravelerName('');
+    setIsAddingTraveler(false);
   };
 
   const deleteItem = (list, setter, index) => {
     setter(list.filter((_, i) => i !== index));
   };
 
-  const editItem = (list, setter, index, value) => {
-    setter(list.map((item, i) => (i === index ? value : item)));
+  const editItem = (list, setter, index, newContent) => {
+    setter(list.map((item, i) => (i === index ? { ...item, content: newContent } : item)));
   };
 
   const handleAddTraveler = () => {
@@ -83,36 +99,32 @@ function PrepareScreen() {
         <View style={styles.travelerRow}>
           {travelers.length === 0 ? (
             isAddingTraveler ? (
-              /* 0명 + 입력 중 */
               <View style={styles.travelerInputBoxCenter}>
                 <TextInput
                   style={styles.travelerInput}
                   value={travelerName}
                   onChangeText={setTravelerName}
-                  placeholder="이름을 입력하세요"
+                  placeholder="이름 입력"
                   autoFocus
-                  onSubmitEditing={handleAddTraveler}
+                  onSubmitEditing={addTraveler}
                 />
                 <Pressable onPress={() => setIsAddingTraveler(false)}>
                   <MaterialIcons name="close" size={20} />
                 </Pressable>
               </View>
             ) : (
-              /* 0명 + 기본 상태 */
               <Pressable style={styles.centerPlusButton} onPress={() => setIsAddingTraveler(true)}>
                 <Plus width={24} height={24} />
               </Pressable>
             )
           ) : (
             <>
-              {/* 여행자 목록 */}
               <View style={styles.travelerList}>
                 {travelers.map((t) => (
                   <TravelerAvatar key={t.id} name={t.name} color={t.color} />
                 ))}
               </View>
 
-              {/* 오른쪽 + / 입력 */}
               {isAddingTraveler ? (
                 <View style={styles.travelerInputBox}>
                   <TextInput
@@ -121,7 +133,7 @@ function PrepareScreen() {
                     onChangeText={setTravelerName}
                     placeholder="이름 입력"
                     autoFocus
-                    onSubmitEditing={handleAddTraveler}
+                    onSubmitEditing={addTraveler}
                   />
                   <Pressable onPress={() => setIsAddingTraveler(false)}>
                     <MaterialIcons name="close" size={20} />
@@ -129,7 +141,7 @@ function PrepareScreen() {
                 </View>
               ) : (
                 <Pressable style={styles.rightPlusButton} onPress={() => setIsAddingTraveler(true)}>
-                  <Plus width={24} height={24} />
+                  <Plus width={20} height={20} />
                 </Pressable>
               )}
             </>
@@ -251,7 +263,7 @@ function renderSection(
         <View key={index} style={{ marginBottom: 10 }}>
           <ChecklistItem
             key={index}
-            content={item}
+            content={item.content}
             onDelete={() => deleteItem(list, setter, index)}
             onEdit={(value) => editItem(list, setter, index, value)}
           />
@@ -327,8 +339,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: colors.grayscale[1000],
   },
-
-  travelerRow: { flexDirection: 'row', gap: 5, marginBottom: 5 },
 
   TravelerplusButton: {
     marginLeft: 'auto',
@@ -406,7 +416,9 @@ const styles = StyleSheet.create({
   travelerList: {
     flexDirection: 'row',
     gap: 6,
-    flex: 1,
+    flexShrink: 1,
+    paddingRight: 8,
+    flexWrap: 'wrap',
   },
 
   /* 처음(0명)일 때 가운데 + */
@@ -425,7 +437,8 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 'auto',
+    marginRight: 8,
+    flexShrink: 0,
   },
 
   travelerInputBox: {
