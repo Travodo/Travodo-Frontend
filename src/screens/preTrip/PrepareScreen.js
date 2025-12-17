@@ -4,9 +4,16 @@ import TripCard from '../../components/TripCard';
 import { colors } from '../../styles/colors';
 import { upcomingTrips } from '../../data/TripList';
 import ChecklistItem from '../../components/Checklist';
+import TravelerAvatar from '../../components/TravelerAvatar';
 
 function PrepareScreen() {
   const trip = upcomingTrips[0];
+  const travelers = [
+    { id: 1, name: '홍길동', color: '#6B8EFF' },
+    { id: 2, name: '유병재', color: '#FFD66B' },
+    { id: 3, name: '차은우', color: '#FF8A8A' },
+    { id: 4, name: '이수근', color: '#9AD77D' },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -17,6 +24,16 @@ function PrepareScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>여행자</Text>
+
+        <View style={styles.travelerRow}>
+          {travelers.map((traveler) => (
+            <TravelerAvatar key={traveler.id} name={traveler.name} color={traveler.color} />
+          ))}
+        </View>
+
+        <View style={styles.sectionDivider} />
+
         <Text style={styles.sectionTitle}>공동 준비물</Text>
 
         <View style={styles.list}>
@@ -91,5 +108,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[400],
     marginTop: 28,
     marginBottom: 16,
+  },
+
+  travelerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingBottom: 10,
+  },
+
+  addButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.grayscale[300],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  addText: {
+    fontSize: 22,
+    color: colors.grayscale[500],
+    fontWeight: '500',
   },
 });
