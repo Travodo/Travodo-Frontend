@@ -1,5 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { colors } from '../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -7,7 +14,6 @@ const calculateDDay = (startDateString) => {
   if (!startDateString) return null;
 
   const dateParts = startDateString.match(/\d+/g);
-
   if (!dateParts || dateParts.length < 3) {
     console.error('날짜 형식이 올바르지 않습니다:', startDateString);
     return null;
@@ -18,10 +24,8 @@ const calculateDDay = (startDateString) => {
   const day = parseInt(dateParts[2], 10);
 
   const startDate = new Date(year, month, day);
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   startDate.setHours(0, 0, 0, 0);
 
   const timeDiff = startDate.getTime() - today.getTime();
@@ -38,8 +42,15 @@ const calculateDDay = (startDateString) => {
 export default function TripCard({ trip }) {
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
-
+  const [contentHeight, setContentHeight] = useState(0);
   const dDay = calculateDDay(trip.startDate);
+
+  const onLayout = (event) => {
+    const { height } = event.nativeEvent.layout;
+    if (height !== contentHeight) {
+      setContentHeight(height);
+    }
+  };
 
   const toggleExpand = () => {
     const finalValue = expanded ? 0 : 1;
@@ -53,7 +64,7 @@ export default function TripCard({ trip }) {
 
   const heightInterpolate = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 240],
+    outputRange: [0, contentHeight],
   });
 
   const opacityInterpolate = animation.interpolate({
@@ -62,87 +73,94 @@ export default function TripCard({ trip }) {
   });
 
   const renderDDay = () => {
-    if (dDay !== null && dDay !== undefined) {
-      if (dDay === 0) {
-        return <Text style={styles.dDay}>오늘!</Text>;
-      } else if (dDay > 0) {
-        return <Text style={styles.dDay}>D-{dDay}</Text>;
-      } else {
-        return <Text style={styles.dDay}>D+{Math.abs(dDay)}</Text>;
-      }
-    }
-    return null;
+    if (dDay === null) return null;
+
+    let dDayText;
+    if (dDay > 0) dDayText = `D-${dDay}`;
+    else if (dDay === 0) dDayText = '오늘!';
+    else dDayText = `D+${Math.abs(dDay)}`;
+
+    const dDayStyle = dDay > 0 ? styles.dDay : styles.dDayPassed;
+    return <Text style={dDayStyle}>{dDayText}</Text>;
   };
 
   return (
-    <View style={styles.wrapper}>
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={toggleExpand}
-        style={[styles.card, { borderLeftColor: trip.color }]}
-      >
-        <View style={styles.headerRow}>
-          <View style={[styles.circle, { backgroundColor: trip.color }]} />
-          <Text style={styles.title}>{trip.title}</Text>
-          {renderDDay()}
-          <MaterialIcons
-            name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-            size={26}
-            color={colors.grayscale[900]}
-          />
-        </View>
+    <KeyboardAvoidingView>
+      <View style={styles.wrapper}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={toggleExpand}
+          style={[styles.card, { borderLeftColor: trip.color || colors.primary[700] }]}
+        >
+          <View style={styles.headerRow}>
+            <View style={[styles.circle, { backgroundColor: trip.color || colors.primary[700] }]} />
+            <Text style={styles.title}>{trip.title}</Text>
+            {renderDDay()}
 
-        <Text style={styles.date}>
-          {trip.startDate} - {trip.endDate}
-        </Text>
-      </TouchableOpacity>
-
-      <Animated.View
-        style={[
-          styles.detailBox,
-          {
-            height: heightInterpolate,
-            opacity: opacityInterpolate,
-          },
-        ]}
-      >
-        <View style={styles.detailInner}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>여행지 </Text>
-            <Text style={styles.detailValue}>{trip.location}</Text>
+            <MaterialIcons
+              name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+              size={24}
+              color={colors.grayscale[900]}
+              style={styles.expendIcon}
+            />
           </View>
 
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>여행 기간 </Text>
-            <Text style={styles.detailValue}>
-              {trip.startDate} - {trip.endDate}
-            </Text>
+          <Text style={styles.date}>
+            {trip.startDate} - {trip.endDate}
+          </Text>
+        </TouchableOpacity>
+
+        <Animated.View
+          style={[
+            styles.detailBox,
+            {
+              height: heightInterpolate,
+              opacity: opacityInterpolate,
+            },
+          ]}
+        >
+          <View style={styles.detailInner} onLayout={onLayout}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>여행지</Text>
+              <Text style={styles.detailValue}>{trip.location}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>여행 기간</Text>
+              <Text style={styles.detailValue}>
+                {trip.startDate} ~ {trip.endDate}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>여행명</Text>
+              <Text style={styles.detailValue}>{trip.title}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>동행자</Text>
+              <Text style={styles.detailValue}>
+                {trip.companions && trip.companions.length > 0
+                  ? trip.companions.join(', ')
+                  : '동행자 없음'}
+              </Text>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.shareButton}>
+                <Text style={styles.shareText}>공유하기</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.disabledButton}>
+                <Text style={styles.disabledText}>자세히 보기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>여행명 </Text>
-            <Text style={styles.detailValue}>{trip.title}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>동행자 </Text>
-            <Text style={styles.detailValue}>{trip.companions.join(', ')}</Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.shareButton}>
-              <Text style={styles.shareText}>공유하기</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.disabledButton}>
-              <Text style={styles.disabledText}>자세히 보기</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Animated.View>
-    </View>
+        </Animated.View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -168,8 +186,9 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 8,
+    justifyContent: 'flex-end',
+    paddingBottom: 5,
+    paddingTop: 2,
   },
 
   circle: {
@@ -182,25 +201,39 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
-    color: colors.grayscale[900],
+    color: colors.grayscale[1000],
     flex: 1,
     marginLeft: 6,
   },
 
   dDay: {
-    fontSize: 16,
+    fontSize: 13,
     color: colors.primary[700],
+    fontFamily: 'Pretendard-SemiBold',
+    borderRadius: 6,
+    backgroundColor: colors.grayscale[200],
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginLeft: 6,
+  },
+
+  dDayPassed: {
+    fontSize: 15,
+    color: colors.grayscale[700],
     fontFamily: 'Pretendard-SemiBold',
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 6,
     marginHorizontal: 10,
+    backgroundColor: colors.grayscale[200],
   },
 
   date: {
-    fontSize: 14,
+    marginTop: 0,
+    marginBottom: 5,
+    fontSize: 13,
     color: colors.grayscale[700],
-    fontFamily: 'Pretendard-Medium',
+    fontFamily: 'Pretendard-Regular',
   },
 
   detailBox: {
@@ -218,26 +251,26 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 17,
   },
 
   detailLabel: {
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
-    fontSize: 14,
-    marginRight: 10,
+    fontSize: 15,
     minWidth: 60,
+    marginRight: 10,
   },
 
-  detailText: {
-    marginBottom: 20,
+  detailValue: {
     fontFamily: 'Pretendard-Medium',
-    color: colors.grayscale[600],
+    fontSize: 15,
+    color: colors.grayscale[800],
   },
 
   divider: {
     height: 1,
-    backgroundColor: colors.grayscale[300],
+    backgroundColor: colors.grayscale[400],
     marginVertical: 8,
   },
 
@@ -250,11 +283,11 @@ const styles = StyleSheet.create({
 
   shareButton: {
     backgroundColor: colors.primary[700],
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: 24,
-    marginRight: 10,
-    marginLeft: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 28,
+    borderRadius: 22,
+    marginRight: 4,
+    marginLeft: 5,
   },
 
   shareText: {
@@ -266,10 +299,10 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: colors.grayscale[400],
     paddingVertical: 16,
-    paddingHorizontal: 24,
-    marginHorizontal: 24,
-    borderRadius: 24,
-    marginRight: 5,
+    paddingHorizontal: 22,
+    marginHorizontal: 22,
+    borderRadius: 22,
+    marginRight: 4,
   },
 
   disabledText: {

@@ -4,13 +4,15 @@ import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
-import { upcomingTrips as dummyTrips } from '../../data/TripList';
 
-function HomeScreen({ navigation }) {
+function HomeScreen({ route, navigation }) {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const newTrip = route?.params?.tripData;
+
   const calculateDday = (startDate) => {
+    if (!startDate) return null;
     const today = new Date();
     const start = new Date(startDate.replace(/\./g, '-'));
     const diffTime = start - today;
@@ -19,21 +21,36 @@ function HomeScreen({ navigation }) {
   };
 
   useEffect(() => {
-    const updatedTrips = dummyTrips.map((trip) => ({
-      ...trip,
-      dDay: calculateDday(trip.startDate),
-    }));
-    setTrips(updatedTrips);
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (newTrip) {
+      setTrips((prevTrips) => [
+        ...prevTrips,
+        {
+          id: Date.now(),
+          title: newTrip.name,
+          location: newTrip.destination,
+          startDate: newTrip.startDate,
+          endDate: newTrip.endDate,
+          companions: newTrip.companions,
+          color: newTrip.color,
+          dDay: calculateDday(newTrip.startDate),
+        },
+      ]);
+
+      navigation.setParams({ tripData: undefined });
+    }
+  }, [newTrip]);
+
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never" bounces={false}>
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
 
-        <CalendarView />
+        <CalendarView trips={trips} />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>다가오는 여행</Text>
@@ -41,6 +58,8 @@ function HomeScreen({ navigation }) {
 
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary[700]} />
+          ) : trips.length === 0 ? (
+            <Text style={styles.emptyText}>아직 계획된 여행이 없어요!</Text>
           ) : (
             trips.map((trip) => <TripCard key={trip.id} trip={trip} />)
           )}
@@ -49,8 +68,8 @@ function HomeScreen({ navigation }) {
 
       <FAB
         icon="add"
-        onCreatePress={() => navigation.navigate('CreateTrip')}
-        onJoinPress={() => console.log('여행 참가')}
+        onCreatePress={() => navigation.navigate('TravelCreate')}
+        onJoinPress={() => navigation.navigate('Join')}
       />
     </View>
   );
@@ -62,35 +81,48 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[100],
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    paddingTop: 20,
   },
 
   headerText: {
-    fontFamily: 'Pretendard-SemiBold',
     fontSize: 20,
-    marginTop: 24,
+    fontFamily: 'Pretendard-SemiBold',
+    color: colors.grayscale[1000],
+    marginBottom: 6,
   },
 
   subText: {
+    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
-    fontSize: 15,
-    color: colors.grayscale[700],
-    marginBottom: 12,
+    color: colors.grayscale[900],
+    marginBottom: 20,
   },
 
   section: {
-    marginTop: 40,
+    marginTop: 10,
   },
 
   sectionTitle: {
+    fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
-    fontSize: 18,
+    color: colors.grayscale[900],
+    marginBottom: 6,
+    marginTop: 30,
   },
 
   sectionSub: {
+    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
-    fontSize: 14,
-    color: colors.grayscale[700],
-    marginBottom: 12,
+    color: colors.grayscale[800],
+    marginBottom: 8,
+  },
+
+  emptyText: {
+    marginTop: 36,
+    textAlign: 'center',
+    fontSize: 18,
+    fontFamily: 'Pretendard-Medium',
+    color: colors.primary[700],
   },
 });

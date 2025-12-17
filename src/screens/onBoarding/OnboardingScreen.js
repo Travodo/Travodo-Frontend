@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, FlatList, Animated, Dimensions } from 'react-native';
+import { View, FlatList, Animated, Dimensions, StyleSheet } from 'react-native';
 import SlideItem from '../../components/SlideItem';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import styles from './styles';
 import Button from '../../components/Button';
+import { colors } from '../../styles/colors';
 
 import TravodoLogo from '../../../assets/onBoardingImage/travodo_logo.svg';
 import OnBoarding1 from '../../../assets/onBoardingImage/onBoarding1.svg';
@@ -55,7 +55,7 @@ function OnboardingScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { justifyContent: 'flex-start', paddingTop: 20 }]}>
+    <SafeAreaView style={[styles.container, { justifyContent: 'flex-start', paddingTop: 30 }]}>
       <Animated.FlatList
         ref={flatListRef}
         data={slides}
@@ -90,3 +90,41 @@ function OnboardingScreen({ navigation }) {
 }
 
 export default OnboardingScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.grayscale[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  indicatorContainer: {
+    position: 'absolute',
+    bottom: 235,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ccc',
+    marginHorizontal: 5,
+  },
+
+  activeIndicator: {
+    backgroundColor: colors.primary[700],
+    width: 20,
+  },
+
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 110,
+    width: '100%',
+    alignItems: 'center',
+  },
+});
