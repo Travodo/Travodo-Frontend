@@ -1,3 +1,12 @@
+<<<<<<< HEAD:src/screens/sign/SignUpScreen.js
+import { View, StyleSheet, Text } from 'react-native';
+import { useEffect } from 'react';
+import SignInScreen from './SignInScreen';
+import TextField from '../../components/TextField';
+import { colors } from '../../styles/colors';
+import Button from '../../components/Button';
+import KakaoLoginButton from '../../components/KakaoLoginButton';
+=======
 import { View, StyleSheet, Text, Alert, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
 import TextField from '../components/TextField';
@@ -11,6 +20,7 @@ import {
   confirmEmailVerification,
   signInWithKakao,
 } from '../services/authService';
+>>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe:src/screens/SignUpScreen.js
 
 function SignUpScreen({ navigation }) {
   const [nickname, setNickname] = useState('');

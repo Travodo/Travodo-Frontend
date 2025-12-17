@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
@@ -49,13 +49,10 @@ function HomeScreen({ route, navigation }) {
       <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never" bounces={false}>
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
-
         <CalendarView trips={trips} />
-
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>다가오는 여행</Text>
           <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>
-
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary[700]} />
           ) : trips.length === 0 ? (
@@ -84,14 +81,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
   },
-
   headerText: {
     fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[1000],
     marginBottom: 6,
   },
-
   subText: {
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
@@ -110,7 +105,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     marginTop: 30,
   },
-
   sectionSub: {
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',

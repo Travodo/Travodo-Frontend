@@ -1,17 +1,7 @@
-import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Toast from 'react-native-toast-message';
-
-import HomeScreen from './screens/homeScreen/HomeScreen';
-import TravelCreateScreen from './screens/homeScreen/TravelCreateScreen';
-import TravelCompleteScreen from './screens/homeScreen/TravelCompleteScreen';
-import JoinScreen from './screens/homeScreen/JoinScreen';
-import LasttripScreen from './screens/Setting/LasttripScreen';
-
-const Stack = createNativeStackNavigator();
+import MainStack from './navigations/MainStack';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -24,23 +14,10 @@ function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <>
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <Stack.Navigator
-          initialRouteName="Join"
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
-          <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} />
-          <Stack.Screen name="Join" component={LasttripScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <Toast />
-    </>
+    <NavigationContainer>
+      <StatusBar style="auto" />
+      <MainStack />
+    </NavigationContainer>
   );
 }
 

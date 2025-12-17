@@ -1,95 +1,94 @@
-import React, { useRef, useState } from "react";
-import { Text, TouchableOpacity, StyleSheet, Animated, View } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { colors } from "../styles/colors";
-import PropTypes from "prop-types";
+import React, { useRef, useState } from 'react';
+import { Text, TouchableOpacity, StyleSheet, Animated, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
-export default function FAB({ 
-    icon = "add", 
-    onCreatePress,
-    onJoinPress,
-    size=56,
-    borderRadius=28,
-    bottom=20,
-    right=20, 
-    backgroundColor=colors.primary[700], 
-    iconColor=colors.grayscale[100]
- }) {
-    const rotation = useRef(new Animated.Value(0)).current;
-    const [toggled, setToggled] = useState(false);
+export default function FAB({
+  icon = 'add',
+  onCreatePress,
+  onJoinPress,
+  size = 56,
+  borderRadius = 28,
+  bottom = 20,
+  right = 20,
+  backgroundColor = colors.primary[700],
+  iconColor = colors.grayscale[100],
+}) {
+  const rotation = useRef(new Animated.Value(0)).current;
+  const [toggled, setToggled] = useState(false);
 
-    const handlePress = () => {
-        Animated.timing(rotation, {
-            toValue: toggled ? 0 : 1,
-            duration: 200,
-            useNativeDriver: true,
-        }).start();
+  const handlePress = () => {
+    Animated.timing(rotation, {
+      toValue: toggled ? 0 : 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
 
-        setToggled(!toggled);
-    };
+    setToggled(!toggled);
+  };
 
-    const rotateInterpolate = rotation.interpolate({
-        inputRange: [0,1],
-        outputRange: ["0deg", "315deg"]
-    });
+  const rotateInterpolate = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '315deg'],
+  });
 
-    const createY = rotation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, -22],
-    });
+  const createY = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -22],
+  });
 
-    const joinY = rotation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, -13],
-    });
+  const joinY = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -13],
+  });
 
-    const opacityAnim = rotation.interpolate({
-        inputRange: [0, 0.5, 1],
-        outputRange: [0, 0.7, 1],
-    });
+  const opacityAnim = rotation.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0.7, 1],
+  });
 
-    const animatedStyle = {
-        transform: [{ rotate: rotateInterpolate }],
-    };
+  const animatedStyle = {
+    transform: [{ rotate: rotateInterpolate }],
+  };
 
-    return (
+  return (
     <View style={[styles.wrapper, { bottom, right }]}>
-        <Animated.View
+      <Animated.View
         pointerEvents={toggled ? 'auto' : 'none'}
         style={[
-            styles.subButttonWrapper,
-            { transform: [{ translateY: createY }], opacity: opacityAnim },
-        ]}>
-            <TouchableOpacity style={styles.subButton} onPress={onCreatePress}>
-                <Text style={styles.subText}>여행 생성</Text>
-            </TouchableOpacity>
-        </Animated.View>
-        
-        <Animated.View
-        pointerEvents={toggled ? 'auto' : 'none'}
-        style={[
-            styles.subButttonWrapper,
-            { transform: [{ translateY: joinY }], opacity: opacityAnim },
-        ]}>
-            <TouchableOpacity style={styles.subButton} onPress={onJoinPress}>
-                <Text style={styles.subText}>여행 참가</Text>
-            </TouchableOpacity>
-        </Animated.View>
-
-        <TouchableOpacity
-        style={[
-            styles.container,
-            { width: size, height: size, borderRadius, backgroundColor },
+          styles.subButttonWrapper,
+          { transform: [{ translateY: createY }], opacity: opacityAnim },
         ]}
-        onPress={handlePress}
-        activeOpacity={0.8}>
-
-            <Animated.View style={[animatedStyle, styles.iconWrapper]}>
-                <MaterialIcons name={icon} size={28} color={iconColor} />
-            </Animated.View>
+      >
+        <TouchableOpacity style={styles.subButton} onPress={onCreatePress}>
+          <Text style={styles.subText}>여행 생성</Text>
         </TouchableOpacity>
-        </View>
-    );
+      </Animated.View>
+
+      <Animated.View
+        pointerEvents={toggled ? 'auto' : 'none'}
+        style={[
+          styles.subButttonWrapper,
+          { transform: [{ translateY: joinY }], opacity: opacityAnim },
+        ]}
+      >
+        <TouchableOpacity style={styles.subButton} onPress={onJoinPress}>
+          <Text style={styles.subText}>여행 참가</Text>
+        </TouchableOpacity>
+      </Animated.View>
+
+      <TouchableOpacity
+        style={[styles.container, { width: size, height: size, borderRadius, backgroundColor }]}
+        onPress={handlePress}
+        activeOpacity={0.8}
+      >
+        <Animated.View style={[animatedStyle, styles.iconWrapper]}>
+          <MaterialIcons name={icon} size={28} color={iconColor} />
+        </Animated.View>
+      </TouchableOpacity>
+    </View>
+  );
 }
 
 FAB.propTypes = {
@@ -105,26 +104,26 @@ FAB.propTypes = {
 };
 
 const styles = StyleSheet.create({
-    wrapper: {
-        position: "absolute",
-        alignItems: "flex-end",
-        bottom: 30,
-        width: 250,
-    },
+  wrapper: {
+    position: 'absolute',
+    alignItems: 'flex-end',
+    bottom: 30,
+    width: 250,
+  },
 
-    iconWrapper: {
-        position: "absolute",
-        alignItems: "center",
-        justifyContent: "center",
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-    },
+  iconWrapper: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
 
-    container: {
-    alignItems: "center",
-    justifyContent: "center",
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
     elevation: 6,
     shadowColor: colors.grayscale[1000],
     shadowOpacity: 0.3,
@@ -133,16 +132,16 @@ const styles = StyleSheet.create({
   },
 
   subButtonWrapper: {
-    position: "absolute",
-    alignItems: "flex-end",
-    justifyContent: "center",
+    position: 'absolute',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
     zIndex: -1,
   },
 
   subButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.grayscale[100],
     borderRadius: 24,
     paddingHorizontal: 16,
@@ -160,6 +159,6 @@ const styles = StyleSheet.create({
     color: colors.grayscale[800],
     fontSize: 16,
     fontFamily: 'Pretendard-SemiBold',
-    textAlign: "center"
+    textAlign: 'center',
   },
 });
