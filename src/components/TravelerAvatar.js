@@ -33,5 +33,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.grayscale[900],
     fontFamily: 'Pretendard-Regular',
+    textAlign: 'center',
   },
 });

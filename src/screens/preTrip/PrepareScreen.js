@@ -5,6 +5,8 @@ import { colors } from '../../styles/colors';
 import { upcomingTrips } from '../../data/TripList';
 import ChecklistItem from '../../components/Checklist';
 import TravelerAvatar from '../../components/TravelerAvatar';
+import Plus from '../../../assets/ProfileImg/Plus.svg';
+import { MaterialIcons } from '@expo/vector-icons';
 
 function PrepareScreen() {
   const trip = upcomingTrips[0];
@@ -30,6 +32,10 @@ function PrepareScreen() {
           {travelers.map((traveler) => (
             <TravelerAvatar key={traveler.id} name={traveler.name} color={traveler.color} />
           ))}
+
+          <View style={styles.addButton}>
+            <Plus width={24} height={24} />
+          </View>
         </View>
 
         <View style={styles.sectionDivider} />
@@ -41,6 +47,12 @@ function PrepareScreen() {
           <ChecklistItem content="항공권" name="공동" />
         </View>
 
+        <View style={styles.plusCenter}>
+          <View style={styles.plusButton}>
+            <Plus width={24} height={24} />
+          </View>
+        </View>
+
         <View style={styles.sectionDivider} />
 
         <Text style={styles.sectionTitle}>개인 준비물</Text>
@@ -48,6 +60,51 @@ function PrepareScreen() {
         <View style={styles.list}>
           <ChecklistItem content="여권" name="차은우" />
           <ChecklistItem content="항공권" name="이수근" />
+        </View>
+
+        <View style={styles.plusCenter}>
+          <View style={styles.plusButton}>
+            <Plus width={24} height={24} />
+          </View>
+        </View>
+
+        <View style={styles.sectionDivider} />
+
+        <Text style={styles.sectionTitle}>여행 활동</Text>
+
+        <View style={styles.list}>
+          <ChecklistItem content="부산대 근처 모모스 커피 본점" />
+          <ChecklistItem content="광안리 요트 투어" />
+        </View>
+
+        <View style={styles.plusCenter}>
+          <View style={styles.plusButton}>
+            <Plus width={24} height={24} />
+          </View>
+        </View>
+
+        <View style={styles.sectionDivider} />
+
+        <Text style={styles.sectionTitle}>메모장</Text>
+
+        <View style={styles.memoList}>
+          <View style={styles.memoRow}>
+            <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
+            <Text style={styles.memoText}>100억 부자 유병재 vs 무일푼 차은우</Text>
+          </View>
+
+          <View style={styles.memoRow}>
+            <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
+            <Text style={styles.memoText}>차은우</Text>
+          </View>
+
+          <View style={styles.plusCenter}>
+            <View style={[styles.plusButton, { marginTop: -8 }]}>
+              <Plus width={24} height={24} />
+            </View>
+          </View>
+
+          <View style={[styles.sectionDivider, { marginTop: 13 }]} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -78,7 +135,6 @@ const styles = StyleSheet.create({
   },
 
   fixedCard: {
-    backgroundColor: colors.grayscale[100],
     paddingHorizontal: 20,
     paddingTop: 2,
     paddingBottom: 8,
@@ -95,7 +151,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Pretendard-SemiBold',
     marginTop: 20,
-    marginBottom: 12,
+    marginBottom: 16,
     color: colors.grayscale[1000],
   },
 
@@ -112,24 +168,46 @@ const styles = StyleSheet.create({
 
   travelerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 10,
-    paddingBottom: 10,
+    paddingRight: 16,
+    paddingBottom: 6,
   },
 
   addButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
     borderColor: colors.grayscale[300],
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    marginLeft: 20,
+  },
+
+  plusCenter: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+
+  plusButton: {
+    width: 24,
+    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  addText: {
-    fontSize: 22,
-    color: colors.grayscale[500],
-    fontWeight: '500',
+  memoList: {
+    gap: 14,
+  },
+
+  memoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  memoText: {
+    fontSize: 16,
+    fontFamily: 'Pretendard-Regular',
+    color: colors.grayscale[1000],
   },
 });
