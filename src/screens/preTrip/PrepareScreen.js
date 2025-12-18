@@ -28,7 +28,7 @@ function PrepareScreen() {
   const [isAddingTraveler, setIsAddingTraveler] = useState(false);
   const [travelerName, setTravelerName] = useState('');
 
-  const colorPool = ['#6B8EFF', '#FFD66B', '#FF8A8A', '#9AD77D'];
+  const colorPool = ['#769FFF', '#FFE386', '#EE8787', '#A4C664'];
 
   const [necessity, setNecessity] = useState([]);
   const [shared, setShared] = useState([]);
@@ -458,7 +458,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  /* 여행자들 가로 리스트 */
   travelerList: {
     flexDirection: 'row',
     gap: 6,
@@ -467,7 +466,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
 
-  /* 처음(0명)일 때 가운데 + */
   centerPlusButton: {
     width: '100%',
     height: 56,
@@ -477,7 +475,6 @@ const styles = StyleSheet.create({
     marginBottom: -20,
   },
 
-  /* 여행자 있을 때 오른쪽 + */
   rightPlusButton: {
     width: 40,
     height: 40,
