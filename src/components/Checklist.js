@@ -24,18 +24,16 @@ export default function ChecklistItem({
         <Text style={[styles.text, textStyle, isChecked && styles.checkedText]}>{content}</Text>
       </View>
 
-      {name && (
-        <View style={[styles.nameBox, nameBoxStyle]}>
-          <Text style={styles.nameText}>{name}</Text>
-        </View>
-      )}
+      <View style={[styles.nameBox, nameBoxStyle]}>
+        <Text style={styles.nameText}>{name}</Text>
+      </View>
     </View>
   );
 }
 
 ChecklistItem.propTypes = {
   content: PropTypes.string.isRequired,
-  name: PropTypes.string,
+  name: PropTypes.string.isRequired,
   checkboxSize: PropTypes.number,
   containerStyle: PropTypes.object,
   nameBoxStyle: PropTypes.object,

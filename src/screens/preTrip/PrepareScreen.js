@@ -12,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
-import ChecklistItem from '../../components/Checklist';
+import ChecklistRow from '../../components/ChecklistRow';
 import TravelerAvatar from '../../components/TravelerAvatar';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { colors } from '../../styles/colors';
@@ -260,9 +260,8 @@ function renderSection(
       <Text style={styles.sectionTitle}>{title}</Text>
 
       {list.map((item, index) => (
-        <View key={index} style={{ marginBottom: 10 }}>
-          <ChecklistItem
-            key={index}
+        <View key={item.id} style={{ marginBottom: 10 }}>
+          <ChecklistRow
             content={item.content}
             onDelete={() => deleteItem(list, setter, index)}
             onEdit={(value) => editItem(list, setter, index, value)}
