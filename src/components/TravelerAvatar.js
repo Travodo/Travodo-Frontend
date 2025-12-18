@@ -46,8 +46,8 @@ const styles = StyleSheet.create({
   },
 
   selected: {
-    borderWidth: 2,
-    borderColor: colors.primary[800],
+    borderWidth: 3,
+    borderColor: colors.grayscale[500],
   },
 
   name: {

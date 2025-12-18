@@ -41,7 +41,7 @@ export default function ChecklistRow({
       </View>
       <View style={styles.rightSection}>
         {showAssignee && (
-          <Pressable onPress={onAssign} style={styles.assignButton}>
+          <Pressable onPress={onAssign} style={[styles.assignButton]}>
             {travelerName ? (
               <View style={[styles.badge, { backgroundColor: travelerColor + '33' }]}>
                 <Text style={[styles.badgeText, { color: travelerColor }]}>{travelerName}</Text>
@@ -52,7 +52,7 @@ export default function ChecklistRow({
           </Pressable>
         )}
 
-        <Pressable onPress={onDelete}>
+        <Pressable onPress={onDelete} style={styles.deleteButton}>
           <MaterialIcons name="delete-outline" size={20} />
         </Pressable>
       </View>
@@ -88,6 +88,32 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.grayscale[300],
   },
+
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+
+  assignButton: {
+    minWidth: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  badge: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+
+  badgeText: {
+    fontSize: 14,
+    fontFamily: 'Pretendard-SemiBold',
+  },
+
   deleteButton: {
     padding: 4,
   },

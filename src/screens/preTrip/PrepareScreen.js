@@ -39,6 +39,14 @@ function PrepareScreen() {
   const [adding, setAdding] = useState(null);
   const [text, setText] = useState('');
 
+  const deleteItem = (list, setter, index) => {
+    setter(list.filter((_, i) => i !== index));
+  };
+
+  const editItem = (list, setter, index, newContent) => {
+    setter(list.map((item, i) => (i === index ? { ...item, content: newContent } : item)));
+  };
+
   const addItem = (setter, list) => {
     if (!text.trim()) return;
     setter([
@@ -73,49 +81,35 @@ function PrepareScreen() {
   };
 
   const assignTraveler = (list, setter, index) => {
-    if (!selectedTraveler) {
-      alert('여행자를 먼저 선택해주세요!');
-      return;
-    }
-
-    const traveler = travelers.find((t) => t.id === selectedTraveler);
-
     setter(
-      list.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              travelerId: traveler.id,
-              travelerName: traveler.name,
-              travelerColor: traveler.color,
-            }
-          : item,
-      ),
+      list.map((item, i) => {
+        if (i !== index) return item;
+
+        if (item.travelerId) {
+          return {
+            ...item,
+            travelerId: null,
+            travelerName: null,
+            travelerColor: null,
+          };
+        }
+
+        if (!selectedTraveler) {
+          alert('여행자를 먼저 선택해주세요!');
+          return item;
+        }
+
+        const traveler = travelers.find((t) => t.id === selectedTraveler);
+        if (!traveler) return item;
+
+        return {
+          ...item,
+          travelerId: traveler.id,
+          travelerName: traveler.name,
+          travelerColor: traveler.color,
+        };
+      }),
     );
-  };
-
-  const deleteItem = (list, setter, index) => {
-    setter(list.filter((_, i) => i !== index));
-  };
-
-  const editItem = (list, setter, index, newContent) => {
-    setter(list.map((item, i) => (i === index ? { ...item, content: newContent } : item)));
-  };
-
-  const handleAddTraveler = () => {
-    if (!travelerName.trim()) return;
-
-    setTravelers((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        name: travelerName,
-        color: colorPool[prev.length % colorPool.length],
-      },
-    ]);
-
-    setTravelerName('');
-    setIsAddingTraveler(false);
   };
 
   return (
@@ -361,18 +355,6 @@ function renderSection(
   );
 }
 
-function PlusCenter({ onPress }) {
-  return (
-    <View style={styles.plusCenter}>
-      <Pressable style={styles.plusButton} onPress={onPress}>
-        <Plus width={24} height={24} />
-      </Pressable>
-    </View>
-  );
-}
-
-export default PrepareScreen;
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.grayscale[100] },
 
@@ -528,3 +510,5 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
+
+export default PrepareScreen;
