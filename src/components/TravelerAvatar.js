@@ -1,16 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import DefaultProfile from '../../assets/ProfileImg/profile.svg';
 import { colors } from '../styles/colors';
 
-export default function TravelerAvatar({ name, color }) {
+export default function TravelerAvatar({ name, color, selected, onPress }) {
   return (
-    <View style={styles.wrapper}>
-      <View style={[styles.avatar, { backgroundColor: color }]}>
-        <DefaultProfile width={20} height={20} />
-      </View>
-      <Text style={styles.name}>{name}</Text>
-    </View>
+    <Pressable onPress={onPress}>
+      {({ pressed }) => (
+        <View style={styles.wrapper}>
+          <View
+            style={[
+              styles.avatar,
+              { backgroundColor: color },
+              selected && styles.selected,
+              pressed && styles.pressed,
+            ]}
+          >
+            <DefaultProfile width={20} height={20} />
+          </View>
+          <Text style={[styles.name, selected && styles.selectedName]}>{name}</Text>
+        </View>
+      )}
+    </Pressable>
   );
 }
 
@@ -26,7 +37,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 5,
+  },
+
+  pressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.95 }],
+  },
+
+  selected: {
+    borderWidth: 2,
+    borderColor: colors.primary[800],
   },
 
   name: {
@@ -34,5 +55,10 @@ const styles = StyleSheet.create({
     color: colors.grayscale[900],
     fontFamily: 'Pretendard-Regular',
     textAlign: 'center',
+  },
+
+  selectedName: {
+    fontFamily: 'Pretendard-SemiBold',
+    color: colors.primary[800],
   },
 });

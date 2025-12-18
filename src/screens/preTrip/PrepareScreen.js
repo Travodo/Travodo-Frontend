@@ -23,12 +23,14 @@ function PrepareScreen() {
   const navigation = useNavigation();
 
   const [travelers, setTravelers] = useState([]);
+  const [selectedTraveler, setSelectedTraveler] = useState(null);
 
   const [isAddingTraveler, setIsAddingTraveler] = useState(false);
   const [travelerName, setTravelerName] = useState('');
 
   const colorPool = ['#6B8EFF', '#FFD66B', '#FF8A8A', '#9AD77D'];
 
+  const [necessity, setNecessity] = useState([]);
   const [shared, setShared] = useState([]);
   const [personal, setPersonal] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -39,7 +41,17 @@ function PrepareScreen() {
 
   const addItem = (setter, list) => {
     if (!text.trim()) return;
-    setter([...list, { id: Date.now().toString(), content: text }]);
+    setter([
+      ...list,
+      {
+        id: Date.now().toString(),
+        content: text,
+        travelerId: null,
+        travelerName: null,
+        travelerColor: null,
+      },
+    ]);
+
     setText('');
     setAdding(null);
   };
@@ -58,6 +70,28 @@ function PrepareScreen() {
 
     setTravelerName('');
     setIsAddingTraveler(false);
+  };
+
+  const assignTraveler = (list, setter, index) => {
+    if (!selectedTraveler) {
+      alert('여행자를 먼저 선택해주세요!');
+      return;
+    }
+
+    const traveler = travelers.find((t) => t.id === selectedTraveler);
+
+    setter(
+      list.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              travelerId: traveler.id,
+              travelerName: traveler.name,
+              travelerColor: traveler.color,
+            }
+          : item,
+      ),
+    );
   };
 
   const deleteItem = (list, setter, index) => {
@@ -121,7 +155,13 @@ function PrepareScreen() {
             <>
               <View style={styles.travelerList}>
                 {travelers.map((t) => (
-                  <TravelerAvatar key={t.id} name={t.name} color={t.color} />
+                  <TravelerAvatar
+                    key={t.id}
+                    name={t.name}
+                    color={t.color}
+                    selected={selectedTraveler === t.id}
+                    onPress={() => setSelectedTraveler(t.id)}
+                  />
                 ))}
               </View>
 
@@ -151,6 +191,22 @@ function PrepareScreen() {
         <View style={styles.sectionDivider} />
 
         {renderSection(
+          '필수 할 일',
+          necessity,
+          setNecessity,
+          'necessity',
+          adding,
+          setAdding,
+          text,
+          setText,
+          addItem,
+          deleteItem,
+          editItem,
+          assignTraveler,
+          true,
+        )}
+
+        {renderSection(
           '공동 준비물',
           shared,
           setShared,
@@ -162,6 +218,8 @@ function PrepareScreen() {
           addItem,
           deleteItem,
           editItem,
+          assignTraveler,
+          true,
         )}
 
         {renderSection(
@@ -176,6 +234,7 @@ function PrepareScreen() {
           addItem,
           deleteItem,
           editItem,
+          false,
         )}
 
         {renderSection(
@@ -190,6 +249,7 @@ function PrepareScreen() {
           addItem,
           deleteItem,
           editItem,
+          false,
         )}
 
         <Text style={styles.sectionTitle}>메모장</Text>
@@ -254,19 +314,24 @@ function renderSection(
   addItem,
   deleteItem,
   editItem,
+  assignTraveler,
+  showAssignee = false,
 ) {
   return (
     <>
       <Text style={styles.sectionTitle}>{title}</Text>
 
       {list.map((item, index) => (
-        <View key={item.id} style={{ marginBottom: 10 }}>
-          <ChecklistRow
-            content={item.content}
-            onDelete={() => deleteItem(list, setter, index)}
-            onEdit={(value) => editItem(list, setter, index, value)}
-          />
-        </View>
+        <ChecklistRow
+          key={item.id}
+          content={item.content}
+          travelerName={item.travelerName}
+          travelerColor={item.travelerColor}
+          showAssignee={showAssignee}
+          onAssign={() => assignTraveler(list, setter, index)}
+          onDelete={() => deleteItem(list, setter, index)}
+          onEdit={(value) => editItem(list, setter, index, value)}
+        />
       ))}
 
       {adding === key && (

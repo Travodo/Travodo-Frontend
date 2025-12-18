@@ -4,7 +4,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Checkbox from './Checkbox';
 import { colors } from '../styles/colors';
 
-export default function ChecklistRow({ content, onDelete, onEdit }) {
+export default function ChecklistRow({
+  content,
+  travelerName,
+  travelerColor,
+  showAssignee,
+  onAssign,
+  onDelete,
+  onEdit,
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [text, setText] = useState(content);
@@ -12,9 +20,8 @@ export default function ChecklistRow({ content, onDelete, onEdit }) {
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
-        <Pressable onPress={() => setIsChecked(!isChecked)}>
-          <Checkbox size={24} />
-        </Pressable>
+        <Checkbox size={24} checked={isChecked} onPress={() => setIsChecked((prev) => !prev)} />
+
         {isEditing ? (
           <TextInput
             style={styles.input}
@@ -32,9 +39,23 @@ export default function ChecklistRow({ content, onDelete, onEdit }) {
           </Pressable>
         )}
       </View>
-      <Pressable onPress={onDelete} style={styles.deleteButton}>
-        <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
-      </Pressable>
+      <View style={styles.rightSection}>
+        {showAssignee && (
+          <Pressable onPress={onAssign} style={styles.assignButton}>
+            {travelerName ? (
+              <View style={[styles.badge, { backgroundColor: travelerColor + '33' }]}>
+                <Text style={[styles.badgeText, { color: travelerColor }]}>{travelerName}</Text>
+              </View>
+            ) : (
+              <MaterialIcons name="person-add" size={20} color={colors.grayscale[500]} />
+            )}
+          </Pressable>
+        )}
+
+        <Pressable onPress={onDelete}>
+          <MaterialIcons name="delete-outline" size={20} />
+        </Pressable>
+      </View>
     </View>
   );
 }
