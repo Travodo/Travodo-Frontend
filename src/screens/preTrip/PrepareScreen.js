@@ -4,11 +4,11 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   Pressable,
   TextInput,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
