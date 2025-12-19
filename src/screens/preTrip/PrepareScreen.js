@@ -4,11 +4,11 @@ import {
   Text,
   ScrollView,
   StyleSheet,
+  SafeAreaView,
   Pressable,
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
@@ -17,6 +17,7 @@ import TravelerAvatar from '../../components/TravelerAvatar';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { colors } from '../../styles/colors';
 import { upcomingTrips } from '../../data/TripList';
+import { renderSection } from '../../utils/renderSection';
 
 function PrepareScreen() {
   const trip = upcomingTrips[0];
@@ -80,37 +81,31 @@ function PrepareScreen() {
     setIsAddingTraveler(false);
   };
 
-  const assignTraveler = (list, setter, index) => {
-    setter(
-      list.map((item, i) => {
-        if (i !== index) return item;
+ const assignTraveler = (list, setter, index) => {
 
-        if (item.travelerId) {
-          return {
-            ...item,
-            travelerId: null,
-            travelerName: null,
-            travelerColor: null,
-          };
-        }
+  setter(
+    list.map((item, i) => {
+      if (i !== index) return item;
 
-        if (!selectedTraveler) {
-          alert('여행자를 먼저 선택해주세요!');
-          return item;
-        }
+      if (!selectedTraveler) {
+        alert('여행자를 먼저 선택해주세요!');
+        return item;
+      }
 
-        const traveler = travelers.find((t) => t.id === selectedTraveler);
-        if (!traveler) return item;
+      const traveler = travelers.find((t) => t.id === selectedTraveler);
 
-        return {
-          ...item,
-          travelerId: traveler.id,
-          travelerName: traveler.name,
-          travelerColor: traveler.color,
-        };
-      }),
-    );
-  };
+      if (!traveler) return item;
+
+      return {
+        ...item,
+        travelerId: traveler.id,
+        travelerName: traveler.name,
+        travelerColor: traveler.color,
+      };
+    }),
+  );
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -155,8 +150,8 @@ function PrepareScreen() {
                     color={t.color}
                     selected={selectedTraveler === t.id}
                     onPress={() => setSelectedTraveler((prev) =>
-                    prev === t.id ? '' : t.id
-                  )}
+                      prev === t.id ? '' : t.id
+                    )}
                   />
                 ))}
               </View>
@@ -177,7 +172,7 @@ function PrepareScreen() {
                 </View>
               ) : (
                 <Pressable style={styles.rightPlusButton} onPress={() => setIsAddingTraveler(true)}>
-                  <Plus width={20} height={20} />
+                  <Plus width={24} height={24} />
                 </Pressable>
               )}
             </>
@@ -186,141 +181,11 @@ function PrepareScreen() {
 
         <View style={styles.sectionDivider} />
 
-        {renderSection(
-          '필수 할 일',
-          necessity,
-          setNecessity,
-          'necessity',
-          adding,
-          setAdding,
-          text,
-          setText,
-          addItem,
-          deleteItem,
-          editItem,
-          assignTraveler,
-          true,
-        )}
-
-        {renderSection(
-          '공동 준비물',
-          shared,
-          setShared,
-          'shared',
-          adding,
-          setAdding,
-          text,
-          setText,
-          addItem,
-          deleteItem,
-          editItem,
-          assignTraveler,
-          true,
-        )}
-
-        {renderSection(
-          '개인 준비물',
-          personal,
-          setPersonal,
-          'personal',
-          adding,
-          setAdding,
-          text,
-          setText,
-          addItem,
-          deleteItem,
-          editItem,
-          false,
-        )}
-
-        {renderSection(
-          '여행 활동',
-          activities,
-          setActivities,
-          'activities',
-          adding,
-          setAdding,
-          text,
-          setText,
-          addItem,
-          deleteItem,
-          editItem,
-          false,
-        )}
-
-        <Text style={styles.sectionTitle}>메모장</Text>
-
-{memos.map((memo) => (
-  <View key={memo.id} style={styles.memoRow}>
-
-    <Pressable
-      style={styles.memoLeft}
-      onPress={() =>
-        navigation.navigate('Memo', {
-          memo,
-          onSave: (updatedMemo) => {
-            setMemos((prev) =>
-              prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)),
-            );
-          },
-        })
-      }
-    >
-      <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
-      <Text style={styles.memoText}>{memo.title}</Text>
-    </Pressable>
-
-    <Pressable
-      onPress={() =>
-        setMemos((prev) => prev.filter((m) => m.id !== memo.id))
-      }
-      hitSlop={8}
-    >
-      <MaterialIcons
-        name="delete-outline"
-        size={20}
-        color={colors.grayscale[600]}
-      />
-    </Pressable>
-  </View>
-))}
-
-<View style={styles.plusCenter}>
-  <Pressable
-    style={styles.plusButton}
-    onPress={() =>
-      navigation.navigate('Memo', {
-        onSave: (newMemo) => {
-          setMemos((prev) => [...prev, newMemo]);
-        },
-      })
-    }
-  >
-    <Plus width={24} height={24} />
-  </Pressable>
-</View>
-
-
-        <View style={styles.sectionDivider} />
-
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.startButton}>
-            <Text style={styles.startText}>여행 시작</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton}>
-            <Text style={styles.deleteText}>삭제하기</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function renderSection(
-  title,
-  list,
-  setter,
-  key,
+        {renderSection({
+  title: '필수 할 일',
+  list: necessity,
+  setter: setNecessity,
+  sectionKey: 'necessity',
   adding,
   setAdding,
   text,
@@ -329,49 +194,154 @@ function renderSection(
   deleteItem,
   editItem,
   assignTraveler,
-  showAssignee = false,
-) {
-  return (
-    <>
-      <Text style={styles.sectionTitle}>{title}</Text>
+  showAssignee: true, 
+  styles,
+})}
+ <View style={styles.sectionDivider} />
 
-      {list.map((item, index) => (
-        <ChecklistRow
-          key={item.id}
-          content={item.content}
-          travelerName={item.travelerName}
-          travelerColor={item.travelerColor}
-          showAssignee={showAssignee}
-          onAssign={() => assignTraveler(list, setter, index)}
-          onDelete={() => deleteItem(list, setter, index)}
-          onEdit={(value) => editItem(list, setter, index, value)}
-        />
-      ))}
 
-      {adding === key && (
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            value={text}
-            onChangeText={setText}
-            autoFocus
-            placeholder="내용을 입력하세요"
-            onSubmitEditing={() => addItem(setter, list)}
-          />
-          <Pressable onPress={() => setAdding(null)}>
-            <MaterialIcons name="close" size={22} />
+        {renderSection({
+  title: '공동 준비물',
+  list: shared,
+  setter: setShared,
+  sectionKey: 'shared',
+  adding,
+  setAdding,
+  text,
+  setText,
+  addItem,
+  deleteItem,
+  editItem,
+  assignTraveler,
+  showAssignee: true,
+  styles,
+})}
+
+ <View style={styles.sectionDivider} />
+
+{renderSection({
+  title: '개인 준비물',
+  list: personal,
+  setter: setPersonal,
+  sectionKey: 'personal',
+  adding,
+  setAdding,
+  text,
+  setText,
+  addItem,
+  deleteItem,
+  editItem,
+  showAssignee: false,
+  styles,
+})}
+
+ <View style={styles.sectionDivider} />
+
+{renderSection({
+  title: '여행 활동',
+  list: activities,
+  setter: setActivities,
+  sectionKey: 'activities',
+  adding,
+  setAdding,
+  text,
+  setText,
+  addItem,
+  deleteItem,
+  editItem,
+  showAssignee: false,
+  styles,
+})}
+
+ <View style={styles.sectionDivider} />
+
+        <Text style={styles.sectionTitle}>메모장</Text>
+
+        {memos.map((memo) => (
+          <View key={memo.id} style={styles.memoRow}>
+            <Pressable
+              style={styles.memoLeft}
+              onPress={() =>
+                navigation.navigate('Memo', {
+                  memo,
+                  onSave: (updatedMemo) => {
+                    setMemos((prev) =>
+                      prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)),
+                    );
+                  },
+                })
+              }
+            >
+              <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
+              <Text style={styles.memoText}>{memo.title}</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() =>
+                setMemos((prev) => prev.filter((m) => m.id !== memo.id))
+              }
+              hitSlop={8}
+            >
+              <MaterialIcons
+                name="delete-outline"
+                size={20}
+                color={colors.grayscale[600]}
+              />
+            </Pressable>
+          </View>
+        ))}
+
+        <View style={styles.plusCenter}>
+          <Pressable
+            style={styles.plusButton}
+            onPress={() =>
+              navigation.navigate('Memo', {
+                onSave: (newMemo) => {
+                  setMemos((prev) => [...prev, newMemo]);
+                },
+              })
+            }
+          >
+            <Plus width={24} height={24} />
           </Pressable>
         </View>
-      )}
 
-      <View style={styles.plusCenter}>
-        <Pressable style={styles.plusButton} onPress={() => setAdding(key)}>
-          <Plus width={24} height={24} />
-        </Pressable>
-      </View>
+        <View style={styles.sectionDivider} />
 
-      <View style={styles.sectionDivider} />
-    </>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() =>
+              navigation.navigate('OnTrip', {
+                travelers,
+                necessity,
+                shared,
+                personal,
+                activities,
+                memos,
+                trip,
+              })
+            }
+          >
+            <Text style={styles.startText}>여행 시작</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => {
+              setTravelers([]);
+              setNecessity([]);
+              setShared([]);
+              setPersonal([]);
+              setActivities([]);
+              setMemos([]);
+            }}
+          >
+            <Text style={styles.deleteText}>삭제하기</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -408,8 +378,8 @@ const styles = StyleSheet.create({
 
   TravelerplusButton: {
     marginLeft: 'auto',
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -418,18 +388,30 @@ const styles = StyleSheet.create({
 
   memoList: { gap: 14 },
 
-  memoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  memoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+
+  memoLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
 
   memoText: { fontSize: 16, fontFamily: 'Pretendard-Regular', color: colors.grayscale[1000] },
 
   plusCenter: { alignItems: 'center', marginTop: 12 },
 
-  plusButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  plusButton: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
 
   sectionDivider: {
     height: 1.2,
     backgroundColor: colors.grayscale[300],
-    marginTop: 27,
+    marginTop: 20,
     marginBottom: 12,
   },
 
@@ -526,21 +508,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
-
-  memoRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingVertical: 12,
-},
-
-memoLeft: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 8,
-  flex: 1,
-},
-
 });
 
 export default PrepareScreen;
