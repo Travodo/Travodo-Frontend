@@ -53,7 +53,7 @@ export default function ChecklistRow({
         )}
 
         <Pressable onPress={onDelete} style={styles.deleteButton}>
-          <MaterialIcons name="delete-outline" size={20} />
+          <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
         </Pressable>
       </View>
     </View>
@@ -66,22 +66,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
+    paddingVertical: 4.5,
   },
+
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     flex: 1,
   },
+
   text: {
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[1000],
   },
+
   checkedText: {
     textDecorationLine: 'line-through',
     color: colors.grayscale[700],
   },
+
   input: {
     flex: 1,
     fontSize: 16,
@@ -104,17 +109,18 @@ const styles = StyleSheet.create({
   },
 
   badge: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 13,
+    paddingVertical: 4,
     borderRadius: 14,
   },
 
   badgeText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Pretendard-SemiBold',
   },
 
   deleteButton: {
     padding: 4,
+    color: colors.grayscale[700]
   },
 });

@@ -154,7 +154,9 @@ function PrepareScreen() {
                     name={t.name}
                     color={t.color}
                     selected={selectedTraveler === t.id}
-                    onPress={() => setSelectedTraveler(t.id)}
+                    onPress={() => setSelectedTraveler((prev) =>
+                    prev === t.id ? '' : t.id
+                  )}
                   />
                 ))}
               </View>
@@ -248,38 +250,56 @@ function PrepareScreen() {
 
         <Text style={styles.sectionTitle}>메모장</Text>
 
-        {memos.map((memo) => (
-          <Pressable
-            key={memo.id}
-            style={styles.memoRow}
-            onPress={() =>
-              navigation.navigate('Memo', {
-                memo,
-                onSave: (updatedMemo) => {
-                  setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
-                },
-              })
-            }
-          >
-            <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
-            <Text style={styles.memoText}>{memo.title}</Text>
-          </Pressable>
-        ))}
+{memos.map((memo) => (
+  <View key={memo.id} style={styles.memoRow}>
 
-        <View style={styles.plusCenter}>
-          <Pressable
-            style={styles.plusButton}
-            onPress={() =>
-              navigation.navigate('Memo', {
-                onSave: (newMemo) => {
-                  setMemos((prev) => [...prev, newMemo]);
-                },
-              })
-            }
-          >
-            <Plus width={24} height={24} />
-          </Pressable>
-        </View>
+    <Pressable
+      style={styles.memoLeft}
+      onPress={() =>
+        navigation.navigate('Memo', {
+          memo,
+          onSave: (updatedMemo) => {
+            setMemos((prev) =>
+              prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)),
+            );
+          },
+        })
+      }
+    >
+      <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
+      <Text style={styles.memoText}>{memo.title}</Text>
+    </Pressable>
+
+    <Pressable
+      onPress={() =>
+        setMemos((prev) => prev.filter((m) => m.id !== memo.id))
+      }
+      hitSlop={8}
+    >
+      <MaterialIcons
+        name="delete-outline"
+        size={20}
+        color={colors.grayscale[600]}
+      />
+    </Pressable>
+  </View>
+))}
+
+<View style={styles.plusCenter}>
+  <Pressable
+    style={styles.plusButton}
+    onPress={() =>
+      navigation.navigate('Memo', {
+        onSave: (newMemo) => {
+          setMemos((prev) => [...prev, newMemo]);
+        },
+      })
+    }
+  >
+    <Plus width={24} height={24} />
+  </Pressable>
+</View>
+
 
         <View style={styles.sectionDivider} />
 
@@ -409,8 +429,8 @@ const styles = StyleSheet.create({
   sectionDivider: {
     height: 1.2,
     backgroundColor: colors.grayscale[300],
-    marginTop: 28,
-    marginBottom: 16,
+    marginTop: 27,
+    marginBottom: 12,
   },
 
   buttonRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 10 },
@@ -472,7 +492,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    marginBottom: -20,
+    marginBottom: -15,
   },
 
   rightPlusButton: {
@@ -506,6 +526,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
+
+  memoRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingVertical: 12,
+},
+
+memoLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+  flex: 1,
+},
+
 });
 
 export default PrepareScreen;
