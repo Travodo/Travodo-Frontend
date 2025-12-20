@@ -1,16 +1,18 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
+import HomeScreen from './screens/HomeScreen/HomeScreen';
+import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
 import PrepareScreen from './screens/preTrip/PrepareScreen';
+import StartTripScreen from './screens/loadingScreen/StartTripScreen';
 import OnTripScreen from './screens/preTrip/OnTripScreen';
 import MemoScreen from './screens/preTrip/MemoScreen';
 
 const Stack = createStackNavigator();
 
-function App() {
+export default function App() {
   const [fontsLoaded] = useFonts({
     'Pretendard-Regular': require('../assets/Fonts/Pretendard-Regular.otf'),
     'Pretendard-Bold': require('../assets/Fonts/Pretendard-Bold.otf'),
@@ -22,13 +24,20 @@ function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Prepare" component={PrepareScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="OnTrip" component={OnTripScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Memo" component={MemoScreen} options={{ headerShown: false }} />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Create" component={TravelCreateScreen} />
+        <Stack.Screen name="Prepare" component={PrepareScreen} />
+
+        <Stack.Screen
+          name="StartTripLoading"
+          component={StartTripScreen}
+        />
+
+        <Stack.Screen name="OnTrip" component={OnTripScreen} />
+
+        <Stack.Screen name="Memo" component={MemoScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-export default App;

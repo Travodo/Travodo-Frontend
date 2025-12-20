@@ -4,8 +4,11 @@ import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
+import { useNavigation } from '@react-navigation/native';
 
-function HomeScreen({ route, navigation }) {
+function HomeScreen({ route }) {
+  const navigation = useNavigation();
+
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +68,7 @@ function HomeScreen({ route, navigation }) {
 
       <FAB
         icon="add"
-        onCreatePress={() => navigation.navigate('TravelCreate')}
+        onCreatePress={() => navigation.navigate('Create')}
         onJoinPress={() => navigation.navigate('Join')}
       />
     </View>

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { colors } from '../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const calculateDDay = (startDateString) => {
   if (!startDateString) return null;
@@ -40,6 +41,7 @@ const calculateDDay = (startDateString) => {
 };
 
 export default function TripCard({ trip }) {
+  const navigation = useNavigation();
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(0);
@@ -153,9 +155,17 @@ export default function TripCard({ trip }) {
                 <Text style={styles.shareText}>공유하기</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.disabledButton}>
-                <Text style={styles.disabledText}>자세히 보기</Text>
-              </TouchableOpacity>
+              <TouchableOpacity
+  style={styles.disabledButton}
+  onPress={() =>
+    navigation.navigate('Prepare', {
+      trip,
+    })
+  }
+>
+  <Text style={styles.disabledText}>자세히 보기</Text>
+</TouchableOpacity>
+
             </View>
           </View>
         </Animated.View>

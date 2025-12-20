@@ -8,20 +8,22 @@ import {
   Pressable,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
 import ChecklistRow from '../../components/ChecklistRow';
 import TravelerAvatar from '../../components/TravelerAvatar';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { colors } from '../../styles/colors';
-import { upcomingTrips } from '../../data/TripList';
 import { renderSection } from '../../utils/renderSection';
 
 function PrepareScreen() {
-  const trip = upcomingTrips[0];
+  const route = useRoute();
   const navigation = useNavigation();
+  
+  const trip = route.params?.tripData;
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
@@ -81,31 +83,37 @@ function PrepareScreen() {
     setIsAddingTraveler(false);
   };
 
- const assignTraveler = (list, setter, index) => {
+  const assignTraveler = (list, setter, index) => {
+    setter(
+      list.map((item, i) => {
+        if (i !== index) return item;
 
-  setter(
-    list.map((item, i) => {
-      if (i !== index) return item;
+        if (!selectedTraveler) {
+          Alert.alert('알림', '여행자를 먼저 선택해주세요!');
+          return item;
+        }
 
-      if (!selectedTraveler) {
-        alert('여행자를 먼저 선택해주세요!');
-        return item;
-      }
+        const traveler = travelers.find((t) => t.id === selectedTraveler);
 
-      const traveler = travelers.find((t) => t.id === selectedTraveler);
+        if (!traveler) return item;
 
-      if (!traveler) return item;
+        return {
+          ...item,
+          travelerId: traveler.id,
+          travelerName: traveler.name,
+          travelerColor: traveler.color,
+        };
+      }),
+    );
+  };
 
-      return {
-        ...item,
-        travelerId: traveler.id,
-        travelerName: traveler.name,
-        travelerColor: traveler.color,
-      };
-    }),
-  );
-};
-
+  if (!trip) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.pageTitle}>여행 정보를 불러올 수 없습니다</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -149,9 +157,7 @@ function PrepareScreen() {
                     name={t.name}
                     color={t.color}
                     selected={selectedTraveler === t.id}
-                    onPress={() => setSelectedTraveler((prev) =>
-                      prev === t.id ? '' : t.id
-                    )}
+                    onPress={() => setSelectedTraveler((prev) => (prev === t.id ? null : t.id))}
                   />
                 ))}
               </View>
@@ -182,78 +188,77 @@ function PrepareScreen() {
         <View style={styles.sectionDivider} />
 
         {renderSection({
-  title: '필수 할 일',
-  list: necessity,
-  setter: setNecessity,
-  sectionKey: 'necessity',
-  adding,
-  setAdding,
-  text,
-  setText,
-  addItem,
-  deleteItem,
-  editItem,
-  assignTraveler,
-  showAssignee: true, 
-  styles,
-})}
- <View style={styles.sectionDivider} />
-
+          title: '필수 할 일',
+          list: necessity,
+          setter: setNecessity,
+          sectionKey: 'necessity',
+          adding,
+          setAdding,
+          text,
+          setText,
+          addItem,
+          deleteItem,
+          editItem,
+          assignTraveler,
+          showAssignee: true,
+          styles,
+        })}
+        <View style={styles.sectionDivider} />
 
         {renderSection({
-  title: '공동 준비물',
-  list: shared,
-  setter: setShared,
-  sectionKey: 'shared',
-  adding,
-  setAdding,
-  text,
-  setText,
-  addItem,
-  deleteItem,
-  editItem,
-  assignTraveler,
-  showAssignee: true,
-  styles,
-})}
+          title: '공동 준비물',
+          list: shared,
+          setter: setShared,
+          sectionKey: 'shared',
+          adding,
+          setAdding,
+          text,
+          setText,
+          addItem,
+          deleteItem,
+          editItem,
+          assignTraveler,
+          showAssignee: true,
+          styles,
+        })}
 
- <View style={styles.sectionDivider} />
+        <View style={styles.sectionDivider} />
 
-{renderSection({
-  title: '개인 준비물',
-  list: personal,
-  setter: setPersonal,
-  sectionKey: 'personal',
-  adding,
-  setAdding,
-  text,
-  setText,
-  addItem,
-  deleteItem,
-  editItem,
-  showAssignee: false,
-  styles,
-})}
+        {renderSection({
+          title: '개인 준비물',
+          list: personal,
+          setter: setPersonal,
+          sectionKey: 'personal',
+          adding,
+          setAdding,
+          text,
+          setText,
+          addItem,
+          deleteItem,
+          editItem,
+          showAssignee: false,
+          styles,
+        })}
 
- <View style={styles.sectionDivider} />
+        <View style={styles.sectionDivider} />
 
-{renderSection({
-  title: '여행 활동',
-  list: activities,
-  setter: setActivities,
-  sectionKey: 'activities',
-  adding,
-  setAdding,
-  text,
-  setText,
-  addItem,
-  deleteItem,
-  editItem,
-  showAssignee: false,
-  styles,
-})}
+        {renderSection({
+          title: '여행 활동',
+          list: activities,
+          setter: setActivities,
+          sectionKey: 'activities',
+          adding,
+          setAdding,
+          text,
+          setText,
+          addItem,
+          deleteItem,
+          editItem,
+          showAssignee: false,
+          styles,
+        })}
 
- <View style={styles.sectionDivider} />
+        <View style={styles.sectionDivider} />
 
         <Text style={styles.sectionTitle}>메모장</Text>
 
@@ -265,9 +270,7 @@ function PrepareScreen() {
                 navigation.navigate('Memo', {
                   memo,
                   onSave: (updatedMemo) => {
-                    setMemos((prev) =>
-                      prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)),
-                    );
+                    setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
                   },
                 })
               }
@@ -276,17 +279,8 @@ function PrepareScreen() {
               <Text style={styles.memoText}>{memo.title}</Text>
             </Pressable>
 
-            <Pressable
-              onPress={() =>
-                setMemos((prev) => prev.filter((m) => m.id !== memo.id))
-              }
-              hitSlop={8}
-            >
-              <MaterialIcons
-                name="delete-outline"
-                size={20}
-                color={colors.grayscale[600]}
-              />
+            <Pressable onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))} hitSlop={8}>
+              <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
             </Pressable>
           </View>
         ))}
@@ -312,14 +306,14 @@ function PrepareScreen() {
           <TouchableOpacity
             style={styles.startButton}
             onPress={() =>
-              navigation.navigate('OnTrip', {
+              navigation.navigate('StartTripLoading', {
+                trip,
                 travelers,
                 necessity,
                 shared,
                 personal,
                 activities,
                 memos,
-                trip,
               })
             }
           >
@@ -329,12 +323,21 @@ function PrepareScreen() {
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={() => {
-              setTravelers([]);
-              setNecessity([]);
-              setShared([]);
-              setPersonal([]);
-              setActivities([]);
-              setMemos([]);
+              Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
+                { text: '취소', style: 'cancel' },
+                {
+                  text: '삭제',
+                  style: 'destructive',
+                  onPress: () => {
+                    setTravelers([]);
+                    setNecessity([]);
+                    setShared([]);
+                    setPersonal([]);
+                    setActivities([]);
+                    setMemos([]);
+                  },
+                },
+              ]);
             }}
           >
             <Text style={styles.deleteText}>삭제하기</Text>
@@ -344,6 +347,8 @@ function PrepareScreen() {
     </SafeAreaView>
   );
 }
+
+export default PrepareScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.grayscale[100] },
@@ -509,5 +514,3 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
-
-export default PrepareScreen;

@@ -15,8 +15,11 @@ import Button from '../../components/Button';
 import { colors } from '../../styles/colors';
 import { getRandomColor } from '../../styles/cardColors';
 import DatePickerModal from '../../components/DatePickerModal';
+import { useNavigation } from '@react-navigation/native';
 
-function TravelCreateScreen({ navigation }) {
+function TravelCreateScreen() {
+  const navigation = useNavigation();
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [visiblePicker, setVisiblePicker] = useState(null);
@@ -75,7 +78,7 @@ function TravelCreateScreen({ navigation }) {
       color,
     };
 
-    navigation.navigate('TravelComplete', { tripData: newTripData });
+    navigation.navigate('Prepare', { tripData: newTripData });
   };
 
   const renderFormInput = (label, value, field, placeholder, keyboardType = 'default') => (

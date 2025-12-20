@@ -89,7 +89,7 @@ endButton: {
   borderRadius: 24,
   alignItems: 'center',
   marginHorizontal: 100,
-  marginVertical: 10,
+  marginVertical: 20,
 },
 
 endButtonText: {
@@ -103,5 +103,29 @@ sectionDivider: {
     backgroundColor: colors.grayscale[300],
     marginVertical: 6,
   },
+
+  memoRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingVertical: 12,
+},
+
+memoLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+  flex: 1,
+},
+
+memoText: {
+  fontSize: 16,
+  fontFamily: 'Pretendard-Regular',
+  color: colors.grayscale[1000],
+},
+
+plusButton: {
+  marginBottom: 24
+},
 
 });

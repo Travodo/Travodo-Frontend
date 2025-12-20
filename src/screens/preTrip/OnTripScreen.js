@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
 import TravelerAvatar from '../../components/TravelerAvatar';
 import { renderSection } from '../../utils/renderSection';
 import { colors } from '../../styles/colors';
-import styles from './prepareStyles'; 
+import styles from './prepareStyles';
+import Plus from '../../../assets/ProfileImg/Plus.svg';
 
 function OnTripScreen() {
   const route = useRoute();
@@ -28,9 +30,6 @@ function OnTripScreen() {
   const [personal, setPersonal] = useState(initPersonal);
   const [activities, setActivities] = useState(initActivities);
   const [memos, setMemos] = useState(initMemos);
-  const handleEndTrip = () => {
-  navigation.popToTop();
-};
 
   const [adding, setAdding] = useState(null);
   const [text, setText] = useState('');
@@ -48,6 +47,19 @@ function OnTripScreen() {
 
   const editItem = (list, setter, index, value) => {
     setter(list.map((item, i) => (i === index ? { ...item, content: value } : item)));
+  };
+
+  const handleEndTrip = () => {
+    Alert.alert('여행 종료', '여행을 종료하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '종료',
+        style: 'destructive',
+        onPress: () => {
+          navigation.popToTop();
+        },
+      },
+    ]);
   };
 
   return (
@@ -81,7 +93,7 @@ function OnTripScreen() {
           addItem,
           deleteItem,
           editItem,
-          showAssignee: true, 
+          showAssignee: true,
           styles,
         })}
         <View style={styles.sectionDivider} />
@@ -98,7 +110,7 @@ function OnTripScreen() {
           addItem,
           deleteItem,
           editItem,
-          showAssignee: true, 
+          showAssignee: true,
           styles,
         })}
         <View style={styles.sectionDivider} />
@@ -135,12 +147,54 @@ function OnTripScreen() {
         })}
         <View style={styles.sectionDivider} />
 
+        <Text style={styles.sectionTitle}>메모장</Text>
+
+        {memos.map((memo) => (
+          <View key={memo.id} style={styles.memoRow}>
+            <Pressable
+              style={styles.memoLeft}
+              onPress={() =>
+                navigation.navigate('Memo', {
+                  memo,
+                  onSave: (updatedMemo) => {
+                    setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
+                  },
+                })
+              }
+            >
+              <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
+              <Text style={styles.memoText}>{memo.title}</Text>
+            </Pressable>
+
+            <Pressable onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))} hitSlop={8}>
+              <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
+            </Pressable>
+          </View>
+        ))}
+
+        <View style={styles.plusCenter}>
+          <Pressable
+            style={styles.plusButton}
+            onPress={() =>
+              navigation.navigate('Memo', {
+                onSave: (newMemo) => {
+                  setMemos((prev) => [...prev, newMemo]);
+                },
+              })
+            }
+          >
+            <Plus width={24} height={24} />
+          </Pressable>
+        </View>
+
+        <View style={styles.sectionDivider} />
+
         <View style={styles.endButtonWrapper}>
-      <Pressable style={styles.endButton} onPress={handleEndTrip}>
-        <Text style={styles.endButtonText}>여행 종료</Text>
-      </Pressable>
-    </View>
-  </ScrollView>
+          <Pressable style={styles.endButton} onPress={handleEndTrip}>
+            <Text style={styles.endButtonText}>여행 종료</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
