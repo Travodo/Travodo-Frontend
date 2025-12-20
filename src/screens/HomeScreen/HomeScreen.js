@@ -8,11 +8,10 @@ import { useNavigation } from '@react-navigation/native';
 
 function HomeScreen({ route }) {
   const navigation = useNavigation();
-
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const newTrip = route?.params?.tripData;
+  const newTrip = route?.params?.trip;
 
   const calculateDday = (startDate) => {
     if (!startDate) return null;
@@ -33,8 +32,8 @@ function HomeScreen({ route }) {
         ...prevTrips,
         {
           id: Date.now(),
-          title: newTrip.name,
-          location: newTrip.destination,
+          name: newTrip.name,
+          destination: newTrip.destination,
           startDate: newTrip.startDate,
           endDate: newTrip.endDate,
           companions: newTrip.companions,
@@ -68,7 +67,7 @@ function HomeScreen({ route }) {
 
       <FAB
         icon="add"
-        onCreatePress={() => navigation.navigate('Create')}
+        onCreatePress={() => navigation.navigate('TravelCreate')}
         onJoinPress={() => navigation.navigate('Join')}
       />
     </View>

@@ -51,7 +51,7 @@ function StartTripScreen() {
       <Text style={styles.subText}>Travodo와 즐거운 여행을!</Text>
 
       <View style={styles.cardWrapper}>
-        <TripCard trip={trip} />
+        <TripCard trip={trip} hideActions={true} />
       </View>
     </View>
   );
@@ -60,21 +60,21 @@ function StartTripScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary[700],
+    backgroundColor: colors.primary[600],
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 200,
   },
 
   dDayText: {
-    fontSize: 42,
+    fontSize: 4,
     fontFamily: 'Pretendard-Bold',
     color: colors.grayscale[100],
     marginBottom: 24,
   },
 
   subText: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Pretendard-Medium',
     color: colors.grayscale[100],
     marginBottom: 12,

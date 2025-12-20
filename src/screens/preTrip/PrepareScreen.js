@@ -23,7 +23,7 @@ function PrepareScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   
-  const trip = route.params?.tripData;
+  const trip = route?.params?.trip;
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
@@ -121,7 +121,7 @@ function PrepareScreen() {
       <Text style={styles.subTitle}>신나는 여행을 준비해 봐요!</Text>
 
       <View style={styles.fixedCard}>
-        <TripCard trip={trip} />
+        <TripCard trip={trip} hideActions={true} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>

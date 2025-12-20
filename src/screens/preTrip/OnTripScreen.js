@@ -190,7 +190,9 @@ function OnTripScreen() {
         <View style={styles.sectionDivider} />
 
         <View style={styles.endButtonWrapper}>
-          <Pressable style={styles.endButton} onPress={handleEndTrip}>
+          <Pressable style={styles.endButton} 
+          onPress={() =>
+          navigation.navigate('EndTrip', { trip })}>
             <Text style={styles.endButtonText}>여행 종료</Text>
           </Pressable>
         </View>

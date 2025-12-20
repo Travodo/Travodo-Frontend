@@ -78,7 +78,7 @@ function TravelCreateScreen() {
       color,
     };
 
-    navigation.navigate('Prepare', { tripData: newTripData });
+    navigation.navigate('Prepare', { trip: newTripData });
   };
 
   const renderFormInput = (label, value, field, placeholder, keyboardType = 'default') => (
