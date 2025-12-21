@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,7 +7,7 @@ import TripCard from '../../components/TripCard';
 import TravelerAvatar from '../../components/TravelerAvatar';
 import { renderSection } from '../../utils/renderSection';
 import { colors } from '../../styles/colors';
-import styles from './prepareStyles';
+import sharedStyles from './sharedStyles';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
 
 function OnTripScreen() {
@@ -24,7 +24,8 @@ function OnTripScreen() {
     memos: initMemos = [],
   } = route.params || {};
 
-  const [travelers] = useState(initTravelers);
+  const [travelers, setTravelers] = useState(initTravelers);
+  const [selectedTraveler, setSelectedTraveler] = useState(null);
   const [necessity, setNecessity] = useState(initNecessity);
   const [shared, setShared] = useState(initShared);
   const [personal, setPersonal] = useState(initPersonal);
@@ -63,23 +64,43 @@ function OnTripScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.pageTitle}>여행 TODO 시작</Text>
-      <Text style={styles.subTitle}>Travodo와 여행을 시작했어요!</Text>
+    <SafeAreaView style={sharedStyles.container}>
+      <Text style={sharedStyles.pageTitle}>여행 TODO 시작</Text>
+      <Text style={sharedStyles.subTitle}>Travodo와 여행을 시작했어요!</Text>
 
-      <View style={styles.fixedCard}>
+      <View style={sharedStyles.fixedCard}>
         <TripCard trip={trip} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>여행자</Text>
-        <View style={styles.travelerList}>
+      <ScrollView contentContainerStyle={sharedStyles.content}>
+        <Text style={sharedStyles.sectionTitle}>여행자</Text>
+        <View style={sharedStyles.travelerList}>
           {travelers.map((t) => (
-            <TravelerAvatar key={t.id} name={t.name} color={t.color} />
+            <TravelerAvatar 
+              key={t.id} 
+              name={t.name} 
+              color={t.color}
+              showDelete={true}
+              onDelete={() => {
+                                    Alert.alert('여행자 삭제', `${t.name}님을 삭제하시겠습니까?`, [
+                                      { text: '취소', style: 'cancel' },
+                                      {
+                                        text: '삭제',
+                                        style: 'destructive',
+                                        onPress: () => {
+                                          setTravelers((prev) => prev.filter((traveler) => traveler.id !== t.id));
+                                          if (selectedTraveler === t.id) {
+                                            setSelectedTraveler(null);
+                                          }
+                                        },
+                                      },
+                                    ]);
+                                  }}
+            />
           ))}
         </View>
 
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         {renderSection({
           title: '필수 할 일',
@@ -94,9 +115,9 @@ function OnTripScreen() {
           deleteItem,
           editItem,
           showAssignee: true,
-          styles,
+          styles: sharedStyles,
         })}
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         {renderSection({
           title: '공동 준비물',
@@ -111,9 +132,9 @@ function OnTripScreen() {
           deleteItem,
           editItem,
           showAssignee: true,
-          styles,
+          styles: sharedStyles,
         })}
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         {renderSection({
           title: '개인 준비물',
@@ -127,9 +148,9 @@ function OnTripScreen() {
           addItem,
           deleteItem,
           editItem,
-          styles,
+          styles: sharedStyles,
         })}
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         {renderSection({
           title: '여행 활동',
@@ -143,16 +164,16 @@ function OnTripScreen() {
           addItem,
           deleteItem,
           editItem,
-          styles,
+          styles: sharedStyles,
         })}
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
-        <Text style={styles.sectionTitle}>메모장</Text>
+        <Text style={sharedStyles.sectionTitle}>메모장</Text>
 
         {memos.map((memo) => (
-          <View key={memo.id} style={styles.memoRow}>
+          <View key={memo.id} style={sharedStyles.memoRow}>
             <Pressable
-              style={styles.memoLeft}
+              style={sharedStyles.memoLeft}
               onPress={() =>
                 navigation.navigate('Memo', {
                   memo,
@@ -163,7 +184,7 @@ function OnTripScreen() {
               }
             >
               <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
-              <Text style={styles.memoText}>{memo.title}</Text>
+              <Text style={sharedStyles.memoText}>{memo.title}</Text>
             </Pressable>
 
             <Pressable onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))} hitSlop={8}>
@@ -172,9 +193,9 @@ function OnTripScreen() {
           </View>
         ))}
 
-        <View style={styles.plusCenter}>
+        <View style={sharedStyles.plusCenter}>
           <Pressable
-            style={styles.plusButton}
+            style={sharedStyles.plusButton}
             onPress={() =>
               navigation.navigate('Memo', {
                 onSave: (newMemo) => {
@@ -187,12 +208,13 @@ function OnTripScreen() {
           </Pressable>
         </View>
 
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         <View style={styles.endButtonWrapper}>
-          <Pressable style={styles.endButton} 
-          onPress={() =>
-          navigation.navigate('EndTrip', { trip })}>
+          <Pressable 
+            style={styles.endButton} 
+            onPress={() => navigation.navigate('EndTrip', { trip })}
+          >
             <Text style={styles.endButtonText}>여행 종료</Text>
           </Pressable>
         </View>
@@ -202,3 +224,24 @@ function OnTripScreen() {
 }
 
 export default OnTripScreen;
+
+const styles = StyleSheet.create({
+  endButtonWrapper: {
+    marginTop: 16,
+  },
+
+  endButton: {
+    backgroundColor: colors.primary[700],
+    paddingVertical: 16,
+    borderRadius: 24,
+    alignItems: 'center',
+    marginHorizontal: 100,
+    marginVertical: 20,
+  },
+
+  endButtonText: {
+    color: colors.grayscale[100],
+    fontSize: 16,
+    fontFamily: 'Pretendard-SemiBold',
+  },
+});

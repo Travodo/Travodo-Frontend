@@ -86,8 +86,6 @@ export default function TripCard({ trip, hideActions = false }) {
     return <Text style={dDayStyle}>{dDayText}</Text>;
   };
 
-  console.log('TripCard trip: ', trip);
-
   return (
 
     <KeyboardAvoidingView>

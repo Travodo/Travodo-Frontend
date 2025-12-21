@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
 
   dDayText: {
-    fontSize: 4,
+    fontSize: 40,
     fontFamily: 'Pretendard-Bold',
     color: colors.grayscale[100],
     marginBottom: 24,

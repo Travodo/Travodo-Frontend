@@ -18,6 +18,7 @@ import TravelerAvatar from '../../components/TravelerAvatar';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { colors } from '../../styles/colors';
 import { renderSection } from '../../utils/renderSection';
+import sharedStyles from './sharedStyles';
 
 function PrepareScreen() {
   const route = useRoute();
@@ -109,23 +110,23 @@ function PrepareScreen() {
 
   if (!trip) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.pageTitle}>여행 정보를 불러올 수 없습니다</Text>
+      <SafeAreaView style={sharedStyles.container}>
+        <Text style={sharedStyles.pageTitle}>여행 정보를 불러올 수 없습니다</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.pageTitle}>여행 준비 리스트</Text>
-      <Text style={styles.subTitle}>신나는 여행을 준비해 봐요!</Text>
+    <SafeAreaView style={sharedStyles.container}>
+      <Text style={sharedStyles.pageTitle}>여행 준비 리스트</Text>
+      <Text style={sharedStyles.subTitle}>신나는 여행을 준비해 봐요!</Text>
 
-      <View style={styles.fixedCard}>
+      <View style={sharedStyles.fixedCard}>
         <TripCard trip={trip} hideActions={true} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>여행자</Text>
+      <ScrollView contentContainerStyle={sharedStyles.content}>
+        <Text style={sharedStyles.sectionTitle}>여행자</Text>
 
         <View style={styles.travelerRow}>
           {travelers.length === 0 ? (
@@ -150,7 +151,7 @@ function PrepareScreen() {
             )
           ) : (
             <>
-              <View style={styles.travelerList}>
+              <View style={sharedStyles.travelerList}>
                 {travelers.map((t) => (
                   <TravelerAvatar
                     key={t.id}
@@ -158,6 +159,22 @@ function PrepareScreen() {
                     color={t.color}
                     selected={selectedTraveler === t.id}
                     onPress={() => setSelectedTraveler((prev) => (prev === t.id ? null : t.id))}
+                    showDelete={true}
+                    onDelete={() => {
+                      Alert.alert('여행자 삭제', `${t.name}님을 삭제하시겠습니까?`, [
+                        { text: '취소', style: 'cancel' },
+                        {
+                          text: '삭제',
+                          style: 'destructive',
+                          onPress: () => {
+                            setTravelers((prev) => prev.filter((traveler) => traveler.id !== t.id));
+                            if (selectedTraveler === t.id) {
+                              setSelectedTraveler(null);
+                            }
+                          },
+                        },
+                      ]);
+                    }}
                   />
                 ))}
               </View>
@@ -185,7 +202,7 @@ function PrepareScreen() {
           )}
         </View>
 
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         {renderSection({
           title: '필수 할 일',
@@ -201,9 +218,9 @@ function PrepareScreen() {
           editItem,
           assignTraveler,
           showAssignee: true,
-          styles,
+          styles: sharedStyles,
         })}
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         {renderSection({
           title: '공동 준비물',
@@ -219,10 +236,10 @@ function PrepareScreen() {
           editItem,
           assignTraveler,
           showAssignee: true,
-          styles,
+          styles: sharedStyles,
         })}
 
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         {renderSection({
           title: '개인 준비물',
@@ -237,10 +254,10 @@ function PrepareScreen() {
           deleteItem,
           editItem,
           showAssignee: false,
-          styles,
+          styles: sharedStyles,
         })}
 
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         {renderSection({
           title: '여행 활동',
@@ -255,17 +272,17 @@ function PrepareScreen() {
           deleteItem,
           editItem,
           showAssignee: false,
-          styles,
+          styles: sharedStyles,
         })}
 
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
-        <Text style={styles.sectionTitle}>메모장</Text>
+        <Text style={sharedStyles.sectionTitle}>메모장</Text>
 
         {memos.map((memo) => (
-          <View key={memo.id} style={styles.memoRow}>
+          <View key={memo.id} style={sharedStyles.memoRow}>
             <Pressable
-              style={styles.memoLeft}
+              style={sharedStyles.memoLeft}
               onPress={() =>
                 navigation.navigate('Memo', {
                   memo,
@@ -276,7 +293,7 @@ function PrepareScreen() {
               }
             >
               <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
-              <Text style={styles.memoText}>{memo.title}</Text>
+              <Text style={sharedStyles.memoText}>{memo.title}</Text>
             </Pressable>
 
             <Pressable onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))} hitSlop={8}>
@@ -285,9 +302,9 @@ function PrepareScreen() {
           </View>
         ))}
 
-        <View style={styles.plusCenter}>
+        <View style={sharedStyles.plusCenter}>
           <Pressable
-            style={styles.plusButton}
+            style={sharedStyles.plusButton}
             onPress={() =>
               navigation.navigate('Memo', {
                 onSave: (newMemo) => {
@@ -300,7 +317,7 @@ function PrepareScreen() {
           </Pressable>
         </View>
 
-        <View style={styles.sectionDivider} />
+        <View style={sharedStyles.sectionDivider} />
 
         <View style={styles.buttonRow}>
           <TouchableOpacity
@@ -351,126 +368,11 @@ function PrepareScreen() {
 export default PrepareScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.grayscale[100] },
-
-  pageTitle: {
-    fontSize: 20,
-    color: colors.grayscale[1000],
-    fontFamily: 'Pretendard-SemiBold',
-    paddingHorizontal: 20,
-    marginBottom: 6,
-  },
-
-  subTitle: {
-    fontSize: 16,
-    color: colors.grayscale[800],
-    fontFamily: 'Pretendard-Regular',
-    paddingHorizontal: 20,
-    marginBottom: 8,
-  },
-
-  fixedCard: { paddingHorizontal: 20, paddingBottom: 8 },
-
-  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 80 },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Pretendard-SemiBold',
-    marginTop: 20,
-    marginBottom: 16,
-    color: colors.grayscale[1000],
-  },
-
-  TravelerplusButton: {
-    marginLeft: 'auto',
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  list: { gap: 10 },
-
-  memoList: { gap: 14 },
-
-  memoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-  },
-
-  memoLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-
-  memoText: { fontSize: 16, fontFamily: 'Pretendard-Regular', color: colors.grayscale[1000] },
-
-  plusCenter: { alignItems: 'center', marginTop: 12 },
-
-  plusButton: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
-
-  sectionDivider: {
-    height: 1.2,
-    backgroundColor: colors.grayscale[300],
-    marginTop: 20,
-    marginBottom: 12,
-  },
-
-  buttonRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 10 },
-
-  startButton: {
-    backgroundColor: colors.primary[700],
-    paddingVertical: 15,
-    paddingHorizontal: 22,
-    borderRadius: 23,
-    marginHorizontal: 7,
-  },
-
-  startText: { color: colors.grayscale[100], fontFamily: 'Pretendard-SemiBold', fontSize: 16 },
-
-  deleteButton: {
-    backgroundColor: colors.grayscale[400],
-    paddingVertical: 15,
-    paddingHorizontal: 22,
-    borderRadius: 23,
-    marginHorizontal: 7,
-  },
-
-  deleteText: { color: colors.grayscale[100], fontFamily: 'Pretendard-SemiBold', fontSize: 16 },
-
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
-  },
-
-  input: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: 'Pretendard-Regular',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayscale[300],
-    paddingVertical: 6,
-  },
-
   travelerRow: {
     marginTop: 8,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-
-  travelerList: {
-    flexDirection: 'row',
-    gap: 6,
-    flexShrink: 1,
-    paddingRight: 8,
-    flexWrap: 'wrap',
   },
 
   centerPlusButton: {
@@ -512,5 +414,40 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'center',
     width: '100%',
+  },
+
+  buttonRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    gap: 12, 
+    marginTop: 10 
+  },
+
+  startButton: {
+    backgroundColor: colors.primary[700],
+    paddingVertical: 15,
+    paddingHorizontal: 22,
+    borderRadius: 23,
+    marginHorizontal: 7,
+  },
+
+  startText: { 
+    color: colors.grayscale[100], 
+    fontFamily: 'Pretendard-SemiBold', 
+    fontSize: 16 
+  },
+
+  deleteButton: {
+    backgroundColor: colors.grayscale[400],
+    paddingVertical: 15,
+    paddingHorizontal: 22,
+    borderRadius: 23,
+    marginHorizontal: 7,
+  },
+
+  deleteText: { 
+    color: colors.grayscale[100], 
+    fontFamily: 'Pretendard-SemiBold', 
+    fontSize: 16 
   },
 });
