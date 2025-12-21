@@ -4,8 +4,9 @@ import TextField from '../../components/TextField';
 import Button from '../../components/Button';
 import { colors } from '../../styles/colors';
 import { useState } from 'react';
+import CheckCircleBlue from '../../../assets/ComponentsImage/CheckCircleBlue.svg';
 
-function PwStep2() {
+function PwStep2({ navigation }) {
   const [visible, setVisible] = useState(false);
   return (
     <View style={styles.container}>
@@ -27,6 +28,7 @@ function PwStep2() {
       {visible && (
         <View style={styles.overlay}>
           <View style={styles.modal}>
+            <CheckCircleBlue width={18} height={18} />
             <Text style={[styles.title, { fontSize: 16 }]}>비밀번호를 변경했어요</Text>
             <Text style={[styles.title, { fontSize: 16 }]}>로그인해 주세요</Text>
             <Button
@@ -56,12 +58,10 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   title: {
-    fontWeight: 600,
     fontSize: 24,
-    fontFamily: 'Pretendard',
+    fontFamily: 'Pretendard-SemiBold',
   },
   subTitle: {
-    fontWeight: 400,
     fontSize: 22,
     color: '#292929',
     fontFamily: 'Pretendard',
@@ -79,8 +79,7 @@ const styles = StyleSheet.create({
   },
   inputTitile2: {
     color: colors.grayscale[500],
-    fontFamily: 'Pretendard',
-    fontWeight: 400,
+    fontFamily: 'Pretendard-Regular',
     fontSize: 12,
     alignSelf: 'center',
     marginTop: 4,

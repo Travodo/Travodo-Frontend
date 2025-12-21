@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
-import MainStack from './navigations/MainStack';
+import AuthStack from './navigations/AuthStack';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -17,7 +17,7 @@ function App() {
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-      <MainStack />
+      <AuthStack />
     </NavigationContainer>
   );
 }

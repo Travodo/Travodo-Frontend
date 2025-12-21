@@ -4,7 +4,7 @@ import InputField from '../../components/InputField';
 import Button from '../../components/Button';
 import { colors } from '../../styles/colors';
 
-function PwStep1() {
+function PwStep1({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
@@ -33,7 +33,7 @@ function PwStep1() {
                 color: '#769FFF',
                 textDecorationLine: 'underline',
                 textDecorationStyle: 'solid',
-                fontWeight: 600,
+                fontFamily: 'Pretendard-SemiBold',
               },
             ]}
           >
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: 600,
     fontSize: 24,
-    fontFamily: 'Pretendard',
+    fontFamily: 'Pretendard-SemiBold',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   bottionTitile: {
-    fontFamily: 'Pretendard',
+    fontFamily: 'Pretendard-Regular',
     fontSize: 14,
     fontWeight: 400,
     color: '#B5B5B5',

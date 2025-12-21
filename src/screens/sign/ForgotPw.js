@@ -4,7 +4,7 @@ import TextField from '../../components/TextField';
 import Button from '../../components/Button';
 import { colors } from '../../styles/colors';
 
-function ForgotPw() {
+function ForgotPw({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
@@ -45,13 +45,13 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: 600,
     fontSize: 24,
-    fontFamily: 'Pretendard',
+    fontFamily: 'Pretendard-SemiBold',
   },
   subTitle: {
     fontWeight: 400,
     fontSize: 22,
     color: '#292929',
-    fontFamily: 'Pretendard',
+    fontFamily: 'Pretendard-Regular',
   },
   inputContainer: {
     flexDirection: 'column',
