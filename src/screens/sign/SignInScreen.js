@@ -1,12 +1,3 @@
-<<<<<<< HEAD:src/screens/sign/SignInScreen.js
-import { View, StyleSheet, Pressable, Text, Image } from 'react-native';
-import { useEffect } from 'react';
-import Logo from '../../../assets/Logo/TravodoLogo.svg';
-import TextField from '../../components/TextField';
-import { colors } from '../../styles/colors';
-import Button from '../../components/Button';
-import KakaoLoginButton from '../../components/KakaoLoginButton';
-=======
 import { View, StyleSheet, Pressable, Text, Image, Alert, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
 import Logo from '../../assets/Logo/TravodoLogo.svg';
@@ -21,7 +12,6 @@ import {
   isAuthenticated,
 } from '../services/authService';
 import { logKeyHash } from '../utils/getKeyHash';
->>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe:src/screens/SignInScreen.js
 
 function SignInScreen({ navigation }) {
   const [email, setEmail] = useState('');

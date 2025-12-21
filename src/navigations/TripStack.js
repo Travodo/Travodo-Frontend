@@ -1,17 +1,15 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import BottomTab from './BottomTab';
-import CommunityContent from '../screens/community/CommunityContent';
-import CommunitySelectWriteTrip from '../screens/community/CommunitySelectWriteTrip';
 import { colors } from '../styles/colors';
 import { View } from 'react-native';
-import CommunityWrite from '../screens/community/CommunityWrite';
-import CommunityScrap from '../screens/community/CommunityScrap';
+import TravelCreateScreen from '../screens/homeScreen/TravelCreateScreen';
+import TravelCompleteScreen from '../screens/homeScreen/TravelCompleteScreen';
+import JoinScreen from '../screens/homeScreen/JoinScreen';
+
 const Stack = createNativeStackNavigator();
 
-function MainStack() {
+function TripStack() {
   return (
     <Stack.Navigator
-      initialRouteName="BottomTab"
       screenOptions={{
         headerTitleAlign: 'center',
         headerTitleStyle: {
@@ -32,32 +30,26 @@ function MainStack() {
       }}
     >
       <Stack.Screen
-        name="BottomTab"
-        component={BottomTab}
-        options={{ headerShown: false, headerBackground: undefined }}
+        name="JoinScreen"
+        component={JoinScreen}
+        options={{ headerShown: true, headerTitle: '설정' }}
       />
       <Stack.Screen
-        name="CommunityContent"
-        component={CommunityContent}
-        options={{ headerShown: true, headerTitle: '커뮤니티' }}
-      />
-      <Stack.Screen
-        name="CommunitySelectWriteTrip"
-        component={CommunitySelectWriteTrip}
+        name="TravelCreateScreen"
+        component={TravelCreateScreen}
         options={{
           headerTitle: '글쓰기',
         }}
       />
       <Stack.Screen
-        name="CommunityWrite"
-        component={CommunityWrite}
+        name="TravelCompleteScreen"
+        component={TravelCompleteScreen}
         options={{
           headerTitle: '글쓰기',
         }}
       />
-      <Stack.Screen name="CommunityScrap" component={CommunityScrap} />
     </Stack.Navigator>
   );
 }
 
-export default MainStack;
+export default TripStack;

@@ -9,6 +9,7 @@ import { colors } from '../styles/colors';
 import TravodoLogo from '../../assets/Logo/TravodoLogo.svg';
 import HeaderScrap from '../components/HeaderScrap';
 import OptionButton from '../components/OptionButton';
+import Maps from '../screens/maps/Maps';
 
 const Tab = createBottomTabNavigator();
 
@@ -16,7 +17,7 @@ function BottomTab() {
   return (
     <Tab.Navigator
       initialRouteName="Home"
-      screenOptions={{
+      screenOptions={({ navigation }) => ({
         headerShown: true,
         headerShadowVisible: false,
         headerTitle: '',
@@ -26,7 +27,7 @@ function BottomTab() {
             <HeaderScrap
               style={{ marginRight: 15 }}
               size={16}
-              onPress={() => console.log('스크랩')}
+              onPress={() => navigation.navigate('CommunityScrap')}
             />
             <OptionButton size={16} onPress={() => console.log('환경설정')} />
           </View>
@@ -34,7 +35,7 @@ function BottomTab() {
         tabBarActiveTintColor: colors.grayscale[900],
         tabBarInactiveTintColor: colors.grayscale[400],
         tabBarLabelStyle: styles.font,
-      }}
+      })}
     >
       <Tab.Screen
         name="Home"
@@ -54,9 +55,9 @@ function BottomTab() {
       />
       <Tab.Screen
         name="Maps"
-        component={CommunityHome}
+        component={Maps}
         options={{
-          title: '지도',
+          title: 'Maps',
           tabBarIcon: ({ color, size }) => <MapsTabIcon color={color} size={size} />,
         }}
       />

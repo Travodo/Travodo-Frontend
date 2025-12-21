@@ -8,10 +8,9 @@ import CommunityWrite from '../screens/community/CommunityWrite';
 import CommunityScrap from '../screens/community/CommunityScrap';
 const Stack = createNativeStackNavigator();
 
-function MainStack() {
+function CommunityStack() {
   return (
     <Stack.Navigator
-      initialRouteName="BottomTab"
       screenOptions={{
         headerTitleAlign: 'center',
         headerTitleStyle: {
@@ -32,11 +31,6 @@ function MainStack() {
       }}
     >
       <Stack.Screen
-        name="BottomTab"
-        component={BottomTab}
-        options={{ headerShown: false, headerBackground: undefined }}
-      />
-      <Stack.Screen
         name="CommunityContent"
         component={CommunityContent}
         options={{ headerShown: true, headerTitle: '커뮤니티' }}
@@ -55,9 +49,8 @@ function MainStack() {
           headerTitle: '글쓰기',
         }}
       />
-      <Stack.Screen name="CommunityScrap" component={CommunityScrap} />
     </Stack.Navigator>
   );
 }
 
-export default MainStack;
+export default CommunityStack;

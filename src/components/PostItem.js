@@ -5,8 +5,8 @@ import ProfilePicture from '../../assets/ComponentsImage/ProfilePicture.svg';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
-function PostItem({ post, onPress }) {
-  const { nickname, time, title, content, hcount, ccount } = post;
+function PostItem({ post, onPress, onScrap }) {
+  const { nickname, agoDate, title, content, hCount, cCount, isScraped } = post;
 
   return (
     <Pressable onPress={onPress}>
@@ -15,7 +15,7 @@ function PostItem({ post, onPress }) {
           <View style={styles.profile}>
             <ProfilePicture size={25} />
             <Text style={styles.nickname}>{nickname}</Text>
-            <Text style={styles.days}>{time}</Text>
+            <Text style={styles.days}>{agoDate}</Text>
           </View>
           <View>
             <Text style={styles.title}>{title}</Text>
@@ -24,8 +24,8 @@ function PostItem({ post, onPress }) {
             <Text style={styles.content}>{content}</Text>
           </View>
           <View style={styles.button}>
-            <Heart count={hcount} />
-            <Comment count={ccount} />
+            <Heart count={hCount} onPress={onScrap} isScraped={isScraped} />
+            <Comment count={cCount} />
           </View>
         </View>
         <View style={styles.picture} />
@@ -38,7 +38,7 @@ PostItem.propTypes = {
   onPress: PropTypes.func.isRequired,
   post: PropTypes.object.isRequired,
   nickname: PropTypes.string.isRequired,
-  time: PropTypes.string.isRequired,
+  agoDate: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   content: PropTypes.string.isRequired,
   hcount: PropTypes.string.isRequired,

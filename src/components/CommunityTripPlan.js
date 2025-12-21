@@ -2,7 +2,18 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
-function CommunityTripPlan({ title, date, location, people, todo, circleColor }) {
+function CommunityTripPlan({ title, startDate, endDate, location, people, todo, circleColor }) {
+  const getTodoText = () => {
+    if (!todo) return '일정 없음';
+
+    if (typeof todo === 'string') return todo;
+    try {
+      const allTasks = Object.values(todo).flat();
+    } catch (e) {
+      return '일정 확인 필요';
+    }
+  };
+
   return (
     <View style={styles.wrap}>
       <View style={styles.container}>
@@ -14,7 +25,7 @@ function CommunityTripPlan({ title, date, location, people, todo, circleColor })
             <Text style={styles.title}>{title}</Text>
           </View>
           <View>
-            <Text>{date}</Text>
+            <Text>{`${startDate} - ${endDate}`}</Text>
           </View>
         </View>
       </View>
@@ -25,7 +36,7 @@ function CommunityTripPlan({ title, date, location, people, todo, circleColor })
         </View>
         <View style={styles.contentContainer}>
           <Text style={styles.contentForm}>여행 기간</Text>
-          <Text style={styles.contentText}>{date}</Text>
+          <Text style={styles.contentText}>{`${startDate} - ${endDate}`}</Text>
         </View>
         <View style={styles.contentContainer}>
           <Text style={styles.contentForm}>동행 인원</Text>
@@ -33,7 +44,7 @@ function CommunityTripPlan({ title, date, location, people, todo, circleColor })
         </View>
         <View style={styles.contentContainer}>
           <Text style={styles.contentForm}>TODO</Text>
-          <Text style={styles.contentText}>{todo}</Text>
+          <Text style={styles.contentText}>{getTodoText()}</Text>
         </View>
       </View>
     </View>
@@ -42,7 +53,8 @@ function CommunityTripPlan({ title, date, location, people, todo, circleColor })
 
 CommunityTripPlan.propTypes = {
   title: PropTypes.string.isRequired,
-  date: PropTypes.string.isRequired,
+  startDate: PropTypes.string.isRequired,
+  endDate: PropTypes.string.isRequired,
   location: PropTypes.string.isRequired,
   people: PropTypes.number.isRequired,
   todo: PropTypes.object.isRequired,
