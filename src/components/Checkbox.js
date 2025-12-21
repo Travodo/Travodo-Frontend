@@ -3,6 +3,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import CheckCircleoff from '../../assets/ComponentsImage/CheckCircle_off.svg';
 import CheckCircleon from '../../assets/ComponentsImage/CheckCircle_on.svg';
 import PropTypes from 'prop-types';
+
 function Checkbox({ size }) {
   const [isChecked, setIsChecked] = useState(false);
 

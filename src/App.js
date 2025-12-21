@@ -4,7 +4,9 @@ import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './navigations/AuthStack';
 
-function App() {
+const Stack = createStackNavigator();
+
+export default function App() {
   const [fontsLoaded] = useFonts({
     'Pretendard-Regular': require('../assets/Fonts/Pretendard-Regular.otf'),
     'Pretendard-Bold': require('../assets/Fonts/Pretendard-Bold.otf'),
@@ -21,5 +23,3 @@ function App() {
     </NavigationContainer>
   );
 }
-
-export default App;

@@ -4,12 +4,14 @@ import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
+import { useNavigation } from '@react-navigation/native';
 
-function HomeScreen({ route, navigation }) {
+function HomeScreen({ route }) {
+  const navigation = useNavigation();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const newTrip = route?.params?.tripData;
+  const newTrip = route?.params?.trip;
 
   const calculateDday = (startDate) => {
     if (!startDate) return null;
@@ -30,8 +32,8 @@ function HomeScreen({ route, navigation }) {
         ...prevTrips,
         {
           id: Date.now(),
-          title: newTrip.name,
-          location: newTrip.destination,
+          name: newTrip.name,
+          destination: newTrip.destination,
           startDate: newTrip.startDate,
           endDate: newTrip.endDate,
           companions: newTrip.companions,
