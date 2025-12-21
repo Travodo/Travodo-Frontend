@@ -1,11 +1,12 @@
 export const colorPalette = [
-  '#F9EEB6',
-  '#EFB18B',
-  '#CFDC83',
-  '#AAD4E0',
-  '#DAB4D8',
-  '#90D48D',
-  '#9EA0B2',
+  '#EE8787',
+  '#FFD2C2',
+  '#EAAF4F',
+  '#FFE386',
+  '#A4C664',
+  '#B8CDFF',
+  '#769FFF',
+  '#506CAD',
 ];
 
 let usedColors = [];

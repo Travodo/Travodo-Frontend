@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { colors } from '../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const calculateDDay = (startDateString) => {
   if (!startDateString) return null;
@@ -39,7 +40,8 @@ const calculateDDay = (startDateString) => {
   return dayDiff;
 };
 
-export default function TripCard({ trip }) {
+export default function TripCard({ trip, hideActions = false }) {
+  const navigation = useNavigation();
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(0);
@@ -56,7 +58,7 @@ export default function TripCard({ trip }) {
     const finalValue = expanded ? 0 : 1;
     Animated.timing(animation, {
       toValue: finalValue,
-      duration: 250,
+      duration: 240,
       useNativeDriver: false,
     }).start();
     setExpanded(!expanded);
@@ -85,6 +87,7 @@ export default function TripCard({ trip }) {
   };
 
   return (
+
     <KeyboardAvoidingView>
       <View style={styles.wrapper}>
         <TouchableOpacity
@@ -94,7 +97,7 @@ export default function TripCard({ trip }) {
         >
           <View style={styles.headerRow}>
             <View style={[styles.circle, { backgroundColor: trip.color || colors.primary[700] }]} />
-            <Text style={styles.title}>{trip.title}</Text>
+            <Text style={styles.name}>{trip.name}</Text>
             {renderDDay()}
 
             <MaterialIcons
@@ -122,7 +125,7 @@ export default function TripCard({ trip }) {
           <View style={styles.detailInner} onLayout={onLayout}>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행지</Text>
-              <Text style={styles.detailValue}>{trip.location}</Text>
+              <Text style={styles.detailValue}>{trip.destination}</Text>
             </View>
 
             <View style={styles.detailRow}>
@@ -134,7 +137,7 @@ export default function TripCard({ trip }) {
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행명</Text>
-              <Text style={styles.detailValue}>{trip.title}</Text>
+              <Text style={styles.detailValue}>{trip.name}</Text>
             </View>
 
             <View style={styles.detailRow}>
@@ -148,15 +151,22 @@ export default function TripCard({ trip }) {
 
             <View style={styles.divider} />
 
-            <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.shareButton}>
-                <Text style={styles.shareText}>공유하기</Text>
-              </TouchableOpacity>
+            {!hideActions && (
+  <View style={styles.buttonRow}>
+    <TouchableOpacity style={styles.shareButton}>
+      <Text style={styles.shareText}>공유하기</Text>
+    </TouchableOpacity>
 
-              <TouchableOpacity style={styles.disabledButton}>
-                <Text style={styles.disabledText}>자세히 보기</Text>
-              </TouchableOpacity>
-            </View>
+    <TouchableOpacity
+      style={styles.disabledButton}
+      onPress={() =>
+        navigation.navigate('Prepare', { trip })
+      }
+    >
+      <Text style={styles.disabledText}>자세히 보기</Text>
+    </TouchableOpacity>
+  </View>
+)}
           </View>
         </Animated.View>
       </View>
@@ -198,7 +208,7 @@ const styles = StyleSheet.create({
     marginRight: 3,
   },
 
-  title: {
+  name: {
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[1000],
