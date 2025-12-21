@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import SettingsScreen from '../screens/Setting/SettingsScreen';
 import LasttripScreen from '../screens/myPage/LasttripScreen';
 import ProfileScreen from '../screens/myPage/ProfileScreen';
+import MyWriteTrip from '../screens/myPage/MyWriteTrip';
 
 const Stack = createNativeStackNavigator();
 
@@ -51,6 +52,13 @@ function MyPageStack() {
       <Stack.Screen
         name="CommunityScrap"
         component={CommunityScrap}
+        options={{
+          headerTitle: '저장한 글',
+        }}
+      />
+      <Stack.Screen
+        name="MyWriteTrip"
+        component={MyWriteTrip}
         options={{
           headerTitle: '저장한 글',
         }}

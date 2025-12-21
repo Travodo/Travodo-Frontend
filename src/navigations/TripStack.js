@@ -4,6 +4,12 @@ import { View } from 'react-native';
 import TravelCreateScreen from '../screens/homeScreen/TravelCreateScreen';
 import TravelCompleteScreen from '../screens/homeScreen/TravelCompleteScreen';
 import JoinScreen from '../screens/homeScreen/JoinScreen';
+import EndTripScreen from '../screens/loadingScreen/EndTripScreen';
+import StartTripScreen from '../screens/loadingScreen/StartTripScreen';
+import ChecklistSection from '../screens/preTrip/ChecklistSection';
+import MemoScreen from '../screens/preTrip/MemoScreen';
+import OnTripScreen from '../screens/preTrip/OnTripScreen';
+import PrepareScreen from '../screens/preTrip/PrepareScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -44,6 +50,48 @@ function TripStack() {
       <Stack.Screen
         name="TravelCompleteScreen"
         component={TravelCompleteScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      <Stack.Screen
+        name="EndTripScreen"
+        component={EndTripScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      <Stack.Screen
+        name="StartTripScreen"
+        component={StartTripScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      <Stack.Screen
+        name="ChecklistScreen"
+        component={ChecklistSection}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      <Stack.Screen
+        name="MemoScreen"
+        component={MemoScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      <Stack.Screen
+        name="OnTripScreen"
+        component={OnTripScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      <Stack.Screen
+        name="PrepareScreen"
+        component={PrepareScreen}
         options={{
           headerTitle: '글쓰기',
         }}
