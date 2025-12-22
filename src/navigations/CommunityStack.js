@@ -11,6 +11,7 @@ const Stack = createNativeStackNavigator();
 function CommunityStack() {
   return (
     <Stack.Navigator
+      initialRouteName="CommunitySelectWriteTrip"
       screenOptions={{
         headerTitleAlign: 'center',
         headerTitleStyle: {

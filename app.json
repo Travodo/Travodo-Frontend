@@ -29,7 +29,8 @@
           }
         ],
         "NSPhotoLibraryUsageDescription": "게시글 작성을 위해 갤러리의 사진을 업로드합니다.",
-        "NSCameraUsageDescription": "게시글 작성을 위해 카메라로 사진을 촬영합니다."
+        "NSCameraUsageDescription": "게시글 작성을 위해 카메라로 사진을 촬영합니다.",
+        "NSLocationWhenInUseUsageDescription": "여행 중 위치 공유를 위해 위치 정보가 필요합니다."
       }
     },
     "android": {
@@ -44,7 +45,11 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.travodo.app",
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -52,6 +57,12 @@
     "plugins": [
       "expo-font",
       "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "여행 중 위치 공유를 위해 위치 정보가 필요합니다."
+        }
+      ],
       [
         "expo-image-picker",
         {

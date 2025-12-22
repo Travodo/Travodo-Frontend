@@ -41,7 +41,7 @@ function SignInScreen({ navigation }) {
 
       if (loggedIn) {
         console.log('→ 홈 화면으로 이동');
-        navigation.replace('MainTab');
+        navigation.replace('MainStack');
       } else {
         console.log('→ 로그인 화면 유지');
       }
@@ -72,7 +72,7 @@ function SignInScreen({ navigation }) {
           {
             text: '확인',
             onPress: () => {
-              navigation.replace('MainTab');
+              navigation.replace('MainStack');
             },
           },
         ]);
@@ -102,7 +102,7 @@ function SignInScreen({ navigation }) {
           {
             text: '확인',
             onPress: () => {
-              navigation.replace('MainTab');
+              navigation.replace('MainStack');
             },
           },
         ]);
@@ -128,7 +128,7 @@ function SignInScreen({ navigation }) {
                     {
                       text: '확인',
                       onPress: () => {
-                        navigation.replace('MainTab');
+                        navigation.replace('MainStack');
                       },
                     },
                   ]);

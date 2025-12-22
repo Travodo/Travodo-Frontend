@@ -1,14 +1,12 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './AuthStack';
 import MainStack from './MainStack';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function RootNavigation() {
-    const isLoggedIn = true;
-
-    return (
-        <NavigationContainer>
-            {isLoggedIn ? <MainStack /> : <AuthStack />}
-        </NavigationContainer>
-    );
+function RootNavigation() {
+  const { isLoggedIn } = useAuth();
+  return <NavigationContainer>{isLoggedIn ? <MainStack /> : <AuthStack />}</NavigationContainer>;
 }
+
+export default RootNavigation;
