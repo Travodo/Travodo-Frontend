@@ -1,10 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
 import { useFonts } from 'expo-font';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import MainStack from './navigations/MainStack';
-import Toast from 'react-native-toast-message';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import CommunityWrite from './screens/community/CommunityWrite';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,13 +18,15 @@ export default function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <>
     <NavigationContainer>
       <StatusBar style="auto" />
-      <MainStack />
+      <Stack.Navigator>
+        <Stack.Screen
+          name="CommunityWrite"
+          component={CommunityWrite}
+          options={{ title: '글쓰기' }}
+        />
+      </Stack.Navigator>
     </NavigationContainer>
-
-    <Toast />
-    </>
   );
 }

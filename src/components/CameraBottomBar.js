@@ -1,15 +1,20 @@
 import { View, Pressable, StyleSheet, Text, Platform } from 'react-native';
 import Camera from '../../assets/ComponentsImage/Camera.svg';
 
-function CameraBottomBar({ onCameraPress }) {
+function CameraBottomBar({ onCameraPress, onMorePress }) {
   return (
     <View style={styles.container}>
       <Pressable onPress={onCameraPress}>
         <Camera width={18} height={15} />
       </Pressable>
-      <Pressable style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={styles.dotButton}>· · ·</Text>
-      </Pressable>
+      
+      <Pressable
+  style={{ alignItems: 'center', justifyContent: 'center' }}
+  onPress={onMorePress}
+>
+  <Text style={styles.dotButton}>· · ·</Text>
+</Pressable>
+
     </View>
   );
 }
