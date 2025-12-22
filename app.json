@@ -16,13 +16,20 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.travodo.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyC0NmblhXZHP_liiRUIeLrl3ae9RMw645c"
+        }
+      },
       "infoPlist": {
         "LSApplicationQueriesSchemes": ["kakaokompassauth", "kakaolink", "kakaoplus"],
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": ["kakao4c3ba6aab387cf3f608c90ea34b92e37"]
           }
-        ]
+        ],
+        "NSPhotoLibraryUsageDescription": "게시글 작성을 위해 갤러리의 사진을 업로드합니다.",
+        "NSCameraUsageDescription": "게시글 작성을 위해 카메라로 사진을 촬영합니다."
       }
     },
     "android": {
@@ -30,8 +37,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyC0NmblhXZHP_liiRUIeLrl3ae9RMw645c"
+        }
+      },
       "edgeToEdgeEnabled": true,
-      "package": "com.travodo.app"
+      "package": "com.travodo.app",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -40,10 +53,17 @@
       "expo-font",
       "expo-web-browser",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "사용자의 갤러리 접근을 허용하시겠습니까?",
+          "cameraPermission": "카메라 접근을 허용하시겠습니까?"
+        }
+      ],
+      [
         "@react-native-seoul/kakao-login",
         {
           "kakaoAppKey": "4c3ba6aab387cf3f608c90ea34b92e37",
-          "kotlinVersion": "1.9.0"
+          "kotlinVersion": "2.0.21"
         }
       ]
     ],

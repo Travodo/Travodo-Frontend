@@ -1,27 +1,17 @@
-<<<<<<< HEAD:src/screens/sign/SignInScreen.js
-import { View, StyleSheet, Pressable, Text, Image } from 'react-native';
-import { useEffect } from 'react';
+import { View, StyleSheet, Pressable, Text, Image, Alert, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
 import Logo from '../../../assets/Logo/TravodoLogo.svg';
 import TextField from '../../components/TextField';
 import { colors } from '../../styles/colors';
 import Button from '../../components/Button';
 import KakaoLoginButton from '../../components/KakaoLoginButton';
-=======
-import { View, StyleSheet, Pressable, Text, Image, Alert, ActivityIndicator } from 'react-native';
-import { useEffect, useState } from 'react';
-import Logo from '../../assets/Logo/TravodoLogo.svg';
-import TextField from '../components/TextField';
-import { colors } from '../styles/colors';
-import Button from '../components/Button';
-import KakaoLoginButton from '../components/KakaoLoginButton';
 import {
   signInWithKakao,
   linkKakaoAccount,
   signInWithEmail,
   isAuthenticated,
-} from '../services/authService';
-import { logKeyHash } from '../utils/getKeyHash';
->>>>>>> 42ad76a8c388c9d7a6c000be5fccad7bc2f8aafe:src/screens/SignInScreen.js
+} from '../../services/authService';
+import { logKeyHash } from '../../utils/getKeyHash';
 
 function SignInScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -40,7 +30,7 @@ function SignInScreen({ navigation }) {
 
     // 자동 로그인: 토큰이 있으면 홈 화면으로 이동
     const checkAutoLogin = async () => {
-      const { getToken } = require('../services/api');
+      const { getToken } = require('../../services/api');
       const token = await getToken();
       console.log('=== 인증 정보 확인 ===');
       console.log('저장된 토큰:', token);
@@ -185,7 +175,7 @@ function SignInScreen({ navigation }) {
         <Pressable onPress={() => console.log('아이디 찾기')}>
           <Text style={styles.textButton}>아이디 찾기</Text>
         </Pressable>
-        <Pressable onPress={() => console.log('비밀번호 찾기')}>
+        <Pressable onPress={() => navigation.navigate('ForgotPw')}>
           <Text style={styles.textButton}>비밀번호 찾기</Text>
         </Pressable>
       </View>

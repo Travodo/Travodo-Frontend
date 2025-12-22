@@ -1,15 +1,8 @@
-import React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-
-import HomeScreen from './screens/HomeScreen/HomeScreen';
-import TravelCreateScreen from './screens/HomeScreen/TravelCreateScreen';
-import PrepareScreen from './screens/preTrip/PrepareScreen';
-import StartTripScreen from './screens/loadingScreen/StartTripScreen';
-import OnTripScreen from './screens/preTrip/OnTripScreen';
-import MemoScreen from './screens/preTrip/MemoScreen';
-import EndTripScreen from './screens/loadingScreen/EndTripScreen';
+import AuthStack from './navigations/AuthStack';
 
 const Stack = createStackNavigator();
 
@@ -25,15 +18,8 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="TravelCreate" component={TravelCreateScreen} />
-        <Stack.Screen name="Prepare" component={PrepareScreen} />
-        <Stack.Screen name="StartTripLoading" component={StartTripScreen} />
-        <Stack.Screen name="OnTrip" component={OnTripScreen} />
-        <Stack.Screen name="Memo" component={MemoScreen} />
-        <Stack.Screen name="EndTrip" component={EndTripScreen} />
-      </Stack.Navigator>
+      <StatusBar style="auto" />
+      <AuthStack />
     </NavigationContainer>
   );
 }

@@ -87,7 +87,6 @@ export default function TripCard({ trip, hideActions = false }) {
   };
 
   return (
-
     <KeyboardAvoidingView>
       <View style={styles.wrapper}>
         <TouchableOpacity
@@ -99,7 +98,6 @@ export default function TripCard({ trip, hideActions = false }) {
             <View style={[styles.circle, { backgroundColor: trip.color || colors.primary[700] }]} />
             <Text style={styles.name}>{trip.name}</Text>
             {renderDDay()}
-
             <MaterialIcons
               name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
               size={24}
@@ -107,12 +105,10 @@ export default function TripCard({ trip, hideActions = false }) {
               style={styles.expendIcon}
             />
           </View>
-
           <Text style={styles.date}>
             {trip.startDate} - {trip.endDate}
           </Text>
         </TouchableOpacity>
-
         <Animated.View
           style={[
             styles.detailBox,
@@ -127,19 +123,16 @@ export default function TripCard({ trip, hideActions = false }) {
               <Text style={styles.detailLabel}>여행지</Text>
               <Text style={styles.detailValue}>{trip.destination}</Text>
             </View>
-
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행 기간</Text>
               <Text style={styles.detailValue}>
                 {trip.startDate} ~ {trip.endDate}
               </Text>
             </View>
-
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행명</Text>
               <Text style={styles.detailValue}>{trip.name}</Text>
             </View>
-
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>동행자</Text>
               <Text style={styles.detailValue}>
@@ -148,25 +141,17 @@ export default function TripCard({ trip, hideActions = false }) {
                   : '동행자 없음'}
               </Text>
             </View>
-
             <View style={styles.divider} />
 
-            {!hideActions && (
-  <View style={styles.buttonRow}>
-    <TouchableOpacity style={styles.shareButton}>
-      <Text style={styles.shareText}>공유하기</Text>
-    </TouchableOpacity>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.shareButton}>
+                <Text style={styles.shareText}>공유하기</Text>
+              </TouchableOpacity>
 
-    <TouchableOpacity
-      style={styles.disabledButton}
-      onPress={() =>
-        navigation.navigate('Prepare', { trip })
-      }
-    >
-      <Text style={styles.disabledText}>자세히 보기</Text>
-    </TouchableOpacity>
-  </View>
-)}
+              <TouchableOpacity style={styles.disabledButton}>
+                <Text style={styles.disabledText}>자세히 보기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Animated.View>
       </View>

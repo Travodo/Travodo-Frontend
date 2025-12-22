@@ -1,16 +1,16 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import BottomTab from './BottomTab';
 import { colors } from '../styles/colors';
 import { View } from 'react-native';
-import CommunityStack from './CommunityStack';
-import TripStack from './TripStack';
-import MyPageStack from './MyPageStack';
+import SettingsScreen from '../screens/Setting/SettingsScreen';
+import LasttripScreen from '../screens/myPage/LasttripScreen';
+import ProfileScreen from '../screens/myPage/ProfileScreen';
+import MyWriteTrip from '../screens/myPage/MyWriteTrip';
+
 const Stack = createNativeStackNavigator();
 
-function MainStack() {
+function MyPageStack() {
   return (
     <Stack.Navigator
-      initialRouteName="BottomTab"
       screenOptions={{
         headerTitleAlign: 'center',
         headerTitleStyle: {
@@ -31,33 +31,40 @@ function MainStack() {
       }}
     >
       <Stack.Screen
-        name="BottomTab"
-        component={BottomTab}
-        options={{ headerShown: false, headerBackground: undefined }}
+        name="SettingsScreen"
+        component={SettingsScreen}
+        options={{ headerShown: true, headerTitle: '설정' }}
       />
       <Stack.Screen
-        name="CommunityStack"
-        component={CommunityStack}
+        name="ProfileScreen"
+        component={ProfileScreen}
         options={{
-          headerTitle: '글쓰기',
+          headerTitle: '내 프로필',
         }}
       />
       <Stack.Screen
-        name="TripStack"
-        component={TripStack}
+        name="LasttripScreen"
+        component={LasttripScreen}
         options={{
-          headerTitle: '글쓰기',
+          headerTitle: '지난 여행 관리',
         }}
       />
       <Stack.Screen
-        name="MyPageStack"
-        component={MyPageStack}
+        name="CommunityScrap"
+        component={CommunityScrap}
         options={{
-          headerTitle: '글쓰기',
+          headerTitle: '저장한 글',
+        }}
+      />
+      <Stack.Screen
+        name="MyWriteTrip"
+        component={MyWriteTrip}
+        options={{
+          headerTitle: '저장한 글',
         }}
       />
     </Stack.Navigator>
   );
 }
 
-export default MainStack;
+export default MyPageStack;

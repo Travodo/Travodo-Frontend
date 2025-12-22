@@ -1,16 +1,16 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTab from './BottomTab';
+import CommunityContent from '../screens/community/CommunityContent';
+import CommunitySelectWriteTrip from '../screens/community/CommunitySelectWriteTrip';
 import { colors } from '../styles/colors';
 import { View } from 'react-native';
-import CommunityStack from './CommunityStack';
-import TripStack from './TripStack';
-import MyPageStack from './MyPageStack';
+import CommunityWrite from '../screens/community/CommunityWrite';
+import CommunityScrap from '../screens/community/CommunityScrap';
 const Stack = createNativeStackNavigator();
 
-function MainStack() {
+function CommunityStack() {
   return (
     <Stack.Navigator
-      initialRouteName="BottomTab"
       screenOptions={{
         headerTitleAlign: 'center',
         headerTitleStyle: {
@@ -31,27 +31,20 @@ function MainStack() {
       }}
     >
       <Stack.Screen
-        name="BottomTab"
-        component={BottomTab}
-        options={{ headerShown: false, headerBackground: undefined }}
+        name="CommunityContent"
+        component={CommunityContent}
+        options={{ headerShown: true, headerTitle: '커뮤니티' }}
       />
       <Stack.Screen
-        name="CommunityStack"
-        component={CommunityStack}
+        name="CommunitySelectWriteTrip"
+        component={CommunitySelectWriteTrip}
         options={{
           headerTitle: '글쓰기',
         }}
       />
       <Stack.Screen
-        name="TripStack"
-        component={TripStack}
-        options={{
-          headerTitle: '글쓰기',
-        }}
-      />
-      <Stack.Screen
-        name="MyPageStack"
-        component={MyPageStack}
+        name="CommunityWrite"
+        component={CommunityWrite}
         options={{
           headerTitle: '글쓰기',
         }}
@@ -60,4 +53,4 @@ function MainStack() {
   );
 }
 
-export default MainStack;
+export default CommunityStack;

@@ -11,7 +11,7 @@ function CommentListItem({ data }) {
         <CommentItem
           nickname={item.nickname}
           date={item.date}
-          comment={item.comment}
+          comment={item.content}
           hcount={item.commentlike}
         />
       )}

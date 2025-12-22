@@ -4,17 +4,11 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import { colors } from '../styles/colors';
 
-function Heart({ style, count }) {
-  const [isChecked, setIsChecked] = useState(false);
-
-  function Checkpress() {
-    setIsChecked(!isChecked);
-  }
-
+function Heart({ style, count, onPress, isScraped }) {
   return (
     <View style={[styles.container, style]}>
-      <Pressable onPress={Checkpress}>
-        {isChecked ? (
+      <Pressable onPress={onPress}>
+        {isScraped ? (
           <FontAwesome name="heart" size={15} color="#E7211E" />
         ) : (
           <FontAwesome name="heart-o" size={15} color="black" />
@@ -28,6 +22,8 @@ function Heart({ style, count }) {
 Heart.propTypes = {
   style: PropTypes.object,
   count: PropTypes.string.isRequired,
+  onPress: PropTypes.func,
+  isScraped: PropTypes.bool.isRequired,
 };
 
 const styles = StyleSheet.create({

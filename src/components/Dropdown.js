@@ -10,7 +10,7 @@ function Dropdown({
   visible,
   onToggle,
   onSelect,
-  dropdownStyle = {},
+  dropdownStyle,
 }) {
   const [selected, setSeleted] = useState(propSelectedOption);
 

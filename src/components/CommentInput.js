@@ -4,9 +4,7 @@ import SendIcon from '../../assets/ComponentsImage/SendIcon.svg';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
-function CommentInput({ onChangeText, onPress }) {
-  const BOTTOM = 20;
-
+function CommentInput({ onChangeText, onPress, value }) {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
@@ -32,6 +30,7 @@ function CommentInput({ onChangeText, onPress }) {
         placeholder="댓글을 입력하세요."
         placeholderTextColor={colors.grayscale[500]}
         onChangeText={onChangeText}
+        value={value}
       />
       <Pressable style={styles.button} onPress={onPress}>
         <SendIcon width={20} height={30} />

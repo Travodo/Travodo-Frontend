@@ -1,148 +1,183 @@
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Modal,
+  Image,
+  Pressable,
+  Keyboard,
+} from 'react-native';
+import { useState } from 'react';
 import CommunityTripPlan from '../../components/CommunityTripPlan';
 import ProfileImage from '../../components/ProfileImage';
 import { colors } from '../../styles/colors';
 import DotButton from '../../components/DotButton';
-import ImageGrid from '../../components/ImageGrid';
 import Heart from '../../components/Heart';
 import Comment from '../../components/Comment';
 import CommentListItem from '../../components/CommentListItem';
-import { useEffect } from 'react';
-import TravodoLogo from '../../../assets/Logo/TravodoLogo.svg';
-import OptionButton from '../../components/OptionButton';
-import HeaderScrap from '../../components/HeaderScrap';
 import PropTypes from 'prop-types';
 import CommentInput from '../../components/CommentInput';
+import { CommunityData } from '../../data/TripList';
+import Scrap from '../../../assets/ComponentsImage/Scrap.svg';
+import Close from '../../../assets/ComponentsImage/Close.svg';
+import Report from '../../../assets/ComponentsImage/Report.svg';
 
-function CommunityContent({
-  navigation,
-  nickname,
-  agoDate,
-  title,
-  content,
-  circleColor,
-  date,
-  location,
-  people,
-  todo,
-  hCount,
-  cCount,
-  onChangeText,
-  send,
-}) {
-  useEffect(() => {
-    navigation.setOptions({
-      headerShadowVisible: false,
-      headerLeft: () => <TravodoLogo width={100} height={20} marginLeft={32} />,
-      headerTitle: '',
-      headerRight: () => (
-        <View style={styles.headerRightContainer}>
-          <HeaderScrap
-            style={{ marginRight: 15 }}
-            size={16}
-            onPress={() => console.log('스크랩')}
-          />
-          <OptionButton size={16} onPress={() => console.log('환경설정')} />
-        </View>
-      ),
-    });
-  });
+function CommunityContent({ route, navigation }) {
+  const [commentList, setCommentList] = useState([]);
+  const [inputText, setInputText] = useState('');
+  const [visibleModal, setVisibleModal] = useState(false);
+  const [scrapCount, setScrapCount] = useState(post ? Number(post.hCount || 0) : 0);
+  const [isScrap, setIsScrap] = useState(post?.isScrap || false);
 
-  const data = [
-    {
-      id: 'c1',
-      nickname: '여행조아',
-      date: '3일 전',
-      comment:
-        '정말 유용한 정보 감사합니다! mbti P라서 계획이 늘 어려웠는데 큰 도움이 됐어요. 바로 저장했습니다!',
-    },
-    {
-      id: 'c2',
-      nickname: '가평마스터',
-      date: '2일 전',
-      comment:
-        '익스트림 좋아하시면 잣향기 푸른숲 트레킹도 강추해요! 산림욕 하고 나면 정말 상쾌합니다. 코스에 넣어보세요.',
-    },
-    {
-      id: 'c3',
-      nickname: '떠나자NOW',
-      date: '1일 전',
-      comment:
-        '와, 2박 3일 동안 이렇게 알차게 보내시다니 대단해요. 사진만 봐도 너무 재밌어 보여요. 다음 여행 계획도 기대하겠습니다!',
-    },
-    {
-      id: 'c4',
-      nickname: '계획형J',
-      date: '15시간 전',
-      commentlike: '4',
-      comment:
-        'P이신데도 이렇게 완벽한 계획을 짜시다니 놀랍네요! Travodo가 큰 역할을 한 것 같습니다 :)',
-    },
-  ];
+  const { post: passedPost, postId } = route.params || {};
+  const post = passedPost || CommunityData.find((p) => p.id.toString() === postId?.toString());
+  if (!post) {
+    return (
+      <View style={styles.container}>
+        <Text>게시글을 찾을 수 없습니다.</Text>
+      </View>
+    );
+  }
+
+  const {
+    nickname,
+    agoDate,
+    title,
+    tripTitle,
+    content,
+    circleColor,
+    startDate,
+    endDate,
+    location,
+    people,
+    todo,
+    cCount = 0,
+    images,
+    tripData,
+  } = post;
+
+  const displayTripTitle = tripData?.tripTitle || tripTitle || title;
+
+  const handleSendComment = () => {
+    if (inputText.trim().length === 0) return;
+
+    const newComment = {
+      id: Date.now(),
+      nickname: '히재',
+      content: inputText,
+      date: '방금 전',
+    };
+    setCommentList((prev) => [...prev, newComment]);
+    setInputText('');
+    Keyboard.dismiss();
+  };
+
+  const handleScrap = () => {
+    setIsScrap((prev) => !prev);
+    setScrapCount((prev) => (isScrap ? prev - 1 : prev + 1));
+  };
+
+  const handleModalScrap = () => {
+    handleScrap();
+    setVisibleModal(false);
+  };
 
   return (
-    <View>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} bounces={false} overScrollMode="never">
-        <View style={styles.container}>
-          <View style={styles.profileContainer}>
-            <ProfileImage size={25} />
-            <Text style={styles.nickname}>{nickname}</Text>
-            <Text style={styles.date}>{agoDate}</Text>
-            <View style={styles.button}>
-              <DotButton />
+        <Pressable style={styles.dismiss}>
+          <View style={styles.container}>
+            <View style={styles.profileContainer}>
+              <ProfileImage size={25} />
+              <Text style={styles.nickname}>{nickname}</Text>
+              <Text style={styles.date}>{agoDate}</Text>
+              <View style={styles.button}>
+                <DotButton onPress={() => setVisibleModal(true)} />
+              </View>
             </View>
+            <View style={styles.contentContainer}>
+              <Text style={styles.title}>{title}</Text>
+            </View>
+            <View style={styles.contentContainer}>
+              <Text style={styles.content}>{content}</Text>
+            </View>
+            <View style={styles.tripplan}>
+              <CommunityTripPlan
+                circleColor={circleColor}
+                title={displayTripTitle}
+                startDate={startDate}
+                endDate={endDate}
+                location={location}
+                people={people}
+                todo={todo}
+              />
+            </View>
+            <View style={styles.imageContainer}>
+              {images &&
+                images.length > 0 &&
+                images.map((uri, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri }}
+                    style={{ width: 160, height: 160, borderRadius: 12 }}
+                  />
+                ))}
+            </View>
+            <View style={styles.heartncomment}>
+              <Heart size={15} count={scrapCount} onPress={handleScrap} isScraped={isScrap} />
+              <Comment size={15} count={String(Number(cCount) + commentList.length)} />
+            </View>
+            <CommentListItem data={commentList} />
           </View>
-          <View style={styles.contentContainer}>
-            <Text style={styles.title}>{title}</Text>
-          </View>
-          <View style={styles.contentContainer}>
-            <Text style={styles.content}>{content}</Text>
-          </View>
-          <View style={styles.tripplan}>
-            <CommunityTripPlan
-              circleColor={circleColor}
-              title={title}
-              date={date}
-              location={location}
-              people={people}
-              todo={todo}
-            />
-          </View>
-          <View style={styles.imageContainer}>
-            <ImageGrid imageName={'image1'} />
-            <ImageGrid imageName={'image2'} />
-          </View>
-          <View style={styles.heartncomment}>
-            <Heart size={15} count={hCount} />
-            <Comment size={15} count={cCount} />
-          </View>
-          <CommentListItem data={data} />
-        </View>
+        </Pressable>
       </ScrollView>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={visibleModal}
+        onRequestClose={() => {
+          setVisibleModal(false);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalbox}>
+            <View style={styles.closeStyle}>
+              <Pressable onPress={() => setVisibleModal(false)}>
+                <Close width={15} height={15} />
+              </Pressable>
+            </View>
+            <Pressable style={styles.scrapContainer} onPress={handleModalScrap}>
+              <Scrap width={24} height={23} />
+              <Text style={styles.scrapText}>글 저장하기</Text>
+            </Pressable>
+            <Pressable style={styles.scrapContainer}>
+              <Report width={24} height={23} />
+              <Text style={styles.report}>신고하기</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.commentInput}>
-        <CommentInput onChangeText={onChangeText} onPress={send} />
+        <CommentInput value={inputText} onChangeText={setInputText} onPress={handleSendComment} />
       </View>
     </View>
   );
 }
 
 CommunityContent.propTypes = {
-  nickname: PropTypes.string.isRequired,
-  agoDate: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  content: PropTypes.string.isRequired,
-  circleColor: PropTypes.string.isRequired,
-  date: PropTypes.string.isRequired,
-  location: PropTypes.string.isRequired,
-  people: PropTypes.number.isRequired,
-  todo: PropTypes.object.isRequired,
-  hCount: PropTypes.string.isRequired,
-  cCount: PropTypes.string.isRequired,
-  onChangeText: PropTypes.string,
-  send: PropTypes.func,
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      postId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    }),
+  }).isRequired,
 };
 
 const styles = StyleSheet.create({
+  dismiss: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -206,6 +241,41 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingBottom: 90,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalbox: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 46,
+  },
+  closeStyle: {
+    paddingVertical: 20.5,
+    alignItems: 'flex-end',
+    paddingRight: 20,
+  },
+  scrapText: {
+    fontFamily: 'Pretendard-Regular',
+    fontSize: 16,
+  },
+  scrapContainer: {
+    flexDirection: 'row',
+    gap: 20,
+    paddingLeft: 20,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayscale[300],
+    width: '100%',
+    paddingVertical: 12.5,
+  },
+  report: {
+    color: '#e71e25',
+    fontFamily: 'Pretendard-Regular',
+    fontSize: 16,
   },
 });
 
