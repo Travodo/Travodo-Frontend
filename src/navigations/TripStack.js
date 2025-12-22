@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { colors } from '../styles/colors';
 import { View } from 'react-native';
-import TravelCreateScreen from '../screens/homeScreen/TravelCreateScreen';
-import TravelCompleteScreen from '../screens/homeScreen/TravelCompleteScreen';
-import JoinScreen from '../screens/homeScreen/JoinScreen';
+import TravelCreateScreen from '../screens/HomeScreen/TravelCreateScreen';
+import TravelCompleteScreen from '../screens/HomeScreen/TravelCompleteScreen';
+import JoinScreen from '../screens/HomeScreen/JoinScreen';
 import EndTripScreen from '../screens/loadingScreen/EndTripScreen';
 import StartTripScreen from '../screens/loadingScreen/StartTripScreen';
 import ChecklistSection from '../screens/preTrip/ChecklistSection';

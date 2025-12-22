@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeScreen from '../screens/homeScreen/HomeScreen';
+import HomeStack from './HomeStack';
 import CommunityHome from '../screens/community/CommunityHome';
 import HomeTabIcon from '../../assets/ComponentsImage/HomeTabIcon.svg';
 import CommunityTabIcon from '../../assets/ComponentsImage/CommunityTabIcon.svg';
@@ -16,7 +16,7 @@ const Tab = createBottomTabNavigator();
 function BottomTab() {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName="HomeTab"
       screenOptions={({ navigation }) => ({
         headerShown: true,
         headerShadowVisible: false,
@@ -38,8 +38,8 @@ function BottomTab() {
       })}
     >
       <Tab.Screen
-        name="Home"
-        component={HomeScreen}
+        name="HomeTab"
+        component={HomeStack}
         options={{
           title: '홈',
           tabBarIcon: ({ color, size }) => <HomeTabIcon color={color} size={size} />,

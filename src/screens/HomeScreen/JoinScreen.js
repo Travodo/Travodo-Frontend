@@ -11,8 +11,11 @@ import {
 import CodeInput from '../../components/CodeInput';
 import { colors } from '../../styles/colors';
 import Button from '../../components/Button';
+import { useNavigation } from '@react-navigation/native';
 
 function JoinScreen() {
+  const navigation = useNavigation();
+  
   const [code, setCode] = useState('');
 
   const handleJoin = () => {

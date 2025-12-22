@@ -1,10 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
-import AuthStack from './navigations/AuthStack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const Stack = createStackNavigator();
+import CommunityWrite from './screens/community/CommunityWrite';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -19,7 +20,13 @@ export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-      <AuthStack />
+      <Stack.Navigator>
+        <Stack.Screen
+          name="CommunityWrite"
+          component={CommunityWrite}
+          options={{ title: '글쓰기' }}
+        />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }

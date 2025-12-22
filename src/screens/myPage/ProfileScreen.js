@@ -12,8 +12,11 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
+import { useNavigation } from '@react-navigation/native';
 
 function ProfileScreen() {
+  const navigation = useNavigation();
+  
   const Logout = () => {
     Alert.alert(
       '로그아웃 하시겠습니까?',

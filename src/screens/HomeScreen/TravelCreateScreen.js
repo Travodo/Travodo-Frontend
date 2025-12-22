@@ -78,7 +78,7 @@ function TravelCreateScreen() {
       color,
     };
 
-    navigation.navigate('Prepare', { trip: newTripData });
+    navigation.navigate('TravelComplete', { tripData: newTripData });
   };
 
   const renderFormInput = (label, value, field, placeholder, keyboardType = 'default') => (
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.grayscale[100],
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 16,
   },
   title: {
     fontSize: 20,
