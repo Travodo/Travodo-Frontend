@@ -5,8 +5,11 @@ import Button from '../../components/Button';
 import TripCard from '../../components/TripCard';
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
 
 function TravelCompleteScreen({ route, navigation }) {
+  const navigation = useNavigation();
+  
   const { tripData } = route.params || {};
   const { name, destination, startDate, endDate, code, color } = tripData || {};
 
