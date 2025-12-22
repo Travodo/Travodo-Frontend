@@ -1,12 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './navigations/AuthStack';
+import BottomTab from './navigations/BottomTab';
 
-const Stack = createStackNavigator();
-
-export default function App() {
+function App() {
   const [fontsLoaded] = useFonts({
     'Pretendard-Regular': require('../assets/Fonts/Pretendard-Regular.otf'),
     'Pretendard-Bold': require('../assets/Fonts/Pretendard-Bold.otf'),
@@ -19,7 +17,9 @@ export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-      <AuthStack />
+      <BottomTab />
     </NavigationContainer>
   );
 }
+
+export default App;

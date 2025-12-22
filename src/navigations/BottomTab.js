@@ -57,6 +57,7 @@ function BottomTab() {
         name="Maps"
         component={Maps}
         options={{
+          headerShown: false,
           title: 'Maps',
           tabBarIcon: ({ color, size }) => <MapsTabIcon color={color} size={size} />,
         }}

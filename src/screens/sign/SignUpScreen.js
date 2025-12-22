@@ -1,16 +1,16 @@
 import { View, StyleSheet, Text, Alert, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
-import TextField from '../components/TextField';
-import { colors } from '../styles/colors';
-import Button from '../components/Button';
-import KakaoLoginButton from '../components/KakaoLoginButton';
+import TextField from '../../components/TextField';
+import { colors } from '../../styles/colors';
+import Button from '../../components/Button';
+import KakaoLoginButton from '../../components/KakaoLoginButton';
 import {
   signUp,
   checkNickname,
   requestEmailVerification,
   confirmEmailVerification,
   signInWithKakao,
-} from '../services/authService';
+} from '../../services/authService';
 
 function SignUpScreen({ navigation }) {
   const [nickname, setNickname] = useState('');
