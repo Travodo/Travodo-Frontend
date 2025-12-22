@@ -1,10 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { useFonts } from 'expo-font';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import AuthStack from './navigations/AuthStack';
+import MainStack from './navigations/MainStack';
+import Toast from 'react-native-toast-message';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -17,9 +19,13 @@ export default function App() {
   if (!fontsLoaded) return null;
 
   return (
+    <>
     <NavigationContainer>
       <StatusBar style="auto" />
-      <AuthStack />
+      <MainStack />
     </NavigationContainer>
+
+    <Toast />
+    </>
   );
 }
