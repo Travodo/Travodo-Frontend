@@ -5,8 +5,11 @@ import { colors } from '../../styles/colors';
 import { getRandomColor } from '../../styles/cardColors';
 import TripCard from '../../components/TripCard';
 import Dropdown from '../../components/Dropdown';
+import { useNavigation } from '@react-navigation/native';
 
 function LasttripScreen() {
+  const navigation = useNavigation();
+  
   const [sortOrder, setSortOrder] = useState('latest');
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [coloredTrips, setColoredTrips] = useState([]);

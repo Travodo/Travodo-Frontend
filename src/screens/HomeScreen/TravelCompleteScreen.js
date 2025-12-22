@@ -5,8 +5,11 @@ import Button from '../../components/Button';
 import TripCard from '../../components/TripCard';
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
 
-function TravelCompleteScreen({ route, navigation }) {
+function TravelCompleteScreen({ route }) {
+  const navigation = useNavigation();
+  
   const { tripData } = route.params || {};
   const { name, destination, startDate, endDate, code, color } = tripData || {};
 
@@ -71,7 +74,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.grayscale[100],
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 45,
     paddingHorizontal: 24,
   },
 
@@ -80,7 +83,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Bold',
     color: colors.grayscale[1000],
     marginBottom: 8,
-    marginTop: 20,
   },
 
   subtitle: {
