@@ -18,7 +18,8 @@ export default function TravelerAvatar({ name, color, selected, onPress, onDelet
                 pressed && styles.pressed,
               ]}
             >
-              <DefaultProfile width={20} height={20} />
+              <DefaultProfile width={24} height={24} 
+              color={colors.grayscale[100]} />
             </View>
             
             {showDelete && (

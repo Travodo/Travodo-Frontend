@@ -60,7 +60,7 @@ function StartTripScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary[600],
+    backgroundColor: colors.primary[700],
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 200,
