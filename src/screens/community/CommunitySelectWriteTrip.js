@@ -5,12 +5,13 @@ import SelectMyTripList from '../../components/SelectMyTripList';
 import Dropdown from '../../components/Dropdown';
 import { useState, useMemo, useEffect } from 'react';
 import { colors } from '../../styles/colors';
-import { data } from '../../data/TripList';
+import { getPastTrips } from '../../services/api';
 
 function CommunitySelectWriteTrip({ navigation }) {
   const [isDropDownVisiable, setIsDropDownVisable] = useState(false);
   const [selectedSort, setSelectedSort] = useState('최신순');
   const [selectedTripId, setSelectedTripId] = useState(null);
+  const [trips, setTrips] = useState([]);
 
   const headerHeight = useHeaderHeight();
 
@@ -19,7 +20,7 @@ function CommunitySelectWriteTrip({ navigation }) {
       Alert.alert('알림', '공유할 여행을 선택해주세요.');
       return;
     }
-    const selectedTrip = data.find((item) => item.id === selectedTripId);
+    const selectedTrip = trips.find((item) => String(item.id) === String(selectedTripId));
     navigation.navigate('CommunityWrite', { tripData: selectedTrip });
   };
 
@@ -56,9 +57,35 @@ function CommunitySelectWriteTrip({ navigation }) {
     });
   }, [navigation, selectedTripId]);
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await getPastTrips(); // PastTripResponse[]
+        const mapped = (data || []).map((t) => ({
+          id: t.id,
+          tripId: t.id,
+          tripTitle: t.name,
+          startDate: String(t.startDate || '').replace(/-/g, '.'),
+          endDate: String(t.endDate || '').replace(/-/g, '.'),
+          location: t.place,
+          circleColor: t.color,
+          companions: [],
+        }));
+        if (mounted) setTrips(mapped);
+      } catch (e) {
+        console.error('공유할 여행 목록(지난 여행) 조회 실패:', e);
+        if (mounted) setTrips([]);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const sortedData = useMemo(() => {
-    const trips = [...data];
-    return trips.sort((a, b) => {
+    const list = [...trips];
+    return list.sort((a, b) => {
       const dateA = new Date(a.startDate.replace(/\./g, '-'));
       const dateB = new Date(b.startDate.replace(/\./g, '-'));
 
@@ -68,7 +95,7 @@ function CommunitySelectWriteTrip({ navigation }) {
         return dateA - dateB;
       }
     });
-  }, [selectedSort, data]);
+  }, [selectedSort, trips]);
 
   return (
     <View style={styles.container}>

@@ -16,7 +16,6 @@ import {
 } from 'react-native';
 import { useEffect, useState, useRef } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import CommunityWriteTripCard from '../../components/CommunityWriteTripCard';
 import CameraBottomBar from '../../components/CameraBottomBar';
@@ -24,6 +23,7 @@ import ToggleSwitch from '../../components/ToggleSwitch';
 import { colors } from '../../styles/colors';
 import Close from '../../../assets/ComponentsImage/Close.svg';
 import Categories from '../../components/Categories';
+import { createCommunityPost } from '../../services/api';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const TAG_LIST = [
@@ -123,26 +123,25 @@ function CommunityWrite({ route, navigation }) {
       return;
     }
 
-    const newPost = {
-      id: Date.now(),
-      nickname: '내 닉네임',
-      agoDate: '방금 전',
+    // UI 태그 → 서버 TravelTag 매핑 (최소한의 매핑)
+    const mapTag = (t) => {
+      if (t.includes('휴양') || t.includes('힐링') || t.includes('호캉스')) return 'RELAXATION';
+      if (t.includes('친구') || t.includes('지인')) return 'FRIEND';
+      if (t.includes('커플') || t.includes('연인')) return 'COUPLE';
+      if (t.includes('가족') || t.includes('친지')) return 'FAMILY';
+      return 'SOLO';
+    };
+    const tags = selectedTags.map(mapTag);
+
+    await createCommunityPost({
       title,
       content,
-      images: selectedImages,
-      tripData,
-      tags: selectedTags,
-      createdAt: new Date().toISOString(),
-      circleColor: tripData?.circleColor || '#000',
-    };
+      tags,
+      tripId: tripData?.tripId ?? tripData?.id,
+      imageUris: selectedImages,
+    });
 
-    const stored = await AsyncStorage.getItem('community_data');
-    const list = stored ? JSON.parse(stored) : [];
-    await AsyncStorage.setItem('community_data', JSON.stringify([newPost, ...list]));
-
-    Alert.alert('완료', '게시글이 등록되었습니다.', [
-      { text: '확인', onPress: () => navigation.navigate('BottomTab') },
-    ]);
+    Alert.alert('완료', '게시글이 등록되었습니다.', [{ text: '확인', onPress: () => navigation.navigate('BottomTab') }]);
   }
 
   const toggleTag = (tag) => {
