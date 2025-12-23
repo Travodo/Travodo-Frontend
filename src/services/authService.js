@@ -7,6 +7,7 @@ import {
   linkSocialAccount,
   getToken,
   removeToken,
+  logout as backendLogout,
   loginWithEmail,
   signupWithEmail,
   sendEmailVerification,
@@ -219,7 +220,13 @@ export async function isAuthenticated() {
  */
 export async function signOut() {
   try {
-    await removeToken();
+    // 서버 로그아웃(토큰 무효화가 stateless라도, 클라이언트/서버 플로우 통일)
+    try {
+      await backendLogout();
+    } catch (e) {
+      // 서버 호출 실패해도 로컬 토큰은 제거
+      await removeToken();
+    }
     return { success: true };
   } catch (error) {
     console.error('로그아웃 에러:', error);
