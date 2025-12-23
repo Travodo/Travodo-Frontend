@@ -45,7 +45,7 @@ function Maps() {
   const [myLocation, setMyLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [myStatus, setMyStatus] = useState('upcoming');
+  const [myStatus, setMyStatus] = useState('ongoing');
   const mapRef = useRef(null);
 
   const message = myStatus === 'ongoing' ? '여행 진행 중' : '여행이 시작되지 않았어요.';

@@ -3,6 +3,7 @@ import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './navigations/MainStack';
 import CommunityStack from './navigations/CommunityStack';
+import MainStack from './navigations/MainStack';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -17,7 +18,7 @@ function App() {
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-      <CommunityStack />
+      <MainStack />
     </NavigationContainer>
   );
 }

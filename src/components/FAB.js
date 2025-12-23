@@ -8,6 +8,7 @@ export default function FAB({
   icon = 'add',
   onCreatePress,
   onJoinPress,
+  onWritePress,
   size = 56,
   borderRadius = 28,
   bottom = 20,
@@ -33,11 +34,6 @@ export default function FAB({
     outputRange: ['0deg', '315deg'],
   });
 
-  const createY = rotation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -22],
-  });
-
   const joinY = rotation.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -13],
@@ -58,7 +54,7 @@ export default function FAB({
         pointerEvents={toggled ? 'auto' : 'none'}
         style={[
           styles.subButttonWrapper,
-          { transform: [{ translateY: createY }], opacity: opacityAnim },
+          { transform: [{ translateY: joinY }], opacity: opacityAnim },
         ]}
       >
         <TouchableOpacity style={styles.subButton} onPress={onCreatePress}>
@@ -75,6 +71,18 @@ export default function FAB({
       >
         <TouchableOpacity style={styles.subButton} onPress={onJoinPress}>
           <Text style={styles.subText}>여행 참가</Text>
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View
+        pointerEvents={toggled ? 'auto' : 'none'}
+        style={[
+          styles.subButttonWrapper,
+          { transform: [{ translateY: joinY }], opacity: opacityAnim },
+        ]}
+      >
+        <TouchableOpacity style={styles.subButton} onPress={onWritePress}>
+          <Text style={styles.subText}>여행 공유</Text>
         </TouchableOpacity>
       </Animated.View>
 
@@ -147,7 +155,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 17,
     minWidth: 70,
-    marginBottom: 5,
+    marginBottom: 8,
     elevation: 4,
     shadowColor: colors.grayscale[1000],
     shadowOpacity: 0.2,

@@ -23,16 +23,19 @@ function EndTripScreen() {
       <TravodoLogo width={140} height={40} />
 
       <Text style={styles.title}>여행 기록 완료!</Text>
-      <Text style={styles.subText}>
-        잊지 못할 추억을 커뮤니티에 공유해보세요.
-      </Text>
+      <Text style={styles.subText}>잊지 못할 추억을 커뮤니티에 공유해보세요.</Text>
 
       <View style={styles.cardWrapper}>
         <TripCard trip={trip} hideActions={true} />
       </View>
 
       <View style={styles.buttonRow}>
-        <Pressable style={styles.shareButton}>
+        <Pressable
+          style={styles.shareButton}
+          onPress={() =>
+            navigation.navigate('CommunityStack', { screen: 'CommunitySelectWriteTrip' })
+          }
+        >
           <Text style={styles.shareText}>공유하기</Text>
         </Pressable>
 

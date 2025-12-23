@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { pastTrips } from '../../data/TripList';
 import { colors } from '../../styles/colors';
 import { getRandomColor } from '../../styles/cardColors';
@@ -9,13 +9,16 @@ import { useNavigation } from '@react-navigation/native';
 
 function LasttripScreen() {
   const navigation = useNavigation();
-  
+
   const [sortOrder, setSortOrder] = useState('latest');
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [coloredTrips, setColoredTrips] = useState([]);
 
   useEffect(() => {
-    const tripsWithColors = pastTrips.map((trip) => {
+    // [수정] pastTrips가 undefined일 경우 빈 배열([])을 사용하여 에러 방지
+    const data = pastTrips || [];
+
+    const tripsWithColors = data.map((trip) => {
       if (trip.color) {
         return trip;
       }
@@ -40,13 +43,12 @@ function LasttripScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} overScrollMode="never" bounces={false}>
         <View style={styles.titleSection}>
           <Text style={[styles.sectionTitle, { marginBottom: 8, marginTop: 20 }]}>지난 여행</Text>
           <Text style={styles.subTitle}>Travodo와 함께한 여행을 추억하세요!</Text>
         </View>
-
         <View style={styles.sortDropdownWrapper}>
           <Dropdown
             options={['최신순', '오래된순']}
@@ -60,7 +62,6 @@ function LasttripScreen() {
             dropdownStyle={{ width: 110, top: 35 }}
           />
         </View>
-
         <View style={styles.sectionDivider} />
         <View style={styles.cardList}>
           {sortedTrips.map((trip, i) => (
@@ -68,7 +69,7 @@ function LasttripScreen() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

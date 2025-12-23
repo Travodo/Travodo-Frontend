@@ -109,7 +109,7 @@ function CommunityHome({ navigation }) {
         data={filteringPosts}
         onScrap={handleScrap}
         onPress={(item) => {
-          navigation.navigate('CommunityContent', { post: item });
+          navigation.navigate('CommunityStack', { screen: 'CommunityContent' }, { post: item });
         }}
       />
     </View>

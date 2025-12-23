@@ -39,21 +39,21 @@ function MainStack() {
         name="CommunityStack"
         component={CommunityStack}
         options={{
-          headerTitle: '글쓰기',
+          headerShown: false,
         }}
       />
       <Stack.Screen
         name="TripStack"
         component={TripStack}
         options={{
-          headerTitle: '글쓰기',
+          headerShown: false,
         }}
       />
       <Stack.Screen
         name="MyPageStack"
         component={MyPageStack}
         options={{
-          headerTitle: '글쓰기',
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

@@ -69,6 +69,9 @@ function HomeScreen({ route }) {
         icon="add"
         onCreatePress={() => navigation.navigate('TravelCreate')}
         onJoinPress={() => navigation.navigate('Join')}
+        onWritePress={() =>
+          navigation.navigate('CommunityStack', { screen: 'CommunitySelectWriteTrip' })
+        }
       />
     </View>
   );
