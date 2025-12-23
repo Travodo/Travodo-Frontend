@@ -8,6 +8,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../../styles/colors';
 import FAB from '../../components/FAB';
 import { getCommunityPosts } from '../../services/api';
+
+const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
 function CommunityHome({ navigation }) {
   const [isCategories, setIsCategories] = useState(['전체']);
   const [allPosts, setAllPosts] = useState([]);
@@ -32,6 +34,20 @@ function CommunityHome({ navigation }) {
             agoDate: p.createdAt ? String(p.createdAt) : '',
             images: p.thumbnailUrl ? [p.thumbnailUrl] : [],
             category: '기타',
+            // 상세 화면(CommunityContent)이 기대하는 여행 정보 형태로 정규화
+            tripData: p.trip
+              ? {
+                  tripId: p.trip?.id ?? p.tripId,
+                  tripTitle: p.trip?.name ?? '',
+                  startDate: toDotDate(p.trip?.startDate),
+                  endDate: toDotDate(p.trip?.endDate),
+                  location: p.trip?.place ?? '',
+                  // 실제 인원수는 응답에 없어서 maxMembers로 대체(없으면 0)
+                  people: Number(p.trip?.maxMembers ?? 0),
+                  todo: null,
+                  circleColor: p.trip?.color ?? '',
+                }
+              : null,
           }));
           setAllPosts(mapped);
         } catch (e) {
