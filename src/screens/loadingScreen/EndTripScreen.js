@@ -10,6 +10,29 @@ function EndTripScreen() {
   const navigation = useNavigation();
   const { trip } = route.params || {};
 
+  const navigateToCommunityWrite = (tripData) => {
+    // EndTripScreen도 TripStack 내부에서 열리므로 상위 네비게이터에서 CommunityStack을 찾아 이동
+    let nav = navigation;
+    for (let i = 0; i < 6 && nav; i += 1) {
+      const state = nav.getState?.();
+      const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
+
+      if (routeNames.includes('CommunityWrite')) {
+        nav.navigate('CommunityWrite', { tripData });
+        return;
+      }
+
+      if (routeNames.includes('CommunityStack')) {
+        nav.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
+        return;
+      }
+
+      nav = nav.getParent?.();
+    }
+
+    navigation.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
+  };
+
   if (!trip) {
     return (
       <View style={styles.container}>
@@ -33,10 +56,7 @@ function EndTripScreen() {
         <Pressable
           style={styles.shareButton}
           onPress={() =>
-            navigation.navigate('CommunityStack', {
-              screen: 'CommunityWrite',
-              params: {
-                tripData: {
+            navigateToCommunityWrite({
                   id: trip?.id,
                   tripId: trip?.id,
                   tripTitle: trip?.name ?? trip?.title ?? '여행',
@@ -45,8 +65,6 @@ function EndTripScreen() {
                   endDate: trip?.endDate,
                   companions: Array.isArray(trip?.companions) ? trip.companions : [],
                   circleColor: trip?.color,
-                },
-              },
             })
           }
         >
