@@ -5,7 +5,6 @@ import { View } from 'react-native';
 import CommunityStack from './CommunityStack';
 import TripStack from './TripStack';
 import MyPageStack from './MyPageStack';
-import OnTripStack from './OnTripStack';
 
 const Stack = createNativeStackNavigator();
 
@@ -58,11 +57,6 @@ function MainStack() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
-  name="OnTripStack"
-  component={OnTripStack}
-  options={{ headerShown: false }}
-/>
 
     </Stack.Navigator>
   );
