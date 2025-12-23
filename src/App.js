@@ -1,9 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
-import AuthStack from './navigations/MainStack';
-import CommunityStack from './navigations/CommunityStack';
-import MainStack from './navigations/MainStack';
+import AuthStack from './navigations/AuthStack';
 import Toast from 'react-native-toast-message';
 
 function App() {
@@ -20,7 +18,7 @@ function App() {
     <>
     <NavigationContainer>
       <StatusBar style="auto" />
-      <MainStack />
+      <AuthStack />
     </NavigationContainer>
     <Toast />
     </>
