@@ -7,10 +7,8 @@ import PropTypes from 'prop-types';
 function SelectMyTrip({ title, startDate, endDate, circleColor, isSelected, onPress }) {
   return (
     <View style={styles.container}>
-      <View style={styles.wrap}>
-        <Pressable onPress={onPress}>
+      <Pressable onPress={onPress} style={styles.wrap} hitSlop={6}>
           <RadioButton checked={isSelected} />
-        </Pressable>
         <View style={styles.tripContainer}>
           <View style={styles.titleContaier}>
             <View
@@ -23,7 +21,7 @@ function SelectMyTrip({ title, startDate, endDate, circleColor, isSelected, onPr
           </View>
           <Text style={styles.date}>{`${startDate} - ${endDate}`}</Text>
         </View>
-      </View>
+      </Pressable>
     </View>
   );
 }
