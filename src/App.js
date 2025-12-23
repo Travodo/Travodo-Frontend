@@ -1,8 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
+import RootNavigation from './navigations/RootNavigation';
 import { NavigationContainer } from '@react-navigation/native';
-import AuthStack from './navigations/AuthStack';
-import Toast from 'react-native-toast-message';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -15,13 +14,10 @@ function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <>
     <NavigationContainer>
       <StatusBar style="auto" />
-      <AuthStack />
+      <RootNavigation />
     </NavigationContainer>
-    <Toast />
-    </>
   );
 }
 
