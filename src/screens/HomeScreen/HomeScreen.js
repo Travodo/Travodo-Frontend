@@ -69,6 +69,9 @@ function HomeScreen({ route }) {
         icon="add"
         onCreatePress={() => navigation.navigate('TravelCreate')}
         onJoinPress={() => navigation.navigate('Join')}
+        onWritePress={() =>
+          navigation.navigate('CommunityStack', { screen: 'CommunitySelectWriteTrip' })
+        }
       />
     </View>
   );
@@ -82,12 +85,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[100],
     paddingHorizontal: 24,
     paddingTop: 10,
+    gap: 4,
   },
   headerText: {
     fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[1000],
-    marginBottom: 6,
+    marginBottom: 3,
   },
   subText: {
     fontSize: 16,
@@ -104,14 +108,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
-    marginBottom: 6,
+    marginBottom: 4,
     marginTop: 30,
   },
   sectionSub: {
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[800],
-    marginBottom: 8,
   },
 
   emptyText: {

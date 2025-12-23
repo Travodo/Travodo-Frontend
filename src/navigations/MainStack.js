@@ -5,6 +5,8 @@ import { View } from 'react-native';
 import CommunityStack from './CommunityStack';
 import TripStack from './TripStack';
 import MyPageStack from './MyPageStack';
+import OnTripStack from './OnTripStack';
+
 const Stack = createNativeStackNavigator();
 
 function MainStack() {
@@ -39,23 +41,29 @@ function MainStack() {
         name="CommunityStack"
         component={CommunityStack}
         options={{
-          headerTitle: '글쓰기',
+          headerShown: false,
         }}
       />
       <Stack.Screen
         name="TripStack"
         component={TripStack}
         options={{
-          headerTitle: '글쓰기',
+          headerShown: false,
         }}
       />
       <Stack.Screen
         name="MyPageStack"
         component={MyPageStack}
         options={{
-          headerTitle: '글쓰기',
+          headerShown: false,
         }}
       />
+      <Stack.Screen
+  name="OnTripStack"
+  component={OnTripStack}
+  options={{ headerShown: false }}
+/>
+
     </Stack.Navigator>
   );
 }

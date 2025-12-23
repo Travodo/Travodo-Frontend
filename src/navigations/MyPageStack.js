@@ -5,6 +5,7 @@ import SettingsScreen from '../screens/Setting/SettingsScreen';
 import LasttripScreen from '../screens/myPage/LasttripScreen';
 import ProfileScreen from '../screens/myPage/ProfileScreen';
 import MyWriteTrip from '../screens/myPage/MyWriteTrip';
+import CommunityScrap from '../screens/community/CommunityScrap';
 
 const Stack = createNativeStackNavigator();
 
@@ -60,7 +61,7 @@ function MyPageStack() {
         name="MyWriteTrip"
         component={MyWriteTrip}
         options={{
-          headerTitle: '저장한 글',
+          headerTitle: '내가 쓴 글',
         }}
       />
     </Stack.Navigator>

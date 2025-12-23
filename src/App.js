@@ -3,6 +3,8 @@ import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './navigations/MainStack';
 import CommunityStack from './navigations/CommunityStack';
+import MainStack from './navigations/MainStack';
+import Toast from 'react-native-toast-message';
 
 function App() {
   const [fontsLoaded] = useFonts({
@@ -15,10 +17,13 @@ function App() {
   if (!fontsLoaded) return null;
 
   return (
+    <>
     <NavigationContainer>
       <StatusBar style="auto" />
-      <CommunityStack />
+      <MainStack />
     </NavigationContainer>
+    <Toast />
+    </>
   );
 }
 

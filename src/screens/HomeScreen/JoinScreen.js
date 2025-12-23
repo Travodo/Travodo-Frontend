@@ -19,7 +19,11 @@ function JoinScreen() {
   const [code, setCode] = useState('');
 
   const handleJoin = () => {
-    console.log('입력한 코드: ', code);
+    if (code.length !== 6) return;
+
+    navigation.replace('OnTripStack', {
+      screen: 'Prepare',
+    });
   };
 
   return (
@@ -35,7 +39,7 @@ function JoinScreen() {
 
           <CodeInput value={code} onChange={setCode} />
 
-          <View style={{ alignItems: 'center', marginTop: 80 }}>
+          <View style={{ alignItems: 'center', marginTop: 60 }}>
             <Button text="참가하기" onPress={handleJoin} />
           </View>
 
@@ -56,7 +60,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: 100,
     paddingHorizontal: 24,
     backgroundColor: colors.grayscale[100],
   },

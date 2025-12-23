@@ -4,7 +4,8 @@ import { colors } from '../../styles/colors';
 const sharedStyles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: colors.grayscale[100] 
+    backgroundColor: colors.grayscale[100],
+    paddingTop: 10,
   },
 
   pageTitle: {

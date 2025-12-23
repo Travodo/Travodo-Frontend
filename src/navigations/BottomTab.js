@@ -27,9 +27,12 @@ function BottomTab() {
             <HeaderScrap
               style={{ marginRight: 15 }}
               size={16}
-              onPress={() => navigation.navigate('CommunityScrap')}
+              onPress={() => navigation.navigate('MyPageStack', { screen: 'CommunityScrap' })}
             />
-            <OptionButton size={16} onPress={() => console.log('환경설정')} />
+            <OptionButton
+              size={16}
+              onPress={() => navigation.navigate('MyPageStack', { screen: 'SettingsScreen' })}
+            />
           </View>
         ),
         tabBarActiveTintColor: colors.grayscale[900],

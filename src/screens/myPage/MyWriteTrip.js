@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import PostList from '../../components/PostList';
 import { colors } from '../../styles/colors';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function MyWriteTrip({ navigation }) {
   const [myPosts, setMyPosts] = useState([]);

@@ -109,7 +109,7 @@ function CommunityHome({ navigation }) {
         data={filteringPosts}
         onScrap={handleScrap}
         onPress={(item) => {
-          navigation.navigate('CommunityContent', { post: item });
+          navigation.navigate('CommunityStack', { screen: 'CommunityContent' }, { post: item });
         }}
       />
     </View>
@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flex: 1,
     flexDirection: 'column',
+    paddingTop: 10,
   },
   titleContainer: {
     marginLeft: 24,
@@ -136,6 +137,8 @@ const styles = StyleSheet.create({
   },
   categories: {
     flexDirection: 'row',
+    marginTop: 10,
+    marginBottom: 8,
   },
   dropdown: {
     flexDirection: 'row-reverse',

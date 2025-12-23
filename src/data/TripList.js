@@ -1,3 +1,6 @@
+// data/TripList.js
+
+// 1. 다가오는 여행
 export const upcomingTrips = [
   {
     id: 1,
@@ -8,7 +11,6 @@ export const upcomingTrips = [
     location: 'A',
     companions: ['1', '2'],
   },
-
   {
     id: 2,
     title: '강릉',
@@ -20,6 +22,7 @@ export const upcomingTrips = [
   },
 ];
 
+// 2. 여행 데이터 (기존 data)
 export const data = [
   {
     id: 1,
@@ -29,7 +32,7 @@ export const data = [
     circleColor: '#FF6B6B',
     location: '부산광역시 해운대구',
     people: 4,
-    companions: ['김철수', '이영희', '박민수'], // 동행인 배열 (없으면 people 숫자만 써도 됨)
+    companions: ['김철수', '이영희', '박민수'],
     todo: '해운대 요트 투어, 돼지국밥 맛집, 광안리 야경',
   },
   {
@@ -52,28 +55,9 @@ export const data = [
     people: 1,
     todo: '국립중앙박물관, 남산타워 케이블카, 이태원 맛집',
   },
-  {
-    id: 4,
-    tripTitle: '강릉 안목해변 커피 투어 ☕',
-    startDate: '2025.08.05',
-    endDate: '2025.08.07',
-    circleColor: '#4A90E2',
-    location: '강원도 강릉시',
-    people: 3,
-    todo: '순두부 젤라또, 안목해변 카페거리, 중앙시장 닭강정',
-  },
-  {
-    id: 5,
-    tripTitle: '경주 역사 탐방 🏯',
-    startDate: '2025.09.15',
-    endDate: '2025.09.18',
-    circleColor: '#A569BD',
-    location: '경상북도 경주',
-    people: 4,
-    todo: '불국사 아침 산책, 첨성대 야경, 황리단길 카페',
-  },
 ];
 
+// 3. 카테고리 탭
 export const CATEGORY_TABS = [
   { id: 'c0', label: '전체' },
   { id: 'c1', label: '커플 / 연인' },
@@ -82,4 +66,64 @@ export const CATEGORY_TABS = [
   { id: 'c4', label: '친구 / 지인' },
   { id: 'c5', label: '여행 / 취미' },
   { id: 'c6', label: '스터디 / 모임' },
+];
+
+// ★ [추가 1] 지난 여행 데이터 (LasttripScreen 오류 해결용)
+export const pastTrips = [
+  {
+    id: 101,
+    title: '2024 겨울 강원도',
+    startDate: '2024.12.20',
+    endDate: '2024.12.22',
+    location: '강원도',
+    color: '#FF5733',
+  },
+  {
+    id: 102,
+    title: '작년 여름 가평',
+    startDate: '2024.08.10',
+    endDate: '2024.08.11',
+    location: '경기도 가평',
+    color: '#33FF57',
+  },
+];
+
+// ★ [추가 2] 커뮤니티 데이터 (CommunityContent 오류 해결용)
+export const CommunityData = [
+  {
+    id: 1,
+    nickname: '히재',
+    title: '부산 여행 너무 좋았어요',
+    content: '광안리 야경이 정말 예쁘더라고요. 추천합니다!',
+    hCount: 15, // 좋아요 수
+    cCount: 3, // 댓글 수
+    isScrap: true, // 스크랩 여부 (테스트용)
+    agoDate: '2시간 전',
+    images: ['https://via.placeholder.com/300'], // 임시 이미지
+    // 여행 계획 정보 (CommunityTripPlan용)
+    tripTitle: '부산 정복기 🌊',
+    startDate: '2025.05.01',
+    endDate: '2025.05.03',
+    location: '부산광역시',
+    people: 4,
+    todo: '해운대, 광안리, 돼지국밥',
+    circleColor: '#FF6B6B',
+  },
+  {
+    id: 2,
+    nickname: '여행러',
+    title: '제주도 혼자 여행',
+    content: '혼자 가도 좋은 제주도 여행 코스 공유합니다.',
+    hCount: 42,
+    cCount: 10,
+    isScrap: false,
+    agoDate: '1일 전',
+    tripTitle: '제주 힐링',
+    startDate: '2025.06.10',
+    endDate: '2025.06.15',
+    location: '제주도',
+    people: 1,
+    todo: '올레길 걷기',
+    circleColor: '#4ECDC4',
+  },
 ];

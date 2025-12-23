@@ -46,6 +46,7 @@ export default function TripCard({ trip, hideActions = false }) {
   const animation = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(0);
   const dDay = calculateDDay(trip.startDate);
+  const [myStatus, setMyStatus] = useState('ONCOMING');
 
   const onLayout = (event) => {
     const { height } = event.nativeEvent.layout;
@@ -84,6 +85,14 @@ export default function TripCard({ trip, hideActions = false }) {
 
     const dDayStyle = dDay > 0 ? styles.dDay : styles.dDayPassed;
     return <Text style={dDayStyle}>{dDayText}</Text>;
+  };
+
+  const navigateTrip = () => {
+    if (myStatus === 'ONGOING') {
+      navigation.navigate('TripStack', { screen: 'OnTripScreen' });
+    } else {
+      navigation.navigate('TripStack', { screen: 'PrepareScreen' });
+    }
   };
 
   return (
@@ -143,15 +152,17 @@ export default function TripCard({ trip, hideActions = false }) {
             </View>
             <View style={styles.divider} />
 
+            {!hideActions && (
             <View style={styles.buttonRow}>
               <TouchableOpacity style={styles.shareButton}>
                 <Text style={styles.shareText}>공유하기</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.disabledButton}>
+              <TouchableOpacity style={styles.disabledButton} onPress={() => navigateTrip}>
                 <Text style={styles.disabledText}>자세히 보기</Text>
               </TouchableOpacity>
             </View>
+            )}
           </View>
         </Animated.View>
       </View>

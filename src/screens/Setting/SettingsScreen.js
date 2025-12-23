@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingItem from '../../components/SettingItem';
 import { colors } from '../../styles/colors';
 
@@ -11,19 +12,24 @@ function SettingsScreen({ navigation }) {
   const [rotateLock, setRotateLock] = useState(false);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} bounces={false} overScrollMode="never">
         <Text style={[styles.sectionTitle, { marginBottom: 8, marginTop: 20 }]}>계정 정보</Text>
         <View style={styles.sectionDivider} />
         <SettingItem
           label="내 프로필"
           type="navigation"
-          onPress={() => navigation.navigate('Profile')}
+          onPress={() => navigation.navigate('MyPageStack', { screen: 'ProfileScreen' })}
         />
         <SettingItem
           label="지난 여행 관리"
           type="navigation"
-          onPress={() => navigation.navigate('PastTrip')}
+          onPress={() => navigation.navigate('MyPageStack', { screen: 'LasttripScreen' })}
+        />
+        <SettingItem
+          label="내가 쓴 글"
+          type="navigation"
+          onPress={() => navigation.navigate('MyPageStack', { screen: 'MyWriteTrip' })}
         />
 
         <Text style={styles.sectionTitle}>알림</Text>
@@ -62,7 +68,7 @@ function SettingsScreen({ navigation }) {
           onToggle={() => setRotateLock(!rotateLock)}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
