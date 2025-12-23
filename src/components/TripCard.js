@@ -102,15 +102,42 @@ export default function TripCard({ trip, hideActions = false }) {
       if (canDirect('OnTripScreen')) {
         navigation.navigate('OnTripScreen', { trip });
       } else {
-        navigation.navigate('TripStack', { screen: 'OnTripScreen', params: { trip } });
+      navigation.navigate('TripStack', { screen: 'OnTripScreen', params: { trip } });
       }
       return;
     }
     if (canDirect('PrepareScreen')) {
       navigation.navigate('PrepareScreen', { tripData: trip });
     } else {
-      navigation.navigate('TripStack', { screen: 'PrepareScreen', params: { tripData: trip } });
+    navigation.navigate('TripStack', { screen: 'PrepareScreen', params: { tripData: trip } });
     }
+  };
+
+  const navigateToCommunityWrite = (tripData) => {
+    // TripCard는 여러 네비게이터(TripStack/HomeStack 등)에서 재사용되므로
+    // CommunityStack을 핸들하는 상위 네비게이터를 찾아서 이동
+    let nav = navigation;
+    for (let i = 0; i < 6 && nav; i += 1) {
+      const state = nav.getState?.();
+      const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
+
+      // 이미 CommunityStack 내부에 있는 경우
+      if (routeNames.includes('CommunityWrite')) {
+        nav.navigate('CommunityWrite', { tripData });
+        return;
+      }
+
+      // MainStack 등에서 CommunityStack을 직접 핸들할 수 있는 경우
+      if (routeNames.includes('CommunityStack')) {
+        nav.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
+        return;
+      }
+
+      nav = nav.getParent?.();
+    }
+
+    // 최후의 fallback (개발 중 경고만 남기고 실패할 수 있음)
+    navigation.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
   };
 
   return (
@@ -175,10 +202,7 @@ export default function TripCard({ trip, hideActions = false }) {
                 <TouchableOpacity
                   style={styles.shareButton}
                   onPress={() => {
-                    navigation.navigate('CommunityStack', {
-                      screen: 'CommunityWrite',
-                      params: {
-                        tripData: {
+                    navigateToCommunityWrite({
                           // CommunityWriteTripCard가 기대하는 형태
                           id: trip?.id,
                           tripId: trip?.id,
@@ -188,8 +212,6 @@ export default function TripCard({ trip, hideActions = false }) {
                           endDate,
                           companions,
                           circleColor: trip?.color,
-                        },
-                      },
                     });
                   }}
                 >
