@@ -66,9 +66,26 @@ function CommunityContent({ route, navigation }) {
     tripTitle,
   } = post;
 
-  const sourceData = tripData || post;
-  const { startDate, endDate, location, people, todo } = sourceData;
-  const displayTripTitle = sourceData.tripTitle || tripTitle || title;
+  const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
+  const normalizedTripData =
+    tripData ||
+    post?.tripData ||
+    (post?.trip
+      ? {
+          tripId: post.trip?.id ?? post.tripId,
+          tripTitle: post.trip?.name ?? '',
+          startDate: toDotDate(post.trip?.startDate),
+          endDate: toDotDate(post.trip?.endDate),
+          location: post.trip?.place ?? '',
+          people: Number(post.trip?.maxMembers ?? 0),
+          todo: null,
+          circleColor: post.trip?.color ?? '',
+        }
+      : post);
+
+  const { startDate, endDate, location, people, todo } = normalizedTripData || {};
+  const displayTripTitle = (normalizedTripData && normalizedTripData.tripTitle) || tripTitle || title;
+  const displayCircleColor = (normalizedTripData && normalizedTripData.circleColor) || circleColor;
 
   const handleSendComment = () => {
     if (inputText.trim().length === 0) return;
@@ -139,13 +156,13 @@ function CommunityContent({ route, navigation }) {
               </View>
               <View style={styles.tripplan}>
                 <CommunityTripPlan
-                  circleColor={circleColor}
+                  circleColor={displayCircleColor}
                   title={displayTripTitle}
-                  startDate={startDate}
-                  endDate={endDate}
-                  location={location}
-                  people={people}
-                  todo={todo}
+                  startDate={startDate || ''}
+                  endDate={endDate || ''}
+                  location={location || ''}
+                  people={Number(people || 0)}
+                  todo={todo || null}
                 />
               </View>
               <View style={styles.imageContainer}>
