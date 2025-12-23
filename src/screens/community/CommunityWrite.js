@@ -46,11 +46,20 @@ function CommunityWrite({ route, navigation }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [visibleModal, setVisibleModal] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [isSettingOpen, setIsSettingOpen] = useState(false);
   const sheetAnim = useRef(new Animated.Value(SCREEN_HEIGHT + 100)).current;
+
+  const tripId = tripData?.tripId ?? tripData?.id ?? null;
+  const canSubmit =
+    !!tripId &&
+    title.trim().length > 0 &&
+    content.trim().length > 0 &&
+    selectedTags.length > 0 &&
+    !submitting;
 
   const openSetting = () => {
     setIsSettingOpen(true);
@@ -77,12 +86,24 @@ function CommunityWrite({ route, navigation }) {
         </Pressable>
       ),
       headerRight: () => (
-        <Pressable onPress={handleUpload}>
-          <Text style={styles.headerText}>등록</Text>
+        <Pressable
+          onPress={handleUpload}
+          disabled={!canSubmit}
+          hitSlop={10}
+          style={{ opacity: canSubmit ? 1 : 0.4 }}
+        >
+          <Text
+            style={[
+              styles.headerText,
+              { color: canSubmit ? colors.primary[700] : colors.grayscale[500] },
+            ]}
+          >
+            등록
+          </Text>
         </Pressable>
       ),
     });
-  }, [navigation, title, content, selectedImages]);
+  }, [navigation, title, content, selectedImages, canSubmit]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -118,10 +139,20 @@ function CommunityWrite({ route, navigation }) {
   };
 
   async function handleUpload() {
+    if (!tripId) {
+      Alert.alert('알림', '공유할 여행 정보가 없습니다. 이전 화면에서 여행을 선택해주세요.');
+      return;
+    }
     if (!title.trim() || !content.trim()) {
       Alert.alert('알림', '제목과 내용을 입력해주세요.');
       return;
     }
+    if (selectedTags.length === 0) {
+      Alert.alert('알림', '태그를 1개 이상 선택해주세요.');
+      return;
+    }
+    if (submitting) return;
+    setSubmitting(true);
 
     // UI 태그 → 서버 TravelTag 매핑 (최소한의 매핑)
     const mapTag = (t) => {
@@ -133,15 +164,24 @@ function CommunityWrite({ route, navigation }) {
     };
     const tags = selectedTags.map(mapTag);
 
+    try {
     await createCommunityPost({
       title,
       content,
       tags,
-      tripId: tripData?.tripId ?? tripData?.id,
+        tripId,
       imageUris: selectedImages,
     });
 
-    Alert.alert('완료', '게시글이 등록되었습니다.', [{ text: '확인', onPress: () => navigation.navigate('BottomTab') }]);
+      Alert.alert('완료', '게시글이 등록되었습니다.', [
+        { text: '확인', onPress: () => navigation.navigate('BottomTab') },
+      ]);
+    } catch (e) {
+      console.error('게시글 등록 실패:', e);
+      Alert.alert('실패', '게시글 등록에 실패했습니다. 로그인/네트워크 상태를 확인해주세요.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const toggleTag = (tag) => {
