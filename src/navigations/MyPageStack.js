@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import SettingsScreen from '../screens/Setting/SettingsScreen';
 import LasttripScreen from '../screens/myPage/LasttripScreen';
 import ProfileScreen from '../screens/myPage/ProfileScreen';
+import ProfileEditScreen from '../screens/myPage/ProfileEditScreen';
 import MyWriteTrip from '../screens/myPage/MyWriteTrip';
 import CommunityScrap from '../screens/community/CommunityScrap';
 
@@ -41,6 +42,13 @@ function MyPageStack() {
         component={ProfileScreen}
         options={{
           headerTitle: '내 프로필',
+        }}
+      />
+      <Stack.Screen
+        name="ProfileEditScreen"
+        component={ProfileEditScreen}
+        options={{
+          headerTitle: '프로필 수정',
         }}
       />
       <Stack.Screen
