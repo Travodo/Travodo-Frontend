@@ -44,7 +44,7 @@ function EndTripScreen() {
           onPress={() =>
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Home' }],
+              routes: [{ name: 'BottomTab' }],
             })
           }
         >

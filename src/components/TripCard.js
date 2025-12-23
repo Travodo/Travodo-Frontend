@@ -152,6 +152,7 @@ export default function TripCard({ trip, hideActions = false }) {
             </View>
             <View style={styles.divider} />
 
+            {!hideActions && (
             <View style={styles.buttonRow}>
               <TouchableOpacity style={styles.shareButton}>
                 <Text style={styles.shareText}>공유하기</Text>
@@ -161,6 +162,7 @@ export default function TripCard({ trip, hideActions = false }) {
                 <Text style={styles.disabledText}>자세히 보기</Text>
               </TouchableOpacity>
             </View>
+            )}
           </View>
         </Animated.View>
       </View>
