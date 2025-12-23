@@ -61,6 +61,14 @@ function TripStack() {
           headerTitle: '글쓰기',
         }}
       />
+      {/* alias route: 일부 코드/번들에서 EndTrip으로 navigate 하는 케이스 방어 */}
+      <Stack.Screen
+        name="EndTrip"
+        component={EndTripScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
       <Stack.Screen
         name="StartTripScreen"
         component={StartTripScreen}

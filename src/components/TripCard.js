@@ -93,11 +93,24 @@ export default function TripCard({ trip, hideActions = false }) {
   };
 
   const navigateTrip = () => {
+    const state = navigation.getState?.();
+    const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
+    const canDirect = (screenName) => routeNames.includes(screenName);
+
     if (myStatus === 'ONGOING') {
-      navigation.navigate('TripStack', { screen: 'OnTripScreen', params: { trip } });
+      // TripCard가 TripStack 내부/외부 어디서 쓰이든 동작하도록 분기
+      if (canDirect('OnTripScreen')) {
+        navigation.navigate('OnTripScreen', { trip });
+      } else {
+        navigation.navigate('TripStack', { screen: 'OnTripScreen', params: { trip } });
+      }
       return;
     }
-    navigation.navigate('TripStack', { screen: 'PrepareScreen', params: { tripData: trip } });
+    if (canDirect('PrepareScreen')) {
+      navigation.navigate('PrepareScreen', { tripData: trip });
+    } else {
+      navigation.navigate('TripStack', { screen: 'PrepareScreen', params: { tripData: trip } });
+    }
   };
 
   return (

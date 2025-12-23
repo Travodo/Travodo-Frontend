@@ -15,8 +15,10 @@ function HomeScreen({ route }) {
   const loadUpcoming = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getUpcomingTrips(); // TripResponse[]
-      const mapped = (data || []).map((t) => ({
+      const raw = await getUpcomingTrips();
+      // 서버/프록시 환경에 따라 배열이 아닌 래핑 객체로 올 수 있어 방어
+      const list = Array.isArray(raw) ? raw : raw?.trips ?? raw?.data ?? [];
+      const mapped = (list || []).map((t) => ({
         id: t.id,
         name: t.name,
         destination: t.place,
