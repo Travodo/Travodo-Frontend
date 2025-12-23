@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { colors } from '../styles/colors';
 import ArrowButton from '../components/ArrowButton';
@@ -20,11 +20,14 @@ const AuthStack = () => {
       screenOptions={{
         headerTitleAlign: 'center',
         headerShadowVisible: false,
+
         headerStyle: {
           backgroundColor: '#fff',
-          borderBottomWidth: 1,
-          borderBottomColor: colors.grayscale[300],
+          height: 56,
+          borderBottomWidth: 1, 
+          borderBottomColor: colors.grayscale[600],
         },
+        
         headerTitleStyle: {
           fontFamily: 'Pretendard-Regular',
           fontSize: 15,
@@ -59,10 +62,12 @@ const AuthStack = () => {
           headerLeft: () => (
             <Pressable
               onPress={() => navigation.goBack()}
-              style={{ paddingLeft: 16 }}
+              style={{ paddingLeft: 16, paddingVertical: 16, paddingRight: 16 }}
               hitSlop={12}
             >
+              <View style={{ transform: [{scale: 1.5}]}}>
               <ArrowButton rotateDeg={225} />
+              </View>
             </Pressable>
           ),
         })}
@@ -77,7 +82,7 @@ const AuthStack = () => {
           headerLeft: () => (
             <Pressable
               onPress={() => navigation.goBack()}
-              style={{ paddingLeft: 16 }}
+              style={{ paddingLeft: 16, paddingVertical: 16, paddingRight: 16 }}
               hitSlop={12}
             >
               <ArrowButton rotateDeg={225} />
@@ -95,7 +100,7 @@ const AuthStack = () => {
           headerLeft: () => (
             <Pressable
               onPress={() => navigation.goBack()}
-              style={{ paddingLeft: 16 }}
+              style={{ paddingLeft: 16, paddingVertical: 16, paddingRight: 16 }}
               hitSlop={12}
             >
               <ArrowButton rotateDeg={225} />
