@@ -153,15 +153,23 @@ export default function TripCard({ trip, hideActions = false }) {
             <View style={styles.divider} />
 
             {!hideActions && (
-            <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.shareButton}>
-                <Text style={styles.shareText}>공유하기</Text>
-              </TouchableOpacity>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={styles.shareButton}
+                  onPress={() => {
+                    navigation.navigate('CommunityStack', {
+                      screen: 'CommunityWrite',
+                      params: { tripData: trip },
+                    });
+                  }}
+                >
+                  <Text style={styles.shareText}>공유하기</Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity style={styles.disabledButton} onPress={() => navigateTrip}>
-                <Text style={styles.disabledText}>자세히 보기</Text>
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity style={styles.disabledButton} onPress={() => navigateTrip()}>
+                  <Text style={styles.disabledText}>자세히 보기</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </Animated.View>

@@ -24,7 +24,7 @@ function PostList({ data, onPress, ListHeaderComponent, onScrap }) {
   );
 }
 
-PostItem.propTypes = {
+PostList.propTypes = {
   data: PropTypes.object.isRequired,
   onPress: PropTypes.func.isRequired,
 };

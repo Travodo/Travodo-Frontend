@@ -7,8 +7,11 @@ import {
   Image,
   Pressable,
   Keyboard,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CommunityTripPlan from '../../components/CommunityTripPlan';
 import ProfileImage from '../../components/ProfileImage';
 import { colors } from '../../styles/colors';
@@ -40,24 +43,32 @@ function CommunityContent({ route, navigation }) {
     );
   }
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Pressable
+          style={[styles.headerButton, { transform: [{ rotate: '-45deg' }] }]}
+          onPress={() => navigation.goBack()}
+        ></Pressable>
+      ),
+    });
+  }, []);
+
   const {
     nickname,
     agoDate,
     title,
-    tripTitle,
     content,
-    circleColor,
-    startDate,
-    endDate,
-    location,
-    people,
-    todo,
-    cCount = 0,
     images,
+    cCount = 0,
     tripData,
+    circleColor,
+    tripTitle,
   } = post;
 
-  const displayTripTitle = tripData?.tripTitle || tripTitle || title;
+  const sourceData = tripData || post;
+  const { startDate, endDate, location, people, todo } = sourceData;
+  const displayTripTitle = sourceData.tripTitle || tripTitle || title;
 
   const handleSendComment = () => {
     if (inputText.trim().length === 0) return;
@@ -67,6 +78,8 @@ function CommunityContent({ route, navigation }) {
       nickname: '히재',
       content: inputText,
       date: '방금 전',
+      commentlike: 0,
+      isLiked: false,
     };
     setCommentList((prev) => [...prev, newComment]);
     setInputText('');
@@ -83,85 +96,108 @@ function CommunityContent({ route, navigation }) {
     setVisibleModal(false);
   };
 
+  const handleCommentLike = (commentId) => {
+    setCommentList((prevList) =>
+      prevList.map((item) => {
+        if (item.id === commentId) {
+          const currentLiked = item.isLiked || false;
+          return {
+            ...item,
+            isLiked: !currentLiked,
+            commentlike: currentLiked ? (item.commentlike || 0) - 1 : (item.commentlike || 0) + 1,
+          };
+        }
+        return item;
+      }),
+    );
+  };
+
+  const Container = Platform.OS === 'android' ? SafeAreaView : View;
+
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} bounces={false} overScrollMode="never">
-        <Pressable style={styles.dismiss}>
-          <View style={styles.container}>
-            <View style={styles.profileContainer}>
-              <ProfileImage size={25} />
-              <Text style={styles.nickname}>{nickname}</Text>
-              <Text style={styles.date}>{agoDate}</Text>
-              <View style={styles.button}>
-                <DotButton onPress={() => setVisibleModal(true)} />
+    <Container
+      style={styles.container}
+      {...(Platform.OS === 'android' ? { edges: ['top', 'left', 'right', 'bottom'] } : {})}
+    >
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scroll} bounces={false} overScrollMode="never">
+          <Pressable style={styles.dismiss}>
+            <View style={styles.innerContainer}>
+              <View style={styles.profileContainer}>
+                <ProfileImage size={25} />
+                <Text style={styles.nickname}>{nickname}</Text>
+                <Text style={styles.date}>{agoDate}</Text>
+                <View style={styles.button}>
+                  <DotButton onPress={() => setVisibleModal(true)} />
+                </View>
               </View>
+              <View style={styles.contentContainer}>
+                <Text style={styles.title}>{title}</Text>
+              </View>
+              <View style={styles.contentContainer}>
+                <Text style={styles.content}>{content}</Text>
+              </View>
+              <View style={styles.tripplan}>
+                <CommunityTripPlan
+                  circleColor={circleColor}
+                  title={displayTripTitle}
+                  startDate={startDate}
+                  endDate={endDate}
+                  location={location}
+                  people={people}
+                  todo={todo}
+                />
+              </View>
+              <View style={styles.imageContainer}>
+                {images &&
+                  images.length > 0 &&
+                  images.map((uri, index) => (
+                    <Image
+                      key={index}
+                      source={{ uri }}
+                      style={{ width: 160, height: 160, borderRadius: 12 }}
+                    />
+                  ))}
+              </View>
+              <View style={styles.heartncomment}>
+                <Heart size={15} count={scrapCount} onPress={handleScrap} isScraped={isScrap} />
+                <Comment size={15} count={String(Number(cCount) + commentList.length)} />
+              </View>
+              <CommentListItem data={commentList} onLike={handleCommentLike} />
             </View>
-            <View style={styles.contentContainer}>
-              <Text style={styles.title}>{title}</Text>
-            </View>
-            <View style={styles.contentContainer}>
-              <Text style={styles.content}>{content}</Text>
-            </View>
-            <View style={styles.tripplan}>
-              <CommunityTripPlan
-                circleColor={circleColor}
-                title={displayTripTitle}
-                startDate={startDate}
-                endDate={endDate}
-                location={location}
-                people={people}
-                todo={todo}
-              />
-            </View>
-            <View style={styles.imageContainer}>
-              {images &&
-                images.length > 0 &&
-                images.map((uri, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri }}
-                    style={{ width: 160, height: 160, borderRadius: 12 }}
-                  />
-                ))}
-            </View>
-            <View style={styles.heartncomment}>
-              <Heart size={15} count={scrapCount} onPress={handleScrap} isScraped={isScrap} />
-              <Comment size={15} count={String(Number(cCount) + commentList.length)} />
-            </View>
-            <CommentListItem data={commentList} />
-          </View>
-        </Pressable>
-      </ScrollView>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={visibleModal}
-        onRequestClose={() => {
-          setVisibleModal(false);
-        }}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalbox}>
-            <View style={styles.closeStyle}>
-              <Pressable onPress={() => setVisibleModal(false)}>
-                <Close width={15} height={15} />
+          </Pressable>
+        </ScrollView>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={visibleModal}
+          onRequestClose={() => {
+            setVisibleModal(false);
+          }}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalbox}>
+              <View style={styles.closeStyle}>
+                <Pressable onPress={() => setVisibleModal(false)}>
+                  <Close width={15} height={15} />
+                </Pressable>
+              </View>
+              <Pressable style={styles.scrapContainer} onPress={handleModalScrap}>
+                <Scrap width={24} height={23} />
+                <Text style={styles.scrapText}>글 저장하기</Text>
+              </Pressable>
+              <Pressable style={styles.scrapContainer}>
+                <Report width={24} height={23} />
+                <Text style={styles.report}>신고하기</Text>
               </Pressable>
             </View>
-            <Pressable style={styles.scrapContainer} onPress={handleModalScrap}>
-              <Scrap width={24} height={23} />
-              <Text style={styles.scrapText}>글 저장하기</Text>
-            </Pressable>
-            <Pressable style={styles.scrapContainer}>
-              <Report width={24} height={23} />
-              <Text style={styles.report}>신고하기</Text>
-            </Pressable>
           </View>
+        </Modal>
+        <View style={styles.commentInput}>
+          <CommentInput value={inputText} onChangeText={setInputText} onPress={handleSendComment} />
         </View>
-      </Modal>
-      <View style={styles.commentInput}>
-        <CommentInput value={inputText} onChangeText={setInputText} onPress={handleSendComment} />
       </View>
-    </View>
+    </Container>
   );
 }
 
@@ -180,6 +216,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  innerContainer: {
     backgroundColor: '#fff',
     gap: 12,
   },
@@ -201,7 +241,7 @@ const styles = StyleSheet.create({
   },
   button: {
     position: 'absolute',
-    marginLeft: 350,
+    right: 26,
     backgroundColor: '#fff',
   },
   contentContainer: {
@@ -276,6 +316,14 @@ const styles = StyleSheet.create({
     color: '#e71e25',
     fontFamily: 'Pretendard-Regular',
     fontSize: 16,
+  },
+  headerButton: {
+    borderTopWidth: 2,
+    borderLeftWidth: 2,
+    borderColor: '#000',
+    width: 13,
+    height: 13,
+    marginLeft: 15,
   },
 });
 

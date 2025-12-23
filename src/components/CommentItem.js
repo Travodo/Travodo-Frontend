@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
 import ProfileImage from './ProfileImage';
 import Heart from './Heart';
-import DotButtton from './DotButton';
+import DotButton from './DotButton';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
-function CommentItem({ nickname, date, comment, hcount }) {
+function CommentItem({ nickname, date, comment, hcount, onLike, isLiked }) {
   return (
     <View style={styles.container}>
       <View style={styles.profile}>
@@ -15,14 +15,14 @@ function CommentItem({ nickname, date, comment, hcount }) {
           <Text style={styles.date}>{date}</Text>
         </View>
         <View style={styles.button}>
-          <DotButtton />
+          <DotButton />
         </View>
       </View>
       <View>
         <Text style={styles.comment}>{comment}</Text>
       </View>
       <View>
-        <Heart count={hcount} />
+        <Heart count={hcount} onPress={onLike} isScraped={isLiked} />
       </View>
     </View>
   );
@@ -32,7 +32,9 @@ CommentItem.propTypes = {
   nickname: PropTypes.string.isRequired,
   date: PropTypes.string.isRequired,
   comment: PropTypes.string.isRequired,
-  hcount: PropTypes.string.isRequired,
+  hcount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onLike: PropTypes.func.isRequired,
+  isLiked: PropTypes.bool,
 };
 
 const styles = StyleSheet.create({

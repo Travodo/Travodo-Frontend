@@ -1,34 +1,56 @@
-import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { View, Pressable, Text, StyleSheet, Image } from 'react-native';
 import Heart from './Heart';
 import Comment from './Comment';
-import ProfilePicture from '../../assets/ComponentsImage/ProfilePicture.svg';
+import ProfileImage from './ProfileImage';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
 function PostItem({ post, onPress, onScrap }) {
-  const { nickname, agoDate, title, content, hCount, cCount, isScraped } = post;
+  const {
+    nickname,
+    agoDate,
+    title,
+    content,
+    hCount,
+    cCount,
+    isScraped,
+    images,
+    imageUrl,
+    profileImage,
+  } = post;
+
+  const thumbnailUri = images && images.length > 0 ? images[0] : imageUrl;
 
   return (
     <Pressable onPress={onPress}>
       <View style={styles.container}>
         <View style={styles.contents}>
           <View style={styles.profile}>
-            <ProfilePicture size={25} />
+            <ProfileImage size={25} imageUri={profileImage} />
             <Text style={styles.nickname}>{nickname}</Text>
             <Text style={styles.days}>{agoDate}</Text>
           </View>
           <View>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
           </View>
           <View>
-            <Text style={styles.content}>{content}</Text>
+            <Text style={styles.content} numberOfLines={2}>
+              {content}
+            </Text>
           </View>
           <View style={styles.button}>
-            <Heart count={hCount} onPress={onScrap} isScraped={isScraped} />
-            <Comment count={cCount} />
+            <Heart count={hCount || 0} onPress={onScrap} isScraped={isScraped} />
+            <Comment count={cCount || 0} />
           </View>
         </View>
-        <View style={styles.picture} />
+
+        {thumbnailUri ? (
+          <Image source={{ uri: thumbnailUri }} style={styles.picture} resizeMode="cover" />
+        ) : (
+          <View style={styles.picture} />
+        )}
       </View>
     </Pressable>
   );
@@ -36,13 +58,19 @@ function PostItem({ post, onPress, onScrap }) {
 
 PostItem.propTypes = {
   onPress: PropTypes.func.isRequired,
-  post: PropTypes.object.isRequired,
-  nickname: PropTypes.string.isRequired,
-  agoDate: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  content: PropTypes.string.isRequired,
-  hcount: PropTypes.string.isRequired,
-  ccount: PropTypes.string.isRequired,
+  onScrap: PropTypes.func,
+  post: PropTypes.shape({
+    nickname: PropTypes.string,
+    agoDate: PropTypes.string,
+    title: PropTypes.string,
+    content: PropTypes.string,
+    hCount: PropTypes.number,
+    cCount: PropTypes.number,
+    isScraped: PropTypes.bool,
+    images: PropTypes.array,
+    imageUrl: PropTypes.string,
+    profileImage: PropTypes.string,
+  }).isRequired,
 };
 
 const styles = StyleSheet.create({

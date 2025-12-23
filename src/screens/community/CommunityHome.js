@@ -7,6 +7,7 @@ import { CATEGORY_TABS, CommunityData } from '../../data/TripList';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../../styles/colors';
+import FAB from '../../components/FAB';
 function CommunityHome({ navigation }) {
   const [isCategories, setIsCategories] = useState(['전체']);
   const [allPosts, setAllPosts] = useState([]);
@@ -18,19 +19,21 @@ function CommunityHome({ navigation }) {
       const loadPosts = async () => {
         try {
           const savedData = await AsyncStorage.getItem('community_data');
+
           if (savedData) {
+            // 1. 저장된 데이터가 있으면 그걸 사용
             const parsedData = JSON.parse(savedData);
-            if (Array.isArray(parsedData)) {
-              setAllPosts(parsedData);
-            } else {
-              setAllPosts([]);
-            }
+            setAllPosts(Array.isArray(parsedData) ? parsedData : []);
           } else {
-            setAllPosts([]);
+            // 2. 저장된 데이터가 없으면(최초 실행 시), 기본 데이터(CommunityData)를 사용하고 저장
+            console.log('초기 데이터가 없어 CommunityData를 로드합니다.');
+            setAllPosts(CommunityData);
+            await AsyncStorage.setItem('community_data', JSON.stringify(CommunityData));
           }
         } catch (e) {
           console.error('데이터 불러오기 실패:', e);
-          setAllPosts([]);
+          // 에러 발생 시에도 최소한 기본 데이터는 보여주도록 처리
+          setAllPosts(CommunityData);
         }
       };
       loadPosts();
@@ -109,9 +112,13 @@ function CommunityHome({ navigation }) {
         data={filteringPosts}
         onScrap={handleScrap}
         onPress={(item) => {
-          navigation.navigate('CommunityStack', { screen: 'CommunityContent' }, { post: item });
+          navigation.navigate('CommunityStack', {
+            screen: 'CommunityContent',
+            params: { post: item },
+          });
         }}
       />
+      <FAB />
     </View>
   );
 }
