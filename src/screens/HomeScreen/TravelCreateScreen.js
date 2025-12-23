@@ -16,6 +16,7 @@ import { colors } from '../../styles/colors';
 import { getRandomColor } from '../../styles/cardColors';
 import DatePickerModal from '../../components/DatePickerModal';
 import { useNavigation } from '@react-navigation/native';
+import { createTrip } from '../../services/api';
 
 function TravelCreateScreen() {
   const navigation = useNavigation();
@@ -61,24 +62,48 @@ function TravelCreateScreen() {
     setTripData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleCreateTrip = () => {
-    const color = getRandomColor();
-    const companionString = tripData.companions ?? '';
+  const handleCreateTrip = async () => {
+    try {
+      const toIsoDate = (d) => String(d || '').replace(/\./g, '-');
+      const toDotDate = (d) => String(d || '').replace(/-/g, '.');
 
-    const newTripData = {
-      destination: tripData.destination,
-      name: tripData.name,
-      startDate: startDate,
-      endDate: endDate,
-      companions: companionString
-        .split(',')
-        .map((c) => c.trim())
-        .filter((c) => c.length > 0),
-      code: Math.floor(100000 + Math.random() * 900000).toString(),
-      color,
-    };
+      if (!tripData?.name?.trim() || !tripData?.destination?.trim() || !startDate || !endDate) {
+        Alert.alert('알림', '여행 이름, 여행지, 날짜를 모두 입력해주세요.');
+        return;
+      }
 
-    navigation.navigate('TravelComplete', { tripData: newTripData });
+      const maxMembers = 10; // TODO: UI에서 입력받으면 반영
+      const response = await createTrip({
+        name: tripData.name,
+        place: tripData.destination,
+        startDate: toIsoDate(startDate), // YYYY-MM-DD 형태여야 함
+        endDate: toIsoDate(endDate),
+        maxMembers,
+      });
+
+      // 백엔드 응답: { trip: TripResponse, inviteCode: string }
+      const createdTrip = response?.trip;
+      const inviteCode = response?.inviteCode;
+
+      navigation.navigate('TravelComplete', {
+        tripData: {
+          id: createdTrip?.id,
+          name: createdTrip?.name,
+          destination: createdTrip?.place,
+          startDate: toDotDate(createdTrip?.startDate),
+          endDate: toDotDate(createdTrip?.endDate),
+          code: inviteCode,
+          color: createdTrip?.color || getRandomColor(),
+          companions: (tripData.companions ?? '')
+            .split(',')
+            .map((c) => c.trim())
+            .filter((c) => c.length > 0),
+        },
+      });
+    } catch (e) {
+      console.error('여행 생성 실패:', e);
+      Alert.alert('실패', '여행 생성에 실패했습니다. 입력값/로그인을 확인해주세요.');
+    }
   };
 
   const renderFormInput = (label, value, field, placeholder, keyboardType = 'default') => (

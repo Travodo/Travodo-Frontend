@@ -33,7 +33,21 @@ function EndTripScreen() {
         <Pressable
           style={styles.shareButton}
           onPress={() =>
-            navigation.navigate('CommunityStack', { screen: 'CommunitySelectWriteTrip' })
+            navigation.navigate('CommunityStack', {
+              screen: 'CommunityWrite',
+              params: {
+                tripData: {
+                  id: trip?.id,
+                  tripId: trip?.id,
+                  tripTitle: trip?.name ?? trip?.title ?? '여행',
+                  location: trip?.destination ?? trip?.place ?? trip?.location ?? '',
+                  startDate: trip?.startDate,
+                  endDate: trip?.endDate,
+                  companions: Array.isArray(trip?.companions) ? trip.companions : [],
+                  circleColor: trip?.color,
+                },
+              },
+            })
           }
         >
           <Text style={styles.shareText}>공유하기</Text>

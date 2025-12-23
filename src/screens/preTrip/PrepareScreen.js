@@ -284,7 +284,7 @@ function PrepareScreen() {
             <Pressable
               style={sharedStyles.memoLeft}
               onPress={() =>
-                navigation.navigate('Memo', {
+                navigation.navigate('MemoScreen', {
                   memo,
                   onSave: (updatedMemo) => {
                     setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
@@ -306,7 +306,7 @@ function PrepareScreen() {
           <Pressable
             style={sharedStyles.plusButton}
             onPress={() =>
-              navigation.navigate('Memo', {
+              navigation.navigate('MemoScreen', {
                 onSave: (newMemo) => {
                   setMemos((prev) => [...prev, newMemo]);
                 },
@@ -323,7 +323,7 @@ function PrepareScreen() {
           <TouchableOpacity
             style={styles.startButton}
             onPress={() =>
-              navigation.navigate('StartTrip', {
+              navigation.navigate('StartTripScreen', {
                 trip,
                 travelers,
                 necessity,

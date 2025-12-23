@@ -1,50 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { getUpcomingTrips } from '../../services/api';
 
 function HomeScreen({ route }) {
   const navigation = useNavigation();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const newTrip = route?.params?.trip;
-
-  const calculateDday = (startDate) => {
-    if (!startDate) return null;
-    const today = new Date();
-    const start = new Date(startDate.replace(/\./g, '-'));
-    const diffTime = start - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  useEffect(() => {
-    setLoading(false);
+  const loadUpcoming = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getUpcomingTrips(); // TripResponse[]
+      const mapped = (data || []).map((t) => ({
+        id: t.id,
+        name: t.name,
+        destination: t.place,
+        place: t.place,
+        startDate: String(t.startDate || '').replace(/-/g, '.'),
+        endDate: String(t.endDate || '').replace(/-/g, '.'),
+        dDay: t.dDay,
+        color: t.color,
+        status: t.status,
+        companions: [],
+      }));
+      setTrips(mapped);
+    } catch (e) {
+      console.error('다가오는 여행 조회 실패:', e);
+      setTrips([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => {
-    if (newTrip) {
-      setTrips((prevTrips) => [
-        ...prevTrips,
-        {
-          id: Date.now(),
-          name: newTrip.name,
-          destination: newTrip.destination,
-          startDate: newTrip.startDate,
-          endDate: newTrip.endDate,
-          companions: newTrip.companions,
-          color: newTrip.color,
-          dDay: calculateDday(newTrip.startDate),
-        },
-      ]);
-
-      navigation.setParams({ tripData: undefined });
-    }
-  }, [newTrip]);
+  // 홈으로 돌아올 때마다 갱신 (여행 생성 후에도 자동 반영)
+  useFocusEffect(
+    useCallback(() => {
+      loadUpcoming();
+    }, [loadUpcoming]),
+  );
 
   return (
     <View style={styles.container}>

@@ -9,6 +9,7 @@ import { renderSection } from '../../utils/renderSection';
 import { colors } from '../../styles/colors';
 import sharedStyles from './sharedStyles';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
+import { updateTripStatus } from '../../services/api';
 
 function OnTripScreen() {
   const route = useRoute();
@@ -56,8 +57,16 @@ function OnTripScreen() {
       {
         text: '종료',
         style: 'destructive',
-        onPress: () => {
-          navigation.popToTop();
+        onPress: async () => {
+          try {
+            if (trip?.id != null) {
+              await updateTripStatus(trip.id, 'FINISHED');
+            }
+          } catch (e) {
+            console.error('여행 종료(상태 변경) 실패:', e);
+          } finally {
+            navigation.navigate('TripStack', { screen: 'EndTripScreen', params: { trip } });
+          }
         },
       },
     ]);
@@ -175,7 +184,7 @@ function OnTripScreen() {
             <Pressable
               style={sharedStyles.memoLeft}
               onPress={() =>
-                navigation.navigate('Memo', {
+                navigation.navigate('MemoScreen', {
                   memo,
                   onSave: (updatedMemo) => {
                     setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
@@ -197,7 +206,7 @@ function OnTripScreen() {
           <Pressable
             style={sharedStyles.plusButton}
             onPress={() =>
-              navigation.navigate('Memo', {
+              navigation.navigate('MemoScreen', {
                 onSave: (newMemo) => {
                   setMemos((prev) => [...prev, newMemo]);
                 },
@@ -213,7 +222,7 @@ function OnTripScreen() {
         <View style={styles.endButtonWrapper}>
           <Pressable 
             style={styles.endButton} 
-            onPress={() => navigation.navigate('EndTrip', { trip })}
+            onPress={handleEndTrip}
           >
             <Text style={styles.endButtonText}>여행 종료</Text>
           </Pressable>

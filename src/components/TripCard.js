@@ -45,8 +45,13 @@ export default function TripCard({ trip, hideActions = false }) {
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(0);
-  const dDay = calculateDDay(trip.startDate);
-  const [myStatus, setMyStatus] = useState('ONCOMING');
+  const startDate = trip?.startDate;
+  const endDate = trip?.endDate;
+  const tripName = trip?.name ?? trip?.title ?? trip?.tripTitle ?? '여행';
+  const destination = trip?.destination ?? trip?.place ?? trip?.location ?? '';
+  const companions = Array.isArray(trip?.companions) ? trip.companions : [];
+  const dDay = calculateDDay(startDate);
+  const myStatus = trip?.status ?? (dDay != null && dDay <= 0 ? 'ONGOING' : 'UPCOMING');
 
   const onLayout = (event) => {
     const { height } = event.nativeEvent.layout;
@@ -89,10 +94,10 @@ export default function TripCard({ trip, hideActions = false }) {
 
   const navigateTrip = () => {
     if (myStatus === 'ONGOING') {
-      navigation.navigate('TripStack', { screen: 'OnTripScreen' });
-    } else {
-      navigation.navigate('TripStack', { screen: 'PrepareScreen' });
+      navigation.navigate('TripStack', { screen: 'OnTripScreen', params: { trip } });
+      return;
     }
+    navigation.navigate('TripStack', { screen: 'PrepareScreen', params: { tripData: trip } });
   };
 
   return (
@@ -105,7 +110,7 @@ export default function TripCard({ trip, hideActions = false }) {
         >
           <View style={styles.headerRow}>
             <View style={[styles.circle, { backgroundColor: trip.color || colors.primary[700] }]} />
-            <Text style={styles.name}>{trip.name}</Text>
+            <Text style={styles.name}>{tripName}</Text>
             {renderDDay()}
             <MaterialIcons
               name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
@@ -115,7 +120,7 @@ export default function TripCard({ trip, hideActions = false }) {
             />
           </View>
           <Text style={styles.date}>
-            {trip.startDate} - {trip.endDate}
+            {startDate} - {endDate}
           </Text>
         </TouchableOpacity>
         <Animated.View
@@ -130,23 +135,23 @@ export default function TripCard({ trip, hideActions = false }) {
           <View style={styles.detailInner} onLayout={onLayout}>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행지</Text>
-              <Text style={styles.detailValue}>{trip.destination}</Text>
+              <Text style={styles.detailValue}>{destination}</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행 기간</Text>
               <Text style={styles.detailValue}>
-                {trip.startDate} ~ {trip.endDate}
+                {startDate} ~ {endDate}
               </Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행명</Text>
-              <Text style={styles.detailValue}>{trip.name}</Text>
+              <Text style={styles.detailValue}>{tripName}</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>동행자</Text>
               <Text style={styles.detailValue}>
-                {trip.companions && trip.companions.length > 0
-                  ? trip.companions.join(', ')
+                {companions.length > 0
+                  ? companions.join(', ')
                   : '동행자 없음'}
               </Text>
             </View>
@@ -159,7 +164,19 @@ export default function TripCard({ trip, hideActions = false }) {
                   onPress={() => {
                     navigation.navigate('CommunityStack', {
                       screen: 'CommunityWrite',
-                      params: { tripData: trip },
+                      params: {
+                        tripData: {
+                          // CommunityWriteTripCard가 기대하는 형태
+                          id: trip?.id,
+                          tripId: trip?.id,
+                          tripTitle: tripName,
+                          location: destination,
+                          startDate,
+                          endDate,
+                          companions,
+                          circleColor: trip?.color,
+                        },
+                      },
                     });
                   }}
                 >
