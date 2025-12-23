@@ -63,8 +63,9 @@ function CommunitySelectWriteTrip({ navigation }) {
       try {
         const data = await getPastTrips(); // PastTripResponse[]
         const mapped = (data || []).map((t) => ({
-          id: t.id,
-          tripId: t.id,
+          // PastTripResponse: { tripId, name, place, startDate, endDate, ... }
+          id: t.tripId,
+          tripId: t.tripId,
           tripTitle: t.name,
           startDate: String(t.startDate || '').replace(/-/g, '.'),
           endDate: String(t.endDate || '').replace(/-/g, '.'),
