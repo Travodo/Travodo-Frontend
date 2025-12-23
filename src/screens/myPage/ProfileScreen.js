@@ -3,6 +3,7 @@ import {
   Alert,
   View,
   Text,
+  Pressable,
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
