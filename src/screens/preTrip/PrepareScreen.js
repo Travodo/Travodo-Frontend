@@ -24,7 +24,7 @@ function PrepareScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   
-  const trip = route?.params?.trip;
+  const trip = route?.params?.tripData;
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
@@ -323,7 +323,7 @@ function PrepareScreen() {
           <TouchableOpacity
             style={styles.startButton}
             onPress={() =>
-              navigation.navigate('StartTripLoading', {
+              navigation.navigate('StartTrip', {
                 trip,
                 travelers,
                 necessity,

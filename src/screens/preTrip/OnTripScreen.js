@@ -64,7 +64,7 @@ function OnTripScreen() {
   };
 
   return (
-    <SafeAreaView style={sharedStyles.container}>
+    <View style={sharedStyles.container}>
       <Text style={sharedStyles.pageTitle}>여행 TODO 시작</Text>
       <Text style={sharedStyles.subTitle}>Travodo와 여행을 시작했어요!</Text>
 
@@ -219,7 +219,7 @@ function OnTripScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
