@@ -11,6 +11,12 @@ const api = axios.create({
   },
 });
 
+// 401 발생 시 전역 로그아웃 처리를 위해 핸들러를 주입할 수 있게 함
+let unauthorizedHandler = null;
+export const setUnauthorizedHandler = (handler) => {
+  unauthorizedHandler = handler;
+};
+
 // 토큰 저장 키
 const TOKEN_KEY = '@travodo/token';
 
@@ -20,6 +26,12 @@ api.interceptors.request.use(
     const token = await getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (__DEV__) {
+      // 개발용 디버그: 인증 헤더가 실제로 붙는지 확인
+      const hasAuth = !!config.headers?.Authorization;
+      // eslint-disable-next-line no-console
+      console.log(`[api] ${config.method?.toUpperCase()} ${config.url} auth=${hasAuth}`);
     }
     return config;
   },
@@ -35,6 +47,13 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // 토큰 만료 또는 인증 실패
       await removeToken();
+      if (typeof unauthorizedHandler === 'function') {
+        try {
+          unauthorizedHandler();
+        } catch (_) {
+          // noop
+        }
+      }
     }
     return Promise.reject(error);
   },
@@ -65,6 +84,31 @@ export const removeToken = async () => {
     console.error('토큰 삭제 실패:', error);
   }
 };
+
+// -----------------------------
+// Helpers
+// -----------------------------
+const guessMimeType = (uri) => {
+  const lower = (uri || '').toLowerCase();
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.heic')) return 'image/heic';
+  return 'application/octet-stream';
+};
+
+const guessFileName = (uri) => {
+  if (!uri) return `file-${Date.now()}`;
+  const parts = uri.split('/');
+  const last = parts[parts.length - 1];
+  return last || `file-${Date.now()}`;
+};
+
+const uriToFormFile = (uri) => ({
+  uri,
+  name: guessFileName(uri),
+  type: guessMimeType(uri),
+});
 
 // 카카오 소셜 로그인
 export const loginWithKakao = async (accessToken) => {
@@ -168,6 +212,237 @@ export const linkSocialAccount = async (email, provider, providerId) => {
 export const deleteAccount = async () => {
   const response = await api.delete('/auth/account');
   await removeToken();
+  return response.data;
+};
+
+// 로그아웃
+export const logout = async () => {
+  const response = await api.post('/auth/logout');
+  await removeToken();
+  return response.data;
+};
+
+// -----------------------------
+// Users (내 정보)
+// -----------------------------
+export const updateMyProfile = async (data) => {
+  // data: { nickname?, name?, birthDate?, gender?, phoneNumber? }
+  const response = await api.put('/users/me', data);
+  return response.data;
+};
+
+export const uploadMyProfileImage = async (imageUri) => {
+  const formData = new FormData();
+  formData.append('file', uriToFormFile(imageUri));
+  const response = await api.post('/users/me/profile-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const deleteMyProfileImage = async () => {
+  const response = await api.delete('/users/me/profile-image');
+  return response.data;
+};
+
+export const getMyPosts = async ({ page = 0, size = 20 } = {}) => {
+  const response = await api.get('/users/me/posts', { params: { page, size } });
+  return response.data;
+};
+
+// -----------------------------
+// Trips
+// -----------------------------
+export const createTrip = async (data) => {
+  // data: { name, place, startDate: 'YYYY-MM-DD', endDate: 'YYYY-MM-DD', maxMembers }
+  const response = await api.post('/trips', data);
+  return response.data;
+};
+
+export const joinTripByInviteCode = async (inviteCode) => {
+  const response = await api.post('/trips/join', { inviteCode });
+  return response.data;
+};
+
+export const regenerateInviteCode = async (tripId) => {
+  const response = await api.post(`/trips/${tripId}/invite-code`);
+  return response.data;
+};
+
+export const updateTripStatus = async (tripId, status) => {
+  // status: UPCOMING | ONGOING | FINISHED
+  const response = await api.patch(`/trips/${tripId}/status`, { status });
+  return response.data;
+};
+
+export const getUpcomingTrips = async () => {
+  const response = await api.get('/trips/upcoming');
+  return response.data;
+};
+
+export const getCurrentTrip = async () => {
+  const response = await api.get('/trips/current');
+  return response.data;
+};
+
+export const getTripsByMonth = async (year, month) => {
+  const response = await api.get('/trips/calendar', { params: { year, month } });
+  return response.data;
+};
+
+export const getPastTrips = async () => {
+  const response = await api.get('/trips/me/trips', { params: { status: 'PAST' } });
+  return response.data;
+};
+
+// 위치 업데이트 / 동행자 위치 / POI
+export const updateMyLocation = async (tripId, { latitude, longitude }) => {
+  const response = await api.post(`/trips/${tripId}/location`, { latitude, longitude });
+  return response.data;
+};
+
+export const getMemberLocations = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/members/locations`);
+  return response.data;
+};
+
+export const getMapPoints = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/map-points`);
+  return response.data;
+};
+
+// -----------------------------
+// Community
+// -----------------------------
+export const getCommunityPosts = async ({ tag, sort = 'recent', page = 0, size = 20 } = {}) => {
+  const params = { sort, page, size };
+  if (tag) params.tag = tag; // TravelTag: SOLO | FRIEND | COUPLE | FAMILY | RELAXATION
+  const response = await api.get('/community/posts', { params });
+  return response.data;
+};
+
+export const getCommunityPost = async (postId) => {
+  const response = await api.get(`/community/posts/${postId}`);
+  return response.data;
+};
+
+export const createCommunityPost = async ({
+  title,
+  content,
+  tags = [],
+  tripId,
+  imageUris = [],
+  imageUrls = [],
+  thumbnailUrl,
+}) => {
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('content', content);
+  (tags || []).forEach((t) => formData.append('tags', t));
+  if (tripId != null) formData.append('tripId', String(tripId));
+  if (thumbnailUrl) formData.append('thumbnailUrl', thumbnailUrl);
+  (imageUrls || []).forEach((u) => formData.append('imageUrls', u));
+  (imageUris || []).forEach((uri) => formData.append('images', uriToFormFile(uri)));
+
+  const response = await api.post('/community/posts', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const updateCommunityPost = async (
+  postId,
+  { title, content, tags = [], tripId, imageUris = [], imageUrls = [], thumbnailUrl },
+) => {
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('content', content);
+  (tags || []).forEach((t) => formData.append('tags', t));
+  if (tripId != null) formData.append('tripId', String(tripId));
+  if (thumbnailUrl) formData.append('thumbnailUrl', thumbnailUrl);
+  (imageUrls || []).forEach((u) => formData.append('imageUrls', u));
+  (imageUris || []).forEach((uri) => formData.append('images', uriToFormFile(uri)));
+
+  const response = await api.put(`/community/posts/${postId}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const deleteCommunityPost = async (postId) => {
+  const response = await api.delete(`/community/posts/${postId}`);
+  return response.data;
+};
+
+export const likeCommunityPost = async (postId) => {
+  const response = await api.post(`/community/posts/${postId}/likes`);
+  return response.data;
+};
+
+export const unlikeCommunityPost = async (postId) => {
+  const response = await api.delete(`/community/posts/${postId}/likes`);
+  return response.data;
+};
+
+export const bookmarkCommunityPost = async (postId) => {
+  const response = await api.post(`/community/posts/${postId}/bookmarks`);
+  return response.data;
+};
+
+export const unbookmarkCommunityPost = async (postId) => {
+  const response = await api.delete(`/community/posts/${postId}/bookmarks`);
+  return response.data;
+};
+
+export const getBookmarkedPosts = async ({ page = 0, size = 20 } = {}) => {
+  const response = await api.get('/community/bookmarks', { params: { page, size } });
+  return response.data;
+};
+
+export const getPostComments = async (postId, { page = 0, size = 20 } = {}) => {
+  const response = await api.get(`/community/posts/${postId}/comments`, { params: { page, size } });
+  return response.data;
+};
+
+export const createPostComment = async (postId, { content }) => {
+  const response = await api.post(`/community/posts/${postId}/comments`, { content });
+  return response.data;
+};
+
+export const updateComment = async (commentId, { content }) => {
+  const response = await api.put(`/community/comments/${commentId}`, { content });
+  return response.data;
+};
+
+export const deleteComment = async (commentId) => {
+  const response = await api.delete(`/community/comments/${commentId}`);
+  return response.data;
+};
+
+export const reportPost = async (postId, data) => {
+  // data: PostReportRequest (Swagger 스키마에 맞춰 전달)
+  const response = await api.post(`/community/posts/${postId}/reports`, data);
+  return response.data;
+};
+
+// -----------------------------
+// Upload (S3)
+// -----------------------------
+export const uploadImage = async (imageUri) => {
+  const formData = new FormData();
+  formData.append('file', uriToFormFile(imageUri));
+  const response = await api.post('/upload/image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const uploadImages = async (imageUris = []) => {
+  const formData = new FormData();
+  (imageUris || []).forEach((uri) => formData.append('files', uriToFormFile(uri)));
+  const response = await api.post('/upload/images', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
 
