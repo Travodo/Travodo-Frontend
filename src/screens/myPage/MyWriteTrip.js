@@ -1,5 +1,5 @@
-import { View, StyleSheet, Text } from 'react-native';
-import { useState, useCallback } from 'react';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
+import { useState, useCallback, useEffect } from 'react';
 import PostList from '../../components/PostList';
 import { colors } from '../../styles/colors';
 import { useFocusEffect } from '@react-navigation/native';
@@ -7,6 +7,41 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function MyWriteTrip({ navigation }) {
   const [myPosts, setMyPosts] = useState([]);
+
+  useEffect(() => {
+  navigation.setOptions({
+    headerShown: true,
+
+    headerTitle: () => (
+      <Text style={styles.headerTitle}>내가 쓴 글</Text>
+    ),
+
+    headerLeft: () => (
+      <Pressable
+        onPress={() => navigation.goBack()}
+        style={{ paddingLeft: 16 }}
+        hitSlop={10}
+      >
+        <Text style={styles.headerSideText}>취소</Text>
+      </Pressable>
+    ),
+
+    headerRight: () => (
+      <Pressable
+        onPress={() => {
+          console.log('삭제');
+        }}
+        style={{ paddingRight: 16 }}
+        hitSlop={10}
+      >
+        <Text style={[styles.headerSideText, { color: colors.primary[700] }]}>
+          삭제
+        </Text>
+      </Pressable>
+    ),
+  });
+}, [navigation]);
+
 
   useFocusEffect(
     useCallback(() => {
@@ -91,6 +126,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Regular',
     fontSize: 16,
     color: colors.grayscale[500],
+  },
+  headerTitle: {
+    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 16,
+    color: colors.grayscale[900],
+  },
+
+  headerSideText: {
+    fontFamily: 'Pretendard-Regular',
+    fontSize: 14,
+    color: colors.grayscale[700],
   },
 });
 
