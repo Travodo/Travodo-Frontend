@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, Pressable, Platform } from 'react-native';
 import SettingItem from '../../components/SettingItem';
 import { colors } from '../../styles/colors';
 
@@ -10,6 +9,17 @@ function SettingsScreen({ navigation }) {
   const [adAlarm, setAdAlarm] = useState(false);
   const [gpsAgree, setGpsAgree] = useState(true);
   const [rotateLock, setRotateLock] = useState(false);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Pressable
+          style={[styles.headerButton, { transform: [{ rotate: '-45deg' }] }]}
+          onPress={() => navigation.goBack()}
+        ></Pressable>
+      ),
+    });
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -78,6 +88,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[100],
+    paddingTop: Platform.OS === 'android' ? 60 : 0,
   },
 
   content: {
@@ -98,5 +109,13 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: colors.grayscale[400],
     marginTop: 3,
+  },
+  headerButton: {
+    borderTopWidth: 2,
+    borderLeftWidth: 2,
+    borderColor: '#000',
+    width: 13,
+    height: 13,
+    marginLeft: 15,
   },
 });

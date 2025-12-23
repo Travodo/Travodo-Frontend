@@ -71,15 +71,8 @@ function CommunityWrite({ route, navigation }) {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <View style={styles.headerTitleWrapper}>
-          <Pressable onPress={openSetting}>
-            <Text style={styles.headerTitle}>설정</Text>
-          </Pressable>
-        </View>
-      ),
       headerLeft: () => (
-        <Pressable>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.headerText}>취소</Text>
         </Pressable>
       ),
@@ -89,7 +82,7 @@ function CommunityWrite({ route, navigation }) {
         </Pressable>
       ),
     });
-  }, []);
+  }, [navigation, title, content, selectedImages]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -132,11 +125,15 @@ function CommunityWrite({ route, navigation }) {
 
     const newPost = {
       id: Date.now(),
+      nickname: '내 닉네임',
+      agoDate: '방금 전',
       title,
       content,
       images: selectedImages,
       tripData,
+      tags: selectedTags,
       createdAt: new Date().toISOString(),
+      circleColor: tripData?.circleColor || '#000',
     };
 
     const stored = await AsyncStorage.getItem('community_data');
@@ -264,7 +261,11 @@ function CommunityWrite({ route, navigation }) {
 export default CommunityWrite;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? 35 : 0,
+  },
 
   headerText: {
     paddingHorizontal: 10,
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: colors.grayscale[400],
     margin: 20,
-    paddingBottom: 20,
+    paddingBottom: Platform.OS === 'android' ? 0 : 20,
   },
   title: { fontSize: 20, fontFamily: 'Pretendard-SemiBold' },
 

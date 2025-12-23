@@ -62,6 +62,7 @@ function MyPageStack() {
         component={MyWriteTrip}
         options={{
           headerTitle: '내가 쓴 글',
+          headerShown: true,
         }}
       />
     </Stack.Navigator>

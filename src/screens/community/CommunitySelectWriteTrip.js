@@ -1,4 +1,6 @@
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, Platform } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import SelectMyTripList from '../../components/SelectMyTripList';
 import Dropdown from '../../components/Dropdown';
 import { useState, useMemo, useEffect } from 'react';
@@ -9,6 +11,8 @@ function CommunitySelectWriteTrip({ navigation }) {
   const [isDropDownVisiable, setIsDropDownVisable] = useState(false);
   const [selectedSort, setSelectedSort] = useState('최신순');
   const [selectedTripId, setSelectedTripId] = useState(null);
+
+  const headerHeight = useHeaderHeight();
 
   const handleNext = () => {
     if (!selectedTripId) {
@@ -94,7 +98,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingVertical: 20,
+    paddingVertical: Platform.OS === 'android' ? 80 : 20,
     gap: 16,
   },
   text: {

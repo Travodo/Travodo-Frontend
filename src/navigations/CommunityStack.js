@@ -47,6 +47,7 @@ function CommunityStack() {
         name="CommunityWrite"
         component={CommunityWrite}
         options={{
+          headerShown: true,
           headerTitle: '글쓰기',
         }}
       />

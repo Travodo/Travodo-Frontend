@@ -104,7 +104,10 @@ function MyWriteTrip({ navigation }) {
           data={myPosts}
           onScrap={handleUnScrap}
           onPress={(item) => {
-            navigation.navigate('CommunityContent', { post: item });
+            navigation.navigate('CommunityStack', {
+              screen: 'CommunityContent',
+              params: { post: item },
+            });
           }}
         />
       )}
