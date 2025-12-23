@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
 import TravelerAvatar from '../../components/TravelerAvatar';
@@ -9,7 +9,16 @@ import { renderSection } from '../../utils/renderSection';
 import { colors } from '../../styles/colors';
 import sharedStyles from './sharedStyles';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
-import { updateTripStatus } from '../../services/api';
+import {
+  assignSharedItem,
+  createSharedItem,
+  deleteSharedItem,
+  getSharedItems,
+  getTripMembers,
+  unassignSharedItem,
+  updateSharedItem,
+  updateTripStatus,
+} from '../../services/api';
 
 function OnTripScreen() {
   const route = useRoute();
@@ -36,19 +45,150 @@ function OnTripScreen() {
   const [adding, setAdding] = useState(null);
   const [text, setText] = useState('');
 
+  const tripId = trip?.id;
+  const colorPool = ['#769FFF', '#FFE386', '#EE8787', '#A4C664'];
+
+  const travelerColorMap = useMemo(() => {
+    const map = {};
+    travelers.forEach((t) => {
+      map[String(t.id)] = t.color;
+    });
+    return map;
+  }, [travelers]);
+
+  const mapSharedItem = useCallback(
+    (it) => ({
+      id: String(it.id),
+      content: it.name,
+      checked: !!it.checked,
+      travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
+      travelerName: it.assigneeName ?? null,
+      travelerColor: it.assigneeId != null ? travelerColorMap[String(it.assigneeId)] ?? null : null,
+    }),
+    [travelerColorMap],
+  );
+
+  const loadMembersAndShared = useCallback(async () => {
+    if (!tripId) return;
+    try {
+      const members = await getTripMembers(tripId);
+      const mappedMembers = (members || [])
+        .slice()
+        .sort((a, b) => {
+          if (a.isLeader && !b.isLeader) return -1;
+          if (!a.isLeader && b.isLeader) return 1;
+          return String(a.nickname || '').localeCompare(String(b.nickname || ''));
+        })
+        .map((m, idx) => ({
+          id: m.userId,
+          name: m.nickname,
+          color: colorPool[idx % colorPool.length],
+          isLeader: !!m.isLeader,
+        }));
+      setTravelers(mappedMembers);
+
+      const items = await getSharedItems(tripId);
+      setShared((items || []).map(mapSharedItem));
+    } catch (e) {
+      console.error('여행 멤버/공동 준비물 조회 실패:', e);
+    }
+  }, [tripId, mapSharedItem]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadMembersAndShared();
+    }, [loadMembersAndShared]),
+  );
+
   const addItem = (setter, list) => {
     if (!text.trim()) return;
-    setter([...list, { id: Date.now().toString(), content: text }]);
+    if (setter === setShared) {
+      (async () => {
+        try {
+          const created = await createSharedItem(tripId, { name: text.trim() });
+          setShared((prev) => [...prev, mapSharedItem(created)]);
+          setText('');
+          setAdding(null);
+        } catch (e) {
+          console.error('공동 준비물 생성 실패:', e);
+          Alert.alert('실패', '공동 준비물 추가에 실패했습니다.');
+        }
+      })();
+      return;
+    }
+    setter([...list, { id: Date.now().toString(), content: text, checked: false }]);
     setText('');
     setAdding(null);
   };
 
   const deleteItem = (list, setter, index) => {
+    const item = list[index];
+    if (setter === setShared) {
+      (async () => {
+        try {
+          await deleteSharedItem(tripId, item.id);
+          setShared((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
+        } catch (e) {
+          console.error('공동 준비물 삭제 실패:', e);
+          Alert.alert('실패', '공동 준비물 삭제에 실패했습니다.');
+        }
+      })();
+      return;
+    }
     setter(list.filter((_, i) => i !== index));
   };
 
   const editItem = (list, setter, index, value) => {
-    setter(list.map((item, i) => (i === index ? { ...item, content: value } : item)));
+    const item = list[index];
+    if (setter === setShared) {
+      (async () => {
+        try {
+          const updated = await updateSharedItem(tripId, item.id, { name: value });
+          setShared((prev) => prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)));
+        } catch (e) {
+          console.error('공동 준비물 수정 실패:', e);
+          Alert.alert('실패', '공동 준비물 수정에 실패했습니다.');
+        }
+      })();
+      return;
+    }
+    setter(list.map((it, i) => (i === index ? { ...it, content: value } : it)));
+  };
+
+  const toggleCheck = (list, setter, index) => {
+    const item = list[index];
+    if (setter === setShared) {
+      (async () => {
+        try {
+          const updated = await updateSharedItem(tripId, item.id, { checked: !item.checked });
+          setShared((prev) => prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)));
+        } catch (e) {
+          console.error('공동 준비물 체크 변경 실패:', e);
+          Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
+        }
+      })();
+      return;
+    }
+    setter(list.map((it, i) => (i === index ? { ...it, checked: !it.checked } : it)));
+  };
+
+  const assignTraveler = (list, setter, index) => {
+    const item = list[index];
+    if (setter === setShared) {
+      (async () => {
+        try {
+          const updated = item.travelerId ? await unassignSharedItem(tripId, item.id) : await assignSharedItem(tripId, item.id);
+          setShared((prev) => prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)));
+        } catch (e) {
+          console.error('공동 준비물 담당자 변경 실패:', e);
+          Alert.alert('안내', '담당자 지정/해제는 본인만 할 수 있습니다.');
+        }
+      })();
+      return;
+    }
+    // 진행 중 화면에서는 로컬 할일(필수)만 사용: 선택된 여행자 할당
+    // 기존 PrepareScreen과 동일 로직을 유지하기 위해 여기서는 no-op 또는 추후 통합 가능
+    Alert.alert('안내', '이 화면에서는 담당자 할당을 지원하지 않습니다.');
   };
 
   const handleEndTrip = () => {
@@ -90,22 +230,7 @@ function OnTripScreen() {
               key={t.id} 
               name={t.name} 
               color={t.color}
-              showDelete={true}
-              onDelete={() => {
-                                    Alert.alert('여행자 삭제', `${t.name}님을 삭제하시겠습니까?`, [
-                                      { text: '취소', style: 'cancel' },
-                                      {
-                                        text: '삭제',
-                                        style: 'destructive',
-                                        onPress: () => {
-                                          setTravelers((prev) => prev.filter((traveler) => traveler.id !== t.id));
-                                          if (selectedTraveler === t.id) {
-                                            setSelectedTraveler(null);
-                                          }
-                                        },
-                                      },
-                                    ]);
-                                  }}
+              showDelete={false}
             />
           ))}
         </View>
@@ -124,7 +249,9 @@ function OnTripScreen() {
           addItem,
           deleteItem,
           editItem,
+          toggleCheck,
           showAssignee: true,
+          assignTraveler,
           styles: sharedStyles,
         })}
         <View style={sharedStyles.sectionDivider} />
@@ -141,6 +268,8 @@ function OnTripScreen() {
           addItem,
           deleteItem,
           editItem,
+          toggleCheck,
+          assignTraveler,
           showAssignee: true,
           styles: sharedStyles,
         })}
@@ -158,6 +287,7 @@ function OnTripScreen() {
           addItem,
           deleteItem,
           editItem,
+          toggleCheck,
           styles: sharedStyles,
         })}
         <View style={sharedStyles.sectionDivider} />
@@ -174,6 +304,7 @@ function OnTripScreen() {
           addItem,
           deleteItem,
           editItem,
+          toggleCheck,
           styles: sharedStyles,
         })}
         <View style={sharedStyles.sectionDivider} />

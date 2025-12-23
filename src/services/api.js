@@ -264,6 +264,11 @@ export const joinTripByInviteCode = async (inviteCode) => {
   return response.data;
 };
 
+export const getTripInviteCode = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/invite-code`);
+  return response.data;
+};
+
 export const regenerateInviteCode = async (tripId) => {
   const response = await api.post(`/trips/${tripId}/invite-code`);
   return response.data;
@@ -292,6 +297,42 @@ export const getTripsByMonth = async (year, month) => {
 
 export const getPastTrips = async () => {
   const response = await api.get('/trips/me/trips', { params: { status: 'PAST' } });
+  return response.data;
+};
+
+export const getTripMembers = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/members`);
+  return response.data;
+};
+
+// 공동 준비물 (shared-items)
+export const getSharedItems = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/shared-items`);
+  return response.data;
+};
+
+export const createSharedItem = async (tripId, { name }) => {
+  const response = await api.post(`/trips/${tripId}/shared-items`, { name });
+  return response.data;
+};
+
+export const updateSharedItem = async (tripId, itemId, { name, checked }) => {
+  const response = await api.patch(`/trips/${tripId}/shared-items/${itemId}`, { name, checked });
+  return response.data;
+};
+
+export const assignSharedItem = async (tripId, itemId) => {
+  const response = await api.patch(`/trips/${tripId}/shared-items/${itemId}/assign`);
+  return response.data;
+};
+
+export const unassignSharedItem = async (tripId, itemId) => {
+  const response = await api.patch(`/trips/${tripId}/shared-items/${itemId}/unassign`);
+  return response.data;
+};
+
+export const deleteSharedItem = async (tripId, itemId) => {
+  const response = await api.delete(`/trips/${tripId}/shared-items/${itemId}`);
   return response.data;
 };
 

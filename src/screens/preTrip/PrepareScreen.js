@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,10 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
+import Toast from 'react-native-toast-message';
 import TripCard from '../../components/TripCard';
 import ChecklistRow from '../../components/ChecklistRow';
 import TravelerAvatar from '../../components/TravelerAvatar';
@@ -19,18 +21,29 @@ import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { colors } from '../../styles/colors';
 import { renderSection } from '../../utils/renderSection';
 import sharedStyles from './sharedStyles';
+import {
+  assignSharedItem,
+  createSharedItem,
+  deleteSharedItem,
+  getSharedItems,
+  getTripInviteCode,
+  getTripMembers,
+  regenerateInviteCode,
+  unassignSharedItem,
+  updateSharedItem,
+} from '../../services/api';
 
 function PrepareScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  
+
   const trip = route?.params?.tripData;
+  const tripId = trip?.id;
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
-
-  const [isAddingTraveler, setIsAddingTraveler] = useState(false);
-  const [travelerName, setTravelerName] = useState('');
+  // 선택 직후 바로 '담당자 지정'을 눌렀을 때도 최신 선택값을 쓰기 위해 ref로도 보관
+  const selectedTravelerRef = useRef(null);
 
   const colorPool = ['#769FFF', '#FFE386', '#EE8787', '#A4C664'];
 
@@ -42,22 +55,207 @@ function PrepareScreen() {
 
   const [adding, setAdding] = useState(null);
   const [text, setText] = useState('');
+  const [inviting, setInviting] = useState(false);
+
+  const travelerColorMap = useMemo(() => {
+    const map = {};
+    travelers.forEach((t) => {
+      map[String(t.id)] = t.color;
+    });
+    return map;
+  }, [travelers]);
+
+  const mapSharedItem = useCallback(
+    (it) => ({
+      id: String(it.id),
+      content: it.name,
+      checked: !!it.checked,
+      travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
+      travelerName: it.assigneeName ?? null,
+      travelerColor:
+        it.assigneeId != null ? (travelerColorMap[String(it.assigneeId)] ?? null) : null,
+    }),
+    [travelerColorMap],
+  );
+
+  const loadMembersAndShared = useCallback(async () => {
+    if (!tripId) return;
+    try {
+      const members = await getTripMembers(tripId); // TripMemberResponse[]
+      const mappedMembers = (members || [])
+        .slice()
+        .sort((a, b) => {
+          if (a.isLeader && !b.isLeader) return -1;
+          if (!a.isLeader && b.isLeader) return 1;
+          return String(a.nickname || '').localeCompare(String(b.nickname || ''));
+        })
+        .map((m, idx) => ({
+          id: m.userId,
+          name: m.nickname,
+          color: colorPool[idx % colorPool.length],
+          isLeader: !!m.isLeader,
+        }));
+      setTravelers(mappedMembers);
+
+      const items = await getSharedItems(tripId); // SharedItemResponse[]
+      setShared((items || []).map(mapSharedItem));
+    } catch (e) {
+      console.error('여행 멤버/공동 준비물 조회 실패:', e);
+    }
+  }, [tripId, mapSharedItem]);
+
+  // 화면 재진입 시에도 동기화 (초대코드로 들어온 사용자도 최신 데이터 보장)
+  useFocusEffect(
+    useCallback(() => {
+      loadMembersAndShared();
+    }, [loadMembersAndShared]),
+  );
+
+  const copyInviteCodeToClipboard = useCallback(async (code) => {
+    const safe = String(code || '').trim();
+    if (!safe) return;
+    await Clipboard.setStringAsync(safe);
+    Toast.show({
+      type: 'success',
+      text1: '초대코드 복사 완료',
+      text2: '클립보드에 복사했어요.',
+      text1Style: { fontSize: 16 },
+      text2Style: { fontSize: 13 },
+    });
+  }, []);
+
+  const fetchAndCopyInviteCode = useCallback(async () => {
+    if (!tripId || inviting) return;
+    try {
+      setInviting(true);
+      const res = await getTripInviteCode(tripId); // { inviteCode, expiresAt, expired, canRegenerate }
+      const code = res?.inviteCode;
+      if (!code) {
+        Alert.alert('실패', '초대코드를 가져오지 못했습니다.');
+        return;
+      }
+
+      if (res?.expired) {
+        Alert.alert(
+          '초대코드 만료',
+          '현재 초대코드가 만료되었습니다. 방장이 재발급해야 참가할 수 있어요.',
+          [
+            {
+              text: '재발급 후 복사',
+              onPress: () => regenerateAndCopyInviteCode(),
+              style: 'destructive',
+            },
+            { text: '취소', style: 'cancel' },
+          ],
+        );
+        return;
+      }
+
+      await copyInviteCodeToClipboard(code);
+    } catch (e) {
+      const status = e?.response?.status;
+      if (status === 403) {
+        Alert.alert('안내', '여행 멤버만 초대코드를 조회할 수 있어요.');
+        return;
+      }
+      console.error('초대코드 조회/복사 실패:', e);
+      Alert.alert('실패', '초대코드 조회에 실패했습니다.');
+    } finally {
+      setInviting(false);
+    }
+  }, [tripId, inviting, copyInviteCodeToClipboard]);
+
+  const regenerateAndCopyInviteCode = useCallback(async () => {
+    if (!tripId || inviting) return;
+    try {
+      setInviting(true);
+      const res = await regenerateInviteCode(tripId); // { inviteCode }
+      const code = res?.inviteCode ?? res?.code ?? res;
+      if (!code) {
+        Alert.alert('실패', '초대코드를 재발급하지 못했습니다.');
+        return;
+      }
+      await copyInviteCodeToClipboard(code);
+    } catch (e) {
+      const status = e?.response?.status;
+      if (status === 403) {
+        Alert.alert('안내', '초대코드 재발급은 여행 방장만 할 수 있어요.');
+        return;
+      }
+      console.error('초대코드 재발급/복사 실패:', e);
+      Alert.alert('실패', '초대코드 재발급에 실패했습니다.');
+    } finally {
+      setInviting(false);
+    }
+  }, [tripId, inviting, copyInviteCodeToClipboard]);
+
+  const openInviteActions = useCallback(() => {
+    Alert.alert('여행자 추가', '초대코드를 복사해서 친구에게 보내주세요.', [
+      { text: '초대코드 복사', onPress: fetchAndCopyInviteCode },
+      { text: '재발급 후 복사', onPress: regenerateAndCopyInviteCode, style: 'destructive' },
+      { text: '취소', style: 'cancel' },
+    ]);
+  }, [fetchAndCopyInviteCode, regenerateAndCopyInviteCode]);
 
   const deleteItem = (list, setter, index) => {
+    const item = list[index];
+    if (setter === setShared) {
+      // 서버 연동: 공동 준비물 삭제
+      (async () => {
+        try {
+          await deleteSharedItem(tripId, item.id);
+          setShared((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
+        } catch (e) {
+          console.error('공동 준비물 삭제 실패:', e);
+          Alert.alert('실패', '공동 준비물 삭제에 실패했습니다.');
+        }
+      })();
+      return;
+    }
     setter(list.filter((_, i) => i !== index));
   };
 
   const editItem = (list, setter, index, newContent) => {
-    setter(list.map((item, i) => (i === index ? { ...item, content: newContent } : item)));
+    const item = list[index];
+    if (setter === setShared) {
+      (async () => {
+        try {
+          const updated = await updateSharedItem(tripId, item.id, { name: newContent });
+          setShared((prev) =>
+            prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)),
+          );
+        } catch (e) {
+          console.error('공동 준비물 수정 실패:', e);
+          Alert.alert('실패', '공동 준비물 수정에 실패했습니다.');
+        }
+      })();
+      return;
+    }
+    setter(list.map((it, i) => (i === index ? { ...it, content: newContent } : it)));
   };
 
   const addItem = (setter, list) => {
     if (!text.trim()) return;
+    if (setter === setShared) {
+      (async () => {
+        try {
+          const created = await createSharedItem(tripId, { name: text.trim() });
+          setShared((prev) => [...prev, mapSharedItem(created)]);
+          setText('');
+          setAdding(null);
+        } catch (e) {
+          console.error('공동 준비물 생성 실패:', e);
+          Alert.alert('실패', '공동 준비물 추가에 실패했습니다.');
+        }
+      })();
+      return;
+    }
     setter([
       ...list,
       {
         id: Date.now().toString(),
         content: text,
+        checked: false,
         travelerId: null,
         travelerName: null,
         travelerColor: null,
@@ -68,33 +266,55 @@ function PrepareScreen() {
     setAdding(null);
   };
 
-  const addTraveler = () => {
-    if (!travelerName.trim()) return;
-
-    setTravelers((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        name: travelerName,
-        color: colorPool[prev.length % colorPool.length],
-      },
-    ]);
-
-    setTravelerName('');
-    setIsAddingTraveler(false);
+  const toggleCheck = (list, setter, index) => {
+    const item = list[index];
+    if (setter === setShared) {
+      (async () => {
+        try {
+          const updated = await updateSharedItem(tripId, item.id, { checked: !item.checked });
+          setShared((prev) =>
+            prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)),
+          );
+        } catch (e) {
+          console.error('공동 준비물 체크 변경 실패:', e);
+          Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
+        }
+      })();
+      return;
+    }
+    setter(list.map((it, i) => (i === index ? { ...it, checked: !it.checked } : it)));
   };
 
   const assignTraveler = (list, setter, index) => {
+    const item = list[index];
+    if (setter === setShared) {
+      // 백엔드 정책: 담당자는 "본인"만 지정/해제 가능
+      (async () => {
+        try {
+          const updated = item.travelerId
+            ? await unassignSharedItem(tripId, item.id)
+            : await assignSharedItem(tripId, item.id);
+          setShared((prev) =>
+            prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)),
+          );
+        } catch (e) {
+          console.error('공동 준비물 담당자 변경 실패:', e);
+          Alert.alert('안내', '담당자 지정/해제는 본인만 할 수 있습니다.');
+        }
+      })();
+      return;
+    }
     setter(
       list.map((item, i) => {
         if (i !== index) return item;
 
-        if (!selectedTraveler) {
+        const currentSelectedTraveler = selectedTravelerRef.current ?? selectedTraveler;
+        if (!currentSelectedTraveler) {
           Alert.alert('알림', '여행자를 먼저 선택해주세요!');
           return item;
         }
 
-        const traveler = travelers.find((t) => t.id === selectedTraveler);
+        const traveler = travelers.find((t) => t.id === currentSelectedTraveler);
 
         if (!traveler) return item;
 
@@ -126,79 +346,44 @@ function PrepareScreen() {
       </View>
 
       <ScrollView contentContainerStyle={sharedStyles.content}>
-        <Text style={sharedStyles.sectionTitle}>여행자</Text>
+        <View style={styles.sectionTitleRow}>
+          <Text style={sharedStyles.sectionTitle}>여행자</Text>
+          <Pressable
+            onPress={openInviteActions}
+            disabled={!tripId || inviting}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.invitePlusButton,
+              (pressed || inviting) && styles.invitePlusButtonPressed,
+              (!tripId || inviting) && styles.invitePlusButtonDisabled,
+            ]}
+          >
+            <MaterialIcons name="add" size={22} color={colors.primary[700]} />
+          </Pressable>
+        </View>
 
         <View style={styles.travelerRow}>
           {travelers.length === 0 ? (
-            isAddingTraveler ? (
-              <View style={styles.travelerInputBoxCenter}>
-                <TextInput
-                  style={styles.travelerInput}
-                  value={travelerName}
-                  onChangeText={setTravelerName}
-                  placeholder="이름 입력"
-                  autoFocus
-                  onSubmitEditing={addTraveler}
-                />
-                <Pressable onPress={() => setIsAddingTraveler(false)}>
-                  <MaterialIcons name="close" size={20} />
-                </Pressable>
-              </View>
-            ) : (
-              <Pressable style={styles.centerPlusButton} onPress={() => setIsAddingTraveler(true)}>
-                <Plus width={24} height={24} />
-              </Pressable>
-            )
+            <Text style={{ color: colors.grayscale[600], fontFamily: 'Pretendard-Regular' }}>
+              아직 참가한 여행자가 없어요.
+            </Text>
           ) : (
-            <>
-              <View style={sharedStyles.travelerList}>
-                {travelers.map((t) => (
-                  <TravelerAvatar
-                    key={t.id}
-                    name={t.name}
-                    color={t.color}
-                    selected={selectedTraveler === t.id}
-                    onPress={() => setSelectedTraveler((prev) => (prev === t.id ? null : t.id))}
-                    showDelete={true}
-                    onDelete={() => {
-                      Alert.alert('여행자 삭제', `${t.name}님을 삭제하시겠습니까?`, [
-                        { text: '취소', style: 'cancel' },
-                        {
-                          text: '삭제',
-                          style: 'destructive',
-                          onPress: () => {
-                            setTravelers((prev) => prev.filter((traveler) => traveler.id !== t.id));
-                            if (selectedTraveler === t.id) {
-                              setSelectedTraveler(null);
-                            }
-                          },
-                        },
-                      ]);
-                    }}
-                  />
-                ))}
-              </View>
-
-              {isAddingTraveler ? (
-                <View style={styles.travelerInputBox}>
-                  <TextInput
-                    style={styles.travelerInput}
-                    value={travelerName}
-                    onChangeText={setTravelerName}
-                    placeholder="이름 입력"
-                    autoFocus
-                    onSubmitEditing={addTraveler}
-                  />
-                  <Pressable onPress={() => setIsAddingTraveler(false)}>
-                    <MaterialIcons name="close" size={20} />
-                  </Pressable>
-                </View>
-              ) : (
-                <Pressable style={styles.rightPlusButton} onPress={() => setIsAddingTraveler(true)}>
-                  <Plus width={24} height={24} />
-                </Pressable>
-              )}
-            </>
+            <View style={sharedStyles.travelerList}>
+              {travelers.map((t) => (
+                <TravelerAvatar
+                  key={t.id}
+                  name={t.name}
+                  color={t.color}
+                  selected={selectedTraveler === t.id}
+                  onPress={() => {
+                    const next = selectedTraveler === t.id ? null : t.id;
+                    selectedTravelerRef.current = next;
+                    setSelectedTraveler(next);
+                  }}
+                  showDelete={false}
+                />
+              ))}
+            </View>
           )}
         </View>
 
@@ -216,6 +401,7 @@ function PrepareScreen() {
           addItem,
           deleteItem,
           editItem,
+          toggleCheck,
           assignTraveler,
           showAssignee: true,
           styles: sharedStyles,
@@ -234,6 +420,7 @@ function PrepareScreen() {
           addItem,
           deleteItem,
           editItem,
+          toggleCheck,
           assignTraveler,
           showAssignee: true,
           styles: sharedStyles,
@@ -253,6 +440,7 @@ function PrepareScreen() {
           addItem,
           deleteItem,
           editItem,
+          toggleCheck,
           showAssignee: false,
           styles: sharedStyles,
         })}
@@ -271,6 +459,7 @@ function PrepareScreen() {
           addItem,
           deleteItem,
           editItem,
+          toggleCheck,
           showAssignee: false,
           styles: sharedStyles,
         })}
@@ -287,7 +476,9 @@ function PrepareScreen() {
                 navigation.navigate('MemoScreen', {
                   memo,
                   onSave: (updatedMemo) => {
-                    setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
+                    setMemos((prev) =>
+                      prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)),
+                    );
                   },
                 })
               }
@@ -296,7 +487,10 @@ function PrepareScreen() {
               <Text style={sharedStyles.memoText}>{memo.title}</Text>
             </Pressable>
 
-            <Pressable onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))} hitSlop={8}>
+            <Pressable
+              onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))}
+              hitSlop={8}
+            >
               <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
             </Pressable>
           </View>
@@ -368,11 +562,30 @@ function PrepareScreen() {
 export default PrepareScreen;
 
 const styles = StyleSheet.create({
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   travelerRow: {
     marginTop: 8,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  invitePlusButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.grayscale[100],
+  },
+  invitePlusButtonPressed: {
+    opacity: 0.7,
+  },
+  invitePlusButtonDisabled: {
+    opacity: 0.35,
   },
 
   centerPlusButton: {
@@ -416,11 +629,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  buttonRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'center', 
-    gap: 12, 
-    marginTop: 10 
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 10,
   },
 
   startButton: {
@@ -431,10 +644,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 7,
   },
 
-  startText: { 
-    color: colors.grayscale[100], 
-    fontFamily: 'Pretendard-SemiBold', 
-    fontSize: 16 
+  startText: {
+    color: colors.grayscale[100],
+    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 16,
   },
 
   deleteButton: {
@@ -445,9 +658,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 7,
   },
 
-  deleteText: { 
-    color: colors.grayscale[100], 
-    fontFamily: 'Pretendard-SemiBold', 
-    fontSize: 16 
+  deleteText: {
+    color: colors.grayscale[100],
+    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 16,
   },
 });

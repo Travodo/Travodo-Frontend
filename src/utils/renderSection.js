@@ -16,6 +16,7 @@ export function renderSection({
   addItem,
   deleteItem,
   editItem,
+  toggleCheck,
   assignTraveler,
   showAssignee = false,
   styles,
@@ -30,6 +31,8 @@ export function renderSection({
   content={item.content}
   travelerName={item.travelerName}
   travelerColor={item.travelerColor}
+  checked={!!item.checked}
+  onCheck={() => toggleCheck?.(list, setter, index)}
   showAssignee={showAssignee}
   onAssign={() => {
     console.log('onAssign 연결됨'); 
