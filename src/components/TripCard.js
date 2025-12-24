@@ -15,7 +15,10 @@ const calculateDDay = (startDateString) => {
   if (!startDateString) return null;
 
   const dateParts = startDateString.match(/\d+/g);
-  if (!dateParts || dateParts.length < 3) return null;
+  if (!dateParts || dateParts.length < 3) {
+    console.error('날짜 형식이 올바르지 않습니다:', startDateString);
+    return null;
+  }
 
   const year = parseInt(dateParts[0], 10);
   const month = parseInt(dateParts[1], 10) - 1;
@@ -29,7 +32,10 @@ const calculateDDay = (startDateString) => {
   const timeDiff = startDate.getTime() - today.getTime();
   const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
 
-  if (isNaN(dayDiff)) return null;
+  if (isNaN(dayDiff)) {
+    console.error('날짜 계산 중 오류 발생 (NaN)', startDateString);
+    return null;
+  }
 
   return dayDiff;
 };
@@ -39,26 +45,29 @@ export default function TripCard({ trip, hideActions = false }) {
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(0);
-
   const startDate = trip?.startDate;
   const endDate = trip?.endDate;
   const tripName = trip?.name ?? trip?.title ?? trip?.tripTitle ?? '여행';
   const destination = trip?.destination ?? trip?.place ?? trip?.location ?? '';
   const companions = Array.isArray(trip?.companions) ? trip.companions : [];
   const dDay = calculateDDay(startDate);
+  const myStatus = trip?.status ?? (dDay != null && dDay <= 0 ? 'ONGOING' : 'UPCOMING');
 
   const onLayout = (event) => {
     const { height } = event.nativeEvent.layout;
-    if (height !== contentHeight) setContentHeight(height);
+    if (height !== contentHeight) {
+      setContentHeight(height);
+    }
   };
 
   const toggleExpand = () => {
+    const finalValue = expanded ? 0 : 1;
     Animated.timing(animation, {
-      toValue: expanded ? 0 : 1,
+      toValue: finalValue,
       duration: 240,
       useNativeDriver: false,
     }).start();
-    setExpanded((prev) => !prev);
+    setExpanded(!expanded);
   };
 
   const heightInterpolate = animation.interpolate({
@@ -74,36 +83,61 @@ export default function TripCard({ trip, hideActions = false }) {
   const renderDDay = () => {
     if (dDay === null) return null;
 
-    let text = '';
-    if (dDay > 0) text = `D-${dDay}`;
-    else if (dDay === 0) text = '오늘!';
-    else text = `D+${Math.abs(dDay)}`;
+    let dDayText;
+    if (dDay > 0) dDayText = `D-${dDay}`;
+    else if (dDay === 0) dDayText = '오늘!';
+    else dDayText = `D+${Math.abs(dDay)}`;
 
-    return (
-      <Text style={dDay > 0 ? styles.dDay : styles.dDayPassed}>
-        {text}
-      </Text>
-    );
+    const dDayStyle = dDay > 0 ? styles.dDay : styles.dDayPassed;
+    return <Text style={dDayStyle}>{dDayText}</Text>;
   };
 
   const navigateTrip = () => {
-    navigation.navigate('Prepare', { tripData: trip });
+    const state = navigation.getState?.();
+    const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
+    const canDirect = (screenName) => routeNames.includes(screenName);
+
+    if (myStatus === 'ONGOING') {
+      // TripCard가 TripStack 내부/외부 어디서 쓰이든 동작하도록 분기
+      if (canDirect('OnTripScreen')) {
+        navigation.navigate('OnTripScreen', { trip });
+      } else {
+      navigation.navigate('TripStack', { screen: 'OnTripScreen', params: { trip } });
+      }
+      return;
+    }
+    if (canDirect('PrepareScreen')) {
+      navigation.navigate('PrepareScreen', { tripData: trip });
+    } else {
+    navigation.navigate('TripStack', { screen: 'PrepareScreen', params: { tripData: trip } });
+    }
   };
 
-  const navigateToCommunityWrite = () => {
-    navigation.navigate('CommunityStack', {
-      screen: 'CommunityWrite',
-      params: {
-        id: trip?.id,
-        tripId: trip?.id,
-        tripTitle: tripName,
-        location: destination,
-        startDate,
-        endDate,
-        companions,
-        circleColor: trip?.color,
-      },
-    });
+  const navigateToCommunityWrite = (tripData) => {
+    // TripCard는 여러 네비게이터(TripStack/HomeStack 등)에서 재사용되므로
+    // CommunityStack을 핸들하는 상위 네비게이터를 찾아서 이동
+    let nav = navigation;
+    for (let i = 0; i < 6 && nav; i += 1) {
+      const state = nav.getState?.();
+      const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
+
+      // 이미 CommunityStack 내부에 있는 경우
+      if (routeNames.includes('CommunityWrite')) {
+        nav.navigate('CommunityWrite', { tripData });
+        return;
+      }
+
+      // MainStack 등에서 CommunityStack을 직접 핸들할 수 있는 경우
+      if (routeNames.includes('CommunityStack')) {
+        nav.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
+        return;
+      }
+
+      nav = nav.getParent?.();
+    }
+
+    // 최후의 fallback (개발 중 경고만 남기고 실패할 수 있음)
+    navigation.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
   };
 
   return (
@@ -112,15 +146,10 @@ export default function TripCard({ trip, hideActions = false }) {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={toggleExpand}
-          style={[styles.card, { borderLeftColor: trip?.color || colors.primary[700] }]}
+          style={[styles.card, { borderLeftColor: trip.color || colors.primary[700] }]}
         >
           <View style={styles.headerRow}>
-            <View
-              style={[
-                styles.circle,
-                { backgroundColor: trip?.color || colors.primary[700] },
-              ]}
-            />
+            <View style={[styles.circle, { backgroundColor: trip.color || colors.primary[700] }]} />
             <Text style={styles.name}>{tripName}</Text>
             {renderDDay()}
             <MaterialIcons
@@ -134,11 +163,13 @@ export default function TripCard({ trip, hideActions = false }) {
             {startDate} - {endDate}
           </Text>
         </TouchableOpacity>
-
         <Animated.View
           style={[
             styles.detailBox,
-            { height: heightInterpolate, opacity: opacityInterpolate },
+            {
+              height: heightInterpolate,
+              opacity: opacityInterpolate,
+            },
           ]}
         >
           <View style={styles.detailInner} onLayout={onLayout}>
@@ -159,23 +190,35 @@ export default function TripCard({ trip, hideActions = false }) {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>동행자</Text>
               <Text style={styles.detailValue}>
-                {companions.length ? companions.join(', ') : '동행자 없음'}
+                {companions.length > 0
+                  ? companions.join(', ')
+                  : '동행자 없음'}
               </Text>
             </View>
+            <View style={styles.divider} />
 
             {!hideActions && (
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={styles.shareButton}
-                  onPress={navigateToCommunityWrite}
+                  onPress={() => {
+                    navigateToCommunityWrite({
+                          // CommunityWriteTripCard가 기대하는 형태
+                          id: trip?.id,
+                          tripId: trip?.id,
+                          tripTitle: tripName,
+                          location: destination,
+                          startDate,
+                          endDate,
+                          companions,
+                          circleColor: trip?.color,
+                    });
+                  }}
                 >
                   <Text style={styles.shareText}>공유하기</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.disabledButton}
-                  onPress={navigateTrip}
-                >
+                <TouchableOpacity style={styles.disabledButton} onPress={() => navigateTrip()}>
                   <Text style={styles.disabledText}>자세히 보기</Text>
                 </TouchableOpacity>
               </View>
