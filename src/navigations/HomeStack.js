@@ -37,62 +37,53 @@ function HomeStack() {
         ),
       }}
     >
-      {/* 홈 */}
       <Stack.Screen
         name="HomeMain"
         component={HomeScreen}
         options={{ headerShown: false }}
       />
 
-      {/* 여행 생성 */}
       <Stack.Screen
         name="TravelCreate"
         component={TravelCreateScreen}
         options={{ headerShown: false }}
       />
 
-      {/* 여행 생성 완료 */}
       <Stack.Screen
         name="TravelComplete"
         component={TravelCompleteScreen}
         options={{ headerShown: true }}
       />
 
-      {/* 여행 참가 */}
       <Stack.Screen
         name="Join"
         component={JoinScreen}
         options={{ headerShown: true }}
       />
 
-      {/* 여행 준비 리스트 */}
       <Stack.Screen
         name="Prepare"
         component={PrepareScreen}
         options={{ headerShown: true }}
       />
 
-      {/* 여행 TODO 시작 */}
       <Stack.Screen
         name="StartTrip"
         component={StartTripScreen}
-        options={{ headerShown: true }}
+        options={{ headerShown: false }}
       />
 
-      {/* 여행 중 TODO */}
       <Stack.Screen
         name="OnTrip"
         component={OnTripScreen}
         options={{ headerShown: true }}
       />
 
-      {/* 여행 기록 완료 (몰입 화면) */}
       <Stack.Screen
         name="EndTrip"
         component={EndTripScreen}
         options={{
-          headerShown: false,
-          presentation: 'card',
+          headerShown: false
         }}
       />
     </Stack.Navigator>

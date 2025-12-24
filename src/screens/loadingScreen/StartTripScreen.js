@@ -31,7 +31,7 @@ function StartTripScreen() {
         activities,
         memos,
       });
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [trip, travelers, necessity, shared, personal, activities, memos, navigation]);
