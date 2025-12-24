@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 
 function TravelCompleteScreen({ route }) {
   const navigation = useNavigation();
-  
+
   const { tripData } = route.params || {};
   const { name, destination, startDate, endDate, code, color, id } = tripData || {};
 
@@ -59,16 +59,11 @@ function TravelCompleteScreen({ route }) {
       </TouchableOpacity>
 
       <TouchableOpacity
-  style={styles.skipButton}
-  onPress={() =>
-    // TripStack 내부 화면으로 이동 (OnTripStack 라우트는 없음)
-    navigation.replace('PrepareScreen', { tripData })
-  }
->
-  <Text style={styles.skipText}>건너뛰기</Text>
-</TouchableOpacity>
-
-
+        style={styles.skipButton}
+        onPress={() => navigation.replace('Prepare', { tripData })}
+      >
+        <Text style={styles.skipText}>건너뛰기</Text>
+      </TouchableOpacity>
     </View>
   );
 }

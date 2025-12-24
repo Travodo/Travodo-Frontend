@@ -1,5 +1,7 @@
+import React, { useState, useLayoutEffect } from 'react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -197,6 +199,10 @@ function OnTripScreen() {
       {
         text: '종료',
         style: 'destructive',
+        onPress: () => {
+          navigation.navigate('BottomTab', {
+            screen: 'HomeTab',
+          });
         onPress: async () => {
           try {
             if (trip?.id != null) {
@@ -212,6 +218,20 @@ function OnTripScreen() {
       },
     ]);
   };
+
+  useLayoutEffect(() => {
+  const parent = navigation.getParent();
+
+  parent?.setOptions({
+    headerShown: true,
+  });
+
+  return () => {
+    parent?.setOptions({
+      headerShown: false,
+    });
+  };
+}, []);
 
   return (
     <View style={sharedStyles.container}>

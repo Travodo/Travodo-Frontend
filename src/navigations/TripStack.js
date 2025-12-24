@@ -112,20 +112,6 @@ function TripStack() {
           headerTitle: '글쓰기',
         }}
       />
-      <Stack.Screen
-        name="OnTrip"
-        component={OnTripScreen}
-        options={{
-          headerTitle: '글쓰기',
-        }}
-      />
-      <Stack.Screen
-        name="PrepareScreen"
-        component={PrepareScreen}
-        options={{
-          headerTitle: '글쓰기',
-        }}
-      />
     </Stack.Navigator>
   );
 }

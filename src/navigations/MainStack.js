@@ -57,7 +57,7 @@ function MainStack() {
           headerShown: false,
         }}
       />
-
+      
     </Stack.Navigator>
   );
 }
