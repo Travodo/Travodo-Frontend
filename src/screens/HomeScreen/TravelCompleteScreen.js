@@ -60,10 +60,7 @@ function TravelCompleteScreen({ route }) {
       <TouchableOpacity
   style={styles.skipButton}
   onPress={() =>
-    navigation.replace('OnTripStack', {
-      screen: 'Prepare',
-      params: { tripData },
-    })
+    navigation.replace('Prepare', { tripData })
   }
 >
   <Text style={styles.skipText}>건너뛰기</Text>

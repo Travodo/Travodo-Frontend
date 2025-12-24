@@ -331,9 +331,7 @@ function PrepareScreen() {
           <TouchableOpacity
             style={styles.startButton}
             onPress={() =>
-              navigation.navigate('OnTripStack', {
-                screen: 'StartTrip',
-                params: {
+              navigation.navigate('StartTrip', {
                   trip,
                   travelers,
                   necessity,
@@ -342,10 +340,10 @@ function PrepareScreen() {
                   personal,
                   activities,
                   memos,
-                },
               })
             }
-          >
+            >
+
             <Text style={styles.startText}>여행 시작</Text>
           </TouchableOpacity>
 

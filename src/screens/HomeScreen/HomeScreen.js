@@ -67,7 +67,7 @@ function HomeScreen({ route }) {
 
       <FAB
         icon="add"
-        onCreatePress={() => navigation.navigate('Prepare')}
+        onCreatePress={() => navigation.navigate('TravelCreate')}
         onJoinPress={() => navigation.navigate('Join')}
         onWritePress={() =>
           navigation.navigate('CommunityStack', { screen: 'CommunitySelectWriteTrip' })

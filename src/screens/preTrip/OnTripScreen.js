@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
@@ -57,11 +56,27 @@ function OnTripScreen() {
         text: '종료',
         style: 'destructive',
         onPress: () => {
-          navigation.popToTop();
+          navigation.navigate('BottomTab', {
+            screen: 'HomeTab',
+          });
         },
       },
     ]);
   };
+
+  useLayoutEffect(() => {
+  const parent = navigation.getParent();
+
+  parent?.setOptions({
+    headerShown: true,
+  });
+
+  return () => {
+    parent?.setOptions({
+      headerShown: false,
+    });
+  };
+}, []);
 
   return (
     <View style={sharedStyles.container}>
