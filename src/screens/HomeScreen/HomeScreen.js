@@ -68,14 +68,10 @@ function HomeScreen({ route }) {
       <FAB
   icon="add"
   onCreatePress={() =>
-    navigation.navigate('TripStack', {
-      screen: 'TravelCreate',
-    })
+    navigation.navigate('TravelCreate')
   }
   onJoinPress={() =>
-    navigation.navigate('TripStack', {
-      screen: 'Join',
-    })
+    navigation.navigate('Join')
   }
   onWritePress={() =>
     navigation.navigate('CommunityStack', {
