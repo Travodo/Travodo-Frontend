@@ -19,11 +19,11 @@ function HomeStack() {
 
       <Stack.Screen name="Prepare" component={PrepareScreen} options={{ headerShown: false }} />
 
-      <Stack.Screen name="StartTrip" component={StartTripScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="StartTrip" component={StartTripScreen} options={{ headerShown: false, presentation: 'fullScreenModal' }} />
 
       <Stack.Screen name="OnTrip" component={OnTripScreen} options={{ headerShown: false }} />
 
-      <Stack.Screen name="EndTrip" component={EndTripScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="EndTrip" component={EndTripScreen} options={{ headerShown: false, presentation: 'fullScreenModal' }} />
       <Stack.Screen name="Join" component={JoinScreen} options={{ headerShown: false }} />
       <Stack.Screen name="TravelCreate" component={TravelCreateScreen} options={{ headerShown: false }} />
       <Stack.Screen name="TravelComplete" component={TravelCompleteScreen} options={{ headerShown: false }} />
