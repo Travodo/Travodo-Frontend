@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { colors } from '../styles/colors';
 import { View } from 'react-native';
 
-import PrepareScreen from '../screens/preTrip/PrepareScreen';
 import StartTripScreen from '../screens/loadingScreen/StartTripScreen';
 import OnTripScreen from '../screens/preTrip/OnTripScreen';
 import EndTripScreen from '../screens/loadingScreen/EndTripScreen';
@@ -31,11 +30,6 @@ function OnTripStack() {
         ),
       }}
     >
-      <Stack.Screen
-        name="Prepare"
-        component={PrepareScreen}
-        options={{ headerShown: true, headerTitle: "" }}
-      />
 
       <Stack.Screen
         name="StartTrip"

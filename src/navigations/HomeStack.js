@@ -6,41 +6,42 @@ import HomeScreen from '../screens/homeScreen/HomeScreen';
 import JoinScreen from '../screens/homeScreen/JoinScreen';
 import TravelCompleteScreen from '../screens/homeScreen/TravelCompleteScreen';
 import TravelCreateScreen from '../screens/homeScreen/TravelCreateScreen';
+import PrepareScreen from '../screens/preTrip/PrepareScreen';
 
 const Stack = createNativeStackNavigator();
 
 function HomeStack() {
   return (
     <Stack.Navigator
-      screenOptions={{
-        headerTitle: '',
-        headerShadowVisible: false,
-        headerTopInsetEnabled: false,
-        headerStyle: {
-          height: 56,
-        },
-        headerTitleContainerStyle: {
-          paddingBottom: 0,
-        },
-        headerLeftContainerStyle: {
-          paddingLeft: 16,
-          paddingBottom: 0,
-        },
-        headerRightContainerStyle: {
-          paddingRight: 16,
-          paddingBottom: 0,
-        },
-        headerBackground: () => (
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: '#fff',
-              borderBottomWidth: 1,
-              borderBottomColor: colors.grayscale[300],
-            }}
-          />
-        ),
+    screenOptions={{
+  headerShadowVisible: false,
+  headerTopInsetEnabled: false,
+  headerStyle: {
+    height: 56,
+  },
+  headerTitleContainerStyle: {
+    paddingBottom: 0,
+  },
+  headerLeftContainerStyle: {
+    paddingLeft: 16,
+    paddingBottom: 0,
+  },
+  headerRightContainerStyle: {
+    paddingRight: 16,
+    paddingBottom: 0,
+  },
+  headerBackground: () => (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: colors.grayscale[300],
       }}
+    />
+  ),
+}}
+
     >
       <Stack.Screen
         name="HomeMain"
@@ -59,13 +60,19 @@ function HomeStack() {
       <Stack.Screen
         name="TravelComplete"
         component={TravelCompleteScreen}
-        options={{ headerShown: true, headerTitle: '' }}
+        options={{ headerShown: true }}
       />
 
       <Stack.Screen
         name="Join"
         component={JoinScreen}
-        options={{ headerShown: true, headerTitle: '' }}
+        options={{ headerShown: true }}
+      />
+
+      <Stack.Screen
+        name="Prepare"
+        component={PrepareScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

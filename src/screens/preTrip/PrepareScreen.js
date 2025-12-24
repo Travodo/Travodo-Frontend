@@ -24,7 +24,15 @@ function PrepareScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   
-  const trip = route?.params?.tripData;
+  const trip =
+  route?.params?.tripData ??
+  {
+    name: '제주도 여행',
+    destination: '제주',
+    startDate: '2025.09.01',
+    endDate: '2025.09.05',
+    color: '#769FFF',
+  };
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
@@ -323,14 +331,18 @@ function PrepareScreen() {
           <TouchableOpacity
             style={styles.startButton}
             onPress={() =>
-              navigation.navigate('StartTrip', {
-                trip,
-                travelers,
-                necessity,
-                shared,
-                personal,
-                activities,
-                memos,
+              navigation.navigate('OnTripStack', {
+                screen: 'StartTrip',
+                params: {
+                  trip,
+                  travelers,
+                  necessity,
+                  shared,
+                  personal,
+                  personal,
+                  activities,
+                  memos,
+                },
               })
             }
           >
