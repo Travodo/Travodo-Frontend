@@ -517,7 +517,7 @@ function PrepareScreen() {
           <TouchableOpacity
             style={styles.startButton}
             onPress={() =>
-              navigation.navigate('StartTripScreen', {
+              navigation.navigate('StartTrip', {
                 trip,
                 travelers,
                 necessity,
