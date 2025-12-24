@@ -13,7 +13,7 @@ function PostList({ data, onPress, ListHeaderComponent, onScrap }) {
         borderBottomColor: colors.grayscale[300],
       }}
       data={data}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => String(item.id)}
       renderItem={({ item }) => (
         <PostItem post={item} onPress={() => onPress(item)} onScrap={() => onScrap(item.id)} />
       )}
@@ -25,7 +25,7 @@ function PostList({ data, onPress, ListHeaderComponent, onScrap }) {
 }
 
 PostList.propTypes = {
-  data: PropTypes.object.isRequired,
+  data: PropTypes.array.isRequired,
   onPress: PropTypes.func.isRequired,
 };
 

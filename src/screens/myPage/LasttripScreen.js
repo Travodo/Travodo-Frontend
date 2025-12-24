@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { pastTrips } from '../../data/TripList';
 import { colors } from '../../styles/colors';
 import { getRandomColor } from '../../styles/cardColors';
 import TripCard from '../../components/TripCard';
 import Dropdown from '../../components/Dropdown';
 import { useNavigation } from '@react-navigation/native';
+import { getPastTrips } from '../../services/api';
 
 function LasttripScreen() {
   const navigation = useNavigation();
@@ -15,19 +15,28 @@ function LasttripScreen() {
   const [coloredTrips, setColoredTrips] = useState([]);
 
   useEffect(() => {
-    const data = pastTrips || [];
-
-    const tripsWithColors = data.map((trip) => {
-      if (trip.color) {
-        return trip;
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await getPastTrips(); // PastTripResponse[]
+        const normalized = (data || []).map((t) => ({
+          id: t.tripId,
+          title: t.name,
+          startDate: String(t.startDate || '').replace(/-/g, '.'),
+          endDate: String(t.endDate || '').replace(/-/g, '.'),
+          location: t.place,
+          color: t.color || getRandomColor(),
+          people: t.memberCount,
+        }));
+        if (mounted) setColoredTrips(normalized);
+      } catch (e) {
+        console.error('지난 여행 조회 실패:', e);
+        if (mounted) setColoredTrips([]);
       }
-
-      return {
-        ...trip,
-        color: getRandomColor(),
-      };
-    });
-    setColoredTrips(tripsWithColors);
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const sortedTrips = [...coloredTrips].sort((a, b) => {

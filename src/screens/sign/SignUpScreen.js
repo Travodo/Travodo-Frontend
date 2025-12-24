@@ -11,8 +11,10 @@ import {
   confirmEmailVerification,
   signInWithKakao,
 } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 
 function SignUpScreen({ navigation }) {
+  const { login } = useAuth();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -148,7 +150,7 @@ function SignUpScreen({ navigation }) {
         Alert.alert('회원가입 완료', '회원가입이 완료되었습니다!', [
           {
             text: '확인',
-            onPress: () => navigation.replace('Sign In'),
+            onPress: () => login(),
           },
         ]);
       } else {
@@ -173,7 +175,7 @@ function SignUpScreen({ navigation }) {
         Alert.alert('로그인 성공', `환영합니다, ${name}님!`, [
           {
             text: '확인',
-            onPress: () => navigation.replace('MainTab'),
+            onPress: () => login(),
           },
         ]);
       } else {

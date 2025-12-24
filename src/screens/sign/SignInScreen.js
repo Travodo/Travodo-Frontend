@@ -12,8 +12,10 @@ import {
   isAuthenticated,
 } from '../../services/authService';
 import { logKeyHash } from '../../utils/getKeyHash';
+import { useAuth } from '../../contexts/AuthContext';
 
 function SignInScreen({ navigation }) {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -40,14 +42,14 @@ function SignInScreen({ navigation }) {
       console.log('로그인 상태:', loggedIn);
 
       if (loggedIn) {
-        console.log('→ 홈 화면으로 이동');
-        navigation.replace('MainStack');
+        console.log('→ 토큰 기반 로그인 상태 복구');
+        login();
       } else {
         console.log('→ 로그인 화면 유지');
       }
     };
     checkAutoLogin();
-  }, [navigation]);
+  }, [navigation, login]);
 
   // 이메일 로그인 처리
   const handleEmailLogin = async () => {
@@ -72,7 +74,7 @@ function SignInScreen({ navigation }) {
           {
             text: '확인',
             onPress: () => {
-              navigation.replace('MainStack');
+              login();
             },
           },
         ]);
@@ -102,7 +104,7 @@ function SignInScreen({ navigation }) {
           {
             text: '확인',
             onPress: () => {
-              navigation.replace('MainStack');
+              login();
             },
           },
         ]);
@@ -128,7 +130,7 @@ function SignInScreen({ navigation }) {
                     {
                       text: '확인',
                       onPress: () => {
-                        navigation.replace('MainStack');
+                        login();
                       },
                     },
                   ]);

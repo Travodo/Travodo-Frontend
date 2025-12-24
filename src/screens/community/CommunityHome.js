@@ -4,10 +4,12 @@ import PostList from '../../components/PostList';
 import CategoriesList from '../../components/CategoriesList';
 import Dropdown from '../../components/Dropdown';
 import { CATEGORY_TABS, CommunityData } from '../../data/TripList';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../../styles/colors';
 import FAB from '../../components/FAB';
+import { getCommunityPosts } from '../../services/api';
+
+const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
 function CommunityHome({ navigation }) {
   const [isCategories, setIsCategories] = useState(['전체']);
   const [allPosts, setAllPosts] = useState([]);
@@ -18,26 +20,43 @@ function CommunityHome({ navigation }) {
     useCallback(() => {
       const loadPosts = async () => {
         try {
-          const savedData = await AsyncStorage.getItem('community_data');
-
-          if (savedData) {
-            // 1. 저장된 데이터가 있으면 그걸 사용
-            const parsedData = JSON.parse(savedData);
-            setAllPosts(Array.isArray(parsedData) ? parsedData : []);
-          } else {
-            // 2. 저장된 데이터가 없으면(최초 실행 시), 기본 데이터(CommunityData)를 사용하고 저장
-            console.log('초기 데이터가 없어 CommunityData를 로드합니다.');
-            setAllPosts(CommunityData);
-            await AsyncStorage.setItem('community_data', JSON.stringify(CommunityData));
-          }
+          const sort = selectedSort === '최신순' ? 'recent' : 'popular';
+          const res = await getCommunityPosts({ sort, page: 0, size: 50 });
+          const content = res?.content || [];
+          const mapped = content.map((p) => ({
+            id: p.id,
+            nickname: p.author?.nickname || '',
+            title: p.title,
+            content: p.summary || p.content || '',
+            hCount: p.likeCount ?? 0,
+            cCount: p.commentCount ?? 0,
+            isScraped: p.isBookmarked ?? false,
+            agoDate: p.createdAt ? String(p.createdAt) : '',
+            images: p.thumbnailUrl ? [p.thumbnailUrl] : [],
+            category: '기타',
+            // 상세 화면(CommunityContent)이 기대하는 여행 정보 형태로 정규화
+            tripData: p.trip
+              ? {
+                  tripId: p.trip?.id ?? p.tripId,
+                  tripTitle: p.trip?.name ?? '',
+                  startDate: toDotDate(p.trip?.startDate),
+                  endDate: toDotDate(p.trip?.endDate),
+                  location: p.trip?.place ?? '',
+                  // 실제 인원수는 응답에 없어서 maxMembers로 대체(없으면 0)
+                  people: Number(p.trip?.maxMembers ?? 0),
+                  todo: null,
+                  circleColor: p.trip?.color ?? '',
+                }
+              : null,
+          }));
+          setAllPosts(mapped);
         } catch (e) {
           console.error('데이터 불러오기 실패:', e);
-          // 에러 발생 시에도 최소한 기본 데이터는 보여주도록 처리
           setAllPosts(CommunityData);
         }
       };
       loadPosts();
-    }, []),
+    }, [selectedSort]),
   );
 
   const handleScrap = async (postId) => {
@@ -53,11 +72,6 @@ function CommunityHome({ navigation }) {
       return post;
     });
     setAllPosts(updatedPosts);
-    try {
-      await AsyncStorage.setItem('community_data', JSON.stringify(updatedPosts));
-    } catch (e) {
-      console.error('스크랩 저장 실패:', e);
-    }
   };
   const selectCategories = (categoryLabel) => {
     if (categoryLabel === '전체') {

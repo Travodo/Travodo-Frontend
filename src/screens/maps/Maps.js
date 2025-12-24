@@ -1,6 +1,6 @@
 import { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import MapView from 'react-native-maps';
-import { View, StyleSheet, Text, ActivityIndicator, Pressable } from 'react-native';
+import { View, StyleSheet, Text, ActivityIndicator, Pressable, Platform } from 'react-native';
 import { colors } from '../../styles/colors';
 import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
@@ -151,7 +151,9 @@ function Maps() {
           longitudeDelta: 0.0421,
         }}
         showsUserLocation={true}
-        provider={PROVIDER_GOOGLE}
+        // iOS에서 PROVIDER_GOOGLE는 네이티브 GoogleMaps 설정이 필요합니다.
+        // (설정 전에는 기본 Apple Maps 사용)
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
       >
         {myStatus === 'ongoing' &&
           DUMMY_USERS.filter((user) => user.myStatus === 'ongoing').map((user) => (

@@ -16,7 +16,6 @@ import {
 } from 'react-native';
 import { useEffect, useState, useRef } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import CommunityWriteTripCard from '../../components/CommunityWriteTripCard';
 import CameraBottomBar from '../../components/CameraBottomBar';
@@ -24,6 +23,7 @@ import ToggleSwitch from '../../components/ToggleSwitch';
 import { colors } from '../../styles/colors';
 import Close from '../../../assets/ComponentsImage/Close.svg';
 import Categories from '../../components/Categories';
+import { createCommunityPost } from '../../services/api';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const TAG_LIST = [
@@ -46,11 +46,20 @@ function CommunityWrite({ route, navigation }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [visibleModal, setVisibleModal] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [isSettingOpen, setIsSettingOpen] = useState(false);
   const sheetAnim = useRef(new Animated.Value(SCREEN_HEIGHT + 100)).current;
+
+  const tripId = tripData?.tripId ?? tripData?.id ?? null;
+  const canSubmit =
+    !!tripId &&
+    title.trim().length > 0 &&
+    content.trim().length > 0 &&
+    selectedTags.length > 0 &&
+    !submitting;
 
   const openSetting = () => {
     setIsSettingOpen(true);
@@ -77,12 +86,24 @@ function CommunityWrite({ route, navigation }) {
         </Pressable>
       ),
       headerRight: () => (
-        <Pressable onPress={handleUpload}>
-          <Text style={styles.headerText}>등록</Text>
+        <Pressable
+          onPress={handleUpload}
+          disabled={!canSubmit}
+          hitSlop={10}
+          style={{ opacity: canSubmit ? 1 : 0.4 }}
+        >
+          <Text
+            style={[
+              styles.headerText,
+              { color: canSubmit ? colors.primary[700] : colors.grayscale[500] },
+            ]}
+          >
+            등록
+          </Text>
         </Pressable>
       ),
     });
-  }, [navigation, title, content, selectedImages]);
+  }, [navigation, title, content, selectedImages, canSubmit]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -118,31 +139,49 @@ function CommunityWrite({ route, navigation }) {
   };
 
   async function handleUpload() {
+    if (!tripId) {
+      Alert.alert('알림', '공유할 여행 정보가 없습니다. 이전 화면에서 여행을 선택해주세요.');
+      return;
+    }
     if (!title.trim() || !content.trim()) {
       Alert.alert('알림', '제목과 내용을 입력해주세요.');
       return;
     }
+    if (selectedTags.length === 0) {
+      Alert.alert('알림', '태그를 1개 이상 선택해주세요.');
+      return;
+    }
+    if (submitting) return;
+    setSubmitting(true);
 
-    const newPost = {
-      id: Date.now(),
-      nickname: '내 닉네임',
-      agoDate: '방금 전',
+    // UI 태그 → 서버 TravelTag 매핑 (최소한의 매핑)
+    const mapTag = (t) => {
+      if (t.includes('휴양') || t.includes('힐링') || t.includes('호캉스')) return 'RELAXATION';
+      if (t.includes('친구') || t.includes('지인')) return 'FRIEND';
+      if (t.includes('커플') || t.includes('연인')) return 'COUPLE';
+      if (t.includes('가족') || t.includes('친지')) return 'FAMILY';
+      return 'SOLO';
+    };
+    const tags = selectedTags.map(mapTag);
+
+    try {
+    await createCommunityPost({
       title,
       content,
-      images: selectedImages,
-      tripData,
-      tags: selectedTags,
-      createdAt: new Date().toISOString(),
-      circleColor: tripData?.circleColor || '#000',
-    };
+      tags,
+        tripId,
+      imageUris: selectedImages,
+    });
 
-    const stored = await AsyncStorage.getItem('community_data');
-    const list = stored ? JSON.parse(stored) : [];
-    await AsyncStorage.setItem('community_data', JSON.stringify([newPost, ...list]));
-
-    Alert.alert('완료', '게시글이 등록되었습니다.', [
-      { text: '확인', onPress: () => navigation.navigate('BottomTab') },
-    ]);
+      Alert.alert('완료', '게시글이 등록되었습니다.', [
+        { text: '확인', onPress: () => navigation.navigate('BottomTab') },
+      ]);
+    } catch (e) {
+      console.error('게시글 등록 실패:', e);
+      Alert.alert('실패', '게시글 등록에 실패했습니다. 로그인/네트워크 상태를 확인해주세요.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const toggleTag = (tag) => {

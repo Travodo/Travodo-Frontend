@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { colors } from '../styles/colors';
 import { View } from 'react-native';
-import TravelCreateScreen from '../screens/homeScreen/TravelCreateScreen';
-import TravelCompleteScreen from '../screens/homeScreen/TravelCompleteScreen';
-import JoinScreen from '../screens/homeScreen/JoinScreen';
+import TravelCreateScreen from '../screens/HomeScreen/TravelCreateScreen';
+import TravelCompleteScreen from '../screens/HomeScreen/TravelCompleteScreen';
+import JoinScreen from '../screens/HomeScreen/JoinScreen';
 import EndTripScreen from '../screens/loadingScreen/EndTripScreen';
 import StartTripScreen from '../screens/loadingScreen/StartTripScreen';
 import ChecklistSection from '../screens/preTrip/ChecklistSection';
@@ -61,8 +61,24 @@ function TripStack() {
           headerTitle: '글쓰기',
         }}
       />
+      {/* alias route: 일부 코드/번들에서 EndTrip으로 navigate 하는 케이스 방어 */}
+      <Stack.Screen
+        name="EndTrip"
+        component={EndTripScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
       <Stack.Screen
         name="StartTripScreen"
+        component={StartTripScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      {/* alias routes (기존 코드/로그에서 StartTrip/Memo로 호출되는 케이스 방어) */}
+      <Stack.Screen
+        name="StartTrip"
         component={StartTripScreen}
         options={{
           headerTitle: '글쓰기',
@@ -83,7 +99,21 @@ function TripStack() {
         }}
       />
       <Stack.Screen
+        name="Memo"
+        component={MemoScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      <Stack.Screen
         name="OnTripScreen"
+        component={OnTripScreen}
+        options={{
+          headerTitle: '글쓰기',
+        }}
+      />
+      <Stack.Screen
+        name="OnTrip"
         component={OnTripScreen}
         options={{
           headerTitle: '글쓰기',
