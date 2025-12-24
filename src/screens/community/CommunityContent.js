@@ -9,6 +9,7 @@ import {
   Keyboard,
   Platform,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,15 +26,26 @@ import { CommunityData } from '../../data/TripList';
 import Scrap from '../../../assets/ComponentsImage/Scrap.svg';
 import Close from '../../../assets/ComponentsImage/Close.svg';
 import Report from '../../../assets/ComponentsImage/Report.svg';
+import Delete from '../../../assets/ComponentsImage/Delete.svg';
+import {
+  getMyInfo,
+  getCommunityPost,
+  deleteCommunityPost,
+  likeCommunityPost,
+  unlikeCommunityPost,
+} from '../../services/api';
 
 function CommunityContent({ route, navigation }) {
   const [commentList, setCommentList] = useState([]);
   const [inputText, setInputText] = useState('');
   const [visibleModal, setVisibleModal] = useState(false);
-  const [scrapCount, setScrapCount] = useState(post ? Number(post.hCount || 0) : 0);
-  const [isScrap, setIsScrap] = useState(post?.isScrap || false);
+  const [scrapCount, setScrapCount] = useState(Number(passedPost?.hCount || 0));
+  const [isScrap, setIsScrap] = useState(passedPost?.isScraped || false);
+  const [userId, setUserId] = useState('');
+  const [writerId, setWriterId] = useState('');
 
-  const { post: passedPost, postId } = route.params || {};
+  const { post: passedPost, postId: passedPostId } = route.params || {};
+  const postId = passedPostId || passedPost?.id;
   const post = passedPost || CommunityData.find((p) => p.id.toString() === postId?.toString());
   if (!post) {
     return (
@@ -48,11 +60,41 @@ function CommunityContent({ route, navigation }) {
       headerLeft: () => (
         <Pressable
           style={[styles.headerButton, { transform: [{ rotate: '-45deg' }] }]}
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           onPress={() => navigation.goBack()}
         ></Pressable>
       ),
     });
   }, []);
+
+  useEffect(() => {
+    const fetchId = async () => {
+      try {
+        const data = await getMyInfo();
+        setUserId(data.id);
+      } catch (error) {
+        console.error('정보를 가져오는데 실패했습니다.', error);
+      }
+    };
+    fetchId();
+  }, []);
+
+  useEffect(() => {
+    const fetchPostDetail = async () => {
+      if (!postId) return;
+      try {
+        const data = await getCommunityPost(postId);
+        setWriterId(data?.author?.id);
+        setScrapCount(data?.likeCount ?? 0);
+        setIsScrap(data?.isLiked ?? false);
+      } catch (error) {
+        console.error('게시글 정보를 가져오는데 실패했습니다.', error);
+      }
+    };
+    fetchPostDetail();
+  }, [postId]);
+
+  const isMyPost = userId !== null && userId !== '' && userId === writerId;
 
   const {
     nickname,
@@ -84,7 +126,8 @@ function CommunityContent({ route, navigation }) {
       : post);
 
   const { startDate, endDate, location, people, todo } = normalizedTripData || {};
-  const displayTripTitle = (normalizedTripData && normalizedTripData.tripTitle) || tripTitle || title;
+  const displayTripTitle =
+    (normalizedTripData && normalizedTripData.tripTitle) || tripTitle || title;
   const displayCircleColor = (normalizedTripData && normalizedTripData.circleColor) || circleColor;
 
   const handleSendComment = () => {
@@ -103,14 +146,51 @@ function CommunityContent({ route, navigation }) {
     Keyboard.dismiss();
   };
 
-  const handleScrap = () => {
-    setIsScrap((prev) => !prev);
-    setScrapCount((prev) => (isScrap ? prev - 1 : prev + 1));
+  const handleScrap = async () => {
+    const isCurrentlyLiked = isScrap;
+    const nextScrapStatus = !isScrap;
+
+    setIsScrap(nextScrapStatus);
+    setScrapCount((prev) => (nextScrapStatus ? prev + 1 : prev - 1));
+
+    try {
+      if (isCurrentlyLiked) {
+        await unlikeCommunityPost(postId);
+      } else {
+        await likeCommunityPost(postId);
+      }
+    } catch (error) {
+      setIsScrap(!nextScrapStatus);
+      setScrapCount((prev) => (isCurrentlyLiked ? prev : prev));
+      Alert.alert('알림', '처리에 실패했습니다.');
+    }
   };
 
   const handleModalScrap = () => {
     handleScrap();
     setVisibleModal(false);
+  };
+
+  const handleDeletePost = () => {
+    setVisibleModal(false);
+    Alert.alert('게시글 삭제', '정말로 삭제하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            console.log('삭제 시도 중, ID:', postId);
+            await deleteCommunityPost(postId);
+            Alert.alert('완료', '게시글이 삭제되었습니다.');
+            navigation.goBack();
+          } catch (error) {
+            console.error('삭제 실패', error);
+            Alert.alert('오류', '게시글 삭제에 실패했습니다.');
+          }
+        },
+      },
+    ]);
   };
 
   const handleCommentLike = (commentId) => {
@@ -203,10 +283,17 @@ function CommunityContent({ route, navigation }) {
                 <Scrap width={24} height={23} />
                 <Text style={styles.scrapText}>글 저장하기</Text>
               </Pressable>
-              <Pressable style={styles.scrapContainer}>
-                <Report width={24} height={23} />
-                <Text style={styles.report}>신고하기</Text>
-              </Pressable>
+              {isMyPost ? (
+                <Pressable style={styles.scrapContainer} onPress={handleDeletePost}>
+                  <Delete width={24} height={23} />
+                  <Text style={styles.deleteText}>삭제하기</Text>
+                </Pressable>
+              ) : (
+                <Pressable style={styles.scrapContainer}>
+                  <Report width={24} height={23} />
+                  <Text style={styles.report}>신고하기</Text>
+                </Pressable>
+              )}
             </View>
           </View>
         </Modal>

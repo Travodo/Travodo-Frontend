@@ -30,7 +30,7 @@ function CommunityHome({ navigation }) {
             content: p.summary || p.content || '',
             hCount: p.likeCount ?? 0,
             cCount: p.commentCount ?? 0,
-            isScraped: p.isBookmarked ?? false,
+            isScraped: p.isLiked ?? false,
             agoDate: p.createdAt ? String(p.createdAt) : '',
             images: p.thumbnailUrl ? [p.thumbnailUrl] : [],
             category: '기타',
@@ -128,7 +128,10 @@ function CommunityHome({ navigation }) {
         onPress={(item) => {
           navigation.navigate('CommunityStack', {
             screen: 'CommunityContent',
-            params: { post: item },
+            params: {
+              post: item,
+              postId: item.id,
+            },
           });
         }}
       />
