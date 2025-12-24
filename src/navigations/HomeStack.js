@@ -43,10 +43,9 @@ function HomeStack() {
         options={{ headerShown: false }}
       />
 
-      <Stack.Screen
-        name="TravelCreate"
-        component={TravelCreateScreen}
-        options={{ headerShown: false }}
+      <Stack.Screen name="Prepare" 
+      component={PrepareScreen}
+      options={{ headerShown: false }} 
       />
 
       <Stack.Screen

@@ -36,19 +36,19 @@ function TripStack() {
       }}
     >
       <Stack.Screen
-        name="JoinScreen"
+        name="Join"
         component={JoinScreen}
         options={{ headerShown: true, headerTitle: '설정' }}
       />
       <Stack.Screen
-        name="TravelCreateScreen"
+        name="TravelCreate"
         component={TravelCreateScreen}
         options={{
           headerTitle: '글쓰기',
         }}
       />
       <Stack.Screen
-        name="TravelCompleteScreen"
+        name="TravelComplete"
         component={TravelCompleteScreen}
         options={{
           headerTitle: '글쓰기',

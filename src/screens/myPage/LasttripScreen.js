@@ -15,7 +15,6 @@ function LasttripScreen() {
   const [coloredTrips, setColoredTrips] = useState([]);
 
   useEffect(() => {
-    // [수정] pastTrips가 undefined일 경우 빈 배열([])을 사용하여 에러 방지
     const data = pastTrips || [];
 
     const tripsWithColors = data.map((trip) => {
