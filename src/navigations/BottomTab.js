@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import HomeStack from './HomeStack';
 import CommunityHome from '../screens/community/CommunityHome';
 import HomeTabIcon from '../../assets/ComponentsImage/HomeTabIcon.svg';
@@ -12,6 +13,12 @@ import OptionButton from '../components/OptionButton';
 import Maps from '../screens/maps/Maps';
 
 const Tab = createBottomTabNavigator();
+
+const getTabBarVisibility = (route) => {
+  const routeName = getFocusedRouteNameFromRoute(route) ?? 'HomeMain'; 
+  const hideOnScreens = ['StartTrip', 'EndTrip'];
+  return !hideOnScreens.includes(routeName);
+};
 
 function BottomTab() {
   return (
@@ -43,10 +50,11 @@ function BottomTab() {
       <Tab.Screen
         name="HomeTab"
         component={HomeStack}
-        options={{
+        options={({ route }) => ({
           title: '홈',
           tabBarIcon: ({ color, size }) => <HomeTabIcon color={color} size={size} />,
-        }}
+          tabBarStyle: { display: getTabBarVisibility(route) ? 'flex' : 'none' },
+        })}
       />
       <Tab.Screen
         name="Community"

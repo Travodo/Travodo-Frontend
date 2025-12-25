@@ -27,6 +27,8 @@ import Scrap from '../../../assets/ComponentsImage/Scrap.svg';
 import Close from '../../../assets/ComponentsImage/Close.svg';
 import Report from '../../../assets/ComponentsImage/Report.svg';
 import Delete from '../../../assets/ComponentsImage/Delete.svg';
+import { likeComment, unlikeComment } from '../../services/api.js';
+import { updateComment, deleteComment } from '../../services/api.js';
 import {
   getMyInfo,
   getCommunityPost,
@@ -182,6 +184,38 @@ function CommunityContent({ route, navigation }) {
     }
   };
 
+  const handleEditComment = async (commentId, newContent) => {
+  try {
+    await updateComment(commentId, { content: newContent });
+
+    setCommentList((prev) =>
+      prev.map((c) =>
+        c.id === commentId ? { ...c, content: newContent } : c,
+      ),
+    );
+  } catch (e) {
+    Alert.alert('오류', '댓글 수정에 실패했습니다.');
+  }
+};
+
+const handleDeleteComment = async (commentId) => {
+  Alert.alert('댓글 삭제', '댓글을 삭제하시겠습니까?', [
+    { text: '취소', style: 'cancel' },
+    {
+      text: '삭제',
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          await deleteComment(commentId);
+          setCommentList((prev) => prev.filter((c) => c.id !== commentId));
+        } catch (e) {
+          Alert.alert('오류', '댓글 삭제에 실패했습니다.');
+        }
+      },
+    },
+  ]);
+};
+
   const handleScrap = async () => {
     const isCurrentlyLiked = isScrap;
     const nextScrapStatus = !isScrap;
@@ -230,22 +264,74 @@ function CommunityContent({ route, navigation }) {
       },
     ]);
   };
+  const handleCommentMore = (comment) => {
+  Alert.alert('댓글 관리', null, [
+    {
+      text: '수정',
+      onPress: () => {
+        navigation.navigate('EditComment', {
+          comment,
+          onSave: (newContent) => handleEditComment(comment.id, newContent),
+        });
+      },
+    },
+    {
+      text: '삭제',
+      style: 'destructive',
+      onPress: () => handleDeleteComment(comment.id),
+    },
+    { text: '취소', style: 'cancel' },
+  ]);
+};
 
-  const handleCommentLike = (commentId) => {
-    setCommentList((prevList) =>
-      prevList.map((item) => {
-        if (item.id === commentId) {
-          const currentLiked = item.isLiked || false;
-          return {
-            ...item,
-            isLiked: !currentLiked,
-            commentlike: currentLiked ? (item.commentlike || 0) - 1 : (item.commentlike || 0) + 1,
-          };
-        }
-        return item;
-      }),
+  const handleCommentLike = async (commentId) => {
+  const target = commentList.find((c) => c.id === commentId);
+  if (!target) return;
+
+  setCommentList((prev) =>
+    prev.map((c) =>
+      c.id === commentId
+        ? {
+            ...c,
+            isLiked: !c.isLiked,
+            commentlike: c.isLiked
+              ? (c.commentlike || 0) - 1
+              : (c.commentlike || 0) + 1,
+          }
+        : c,
+    ),
+  );
+
+  try {
+    if (target.isLiked) {
+      await unlikeComment(commentId);
+    } else {
+      await likeComment(commentId);
+    }
+  } catch (error) {
+    console.error('댓글 좋아요 실패:', error);
+
+    setCommentList((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? {
+              ...c,
+              isLiked: target.isLiked,
+              commentlike: target.commentlike,
+            }
+          : c,
+      ),
     );
-  };
+
+    Alert.alert('알림', '댓글 좋아요 처리에 실패했습니다.');
+  }
+};
+
+<CommentListItem
+data={commentList}
+onLike={handleCommentLike}
+onMore={handleCommentMore}
+/>
 
   const Container = Platform.OS === 'android' ? SafeAreaView : View;
 
@@ -294,7 +380,7 @@ function CommunityContent({ route, navigation }) {
                 <Heart size={15} count={scrapCount} onPress={handleScrap} isScraped={isScrap} />
                 <Comment size={15} count={String(Number(cCount) + commentList.length)} />
               </View>
-              <CommentListItem data={commentList} onLike={handleCommentLike} />
+              <CommentListItem data={commentList} onLike={handleCommentLike} onMore={handleCommentMore} />
             </View>
           </Pressable>
         </ScrollView>

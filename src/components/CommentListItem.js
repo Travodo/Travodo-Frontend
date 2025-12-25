@@ -2,7 +2,7 @@ import { FlatList } from 'react-native';
 import CommentItem from './CommentItem';
 import PropTypes from 'prop-types';
 
-function CommentListItem({ data, onLike }) {
+function CommentListItem({ data, onLike, onMore }) {
   return (
     <FlatList
       data={data}
@@ -16,6 +16,7 @@ function CommentListItem({ data, onLike }) {
           hcount={item.commentlike || 0}
           isLiked={item.isLiked || false}
           onLike={() => onLike(item.id)}
+          onMore={() => onMore(item)}
         />
       )}
       overScrollMode={'never'}
@@ -28,6 +29,7 @@ function CommentListItem({ data, onLike }) {
 CommentListItem.propTypes = {
   data: PropTypes.array.isRequired,
   onLike: PropTypes.func.isRequired,
+  onMore: PropTypes.func.isRequired,
 };
 
 export default CommentListItem;

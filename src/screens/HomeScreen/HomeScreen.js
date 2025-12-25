@@ -66,23 +66,20 @@ function HomeScreen({ route }) {
       </ScrollView>
 
       <FAB
-        icon="add"
-        onCreatePress={() =>
-          navigation.navigate('TripStack', {
-            screen: 'TravelCreate',
-          })
-        }
-        onJoinPress={() =>
-          navigation.navigate('TripStack', {
-            screen: 'Join',
-          })
-        }
-        onWritePress={() =>
-          navigation.navigate('CommunityStack', {
-            screen: 'CommunitySelectWriteTrip',
-          })
-        }
-      />
+  icon="add"
+  onCreatePress={() =>
+    navigation.navigate('TravelCreate')
+  }
+  onJoinPress={() =>
+    navigation.navigate('Join')
+  }
+  onWritePress={() =>
+    navigation.navigate('CommunityStack', {
+      screen: 'CommunitySelectWriteTrip',
+    })
+  }
+/>
+
     </View>
   );
 }

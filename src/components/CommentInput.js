@@ -42,6 +42,7 @@ function CommentInput({ onChangeText, onPress, value }) {
 CommentInput.propTypes = {
   onChangeText: PropTypes.string.isRequired,
   onPress: PropTypes.func,
+  value: PropTypes.string
 };
 
 const styles = StyleSheet.create({

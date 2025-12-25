@@ -11,7 +11,7 @@ function TravelCompleteScreen({ route }) {
   const navigation = useNavigation();
   
   const { tripData } = route.params || {};
-  const { name, destination, startDate, endDate, code, color, id } = tripData || {};
+  const { name, destination, startDate, endDate, code, color } = tripData || {};
 
   const copyCode = async () => {
     if (!code) return;
@@ -25,22 +25,21 @@ function TravelCompleteScreen({ route }) {
     });
   };
 
-  const cardTrip = {
-    id,
-    name: name || '여행 이름',
-    destination: destination || '여행지',
+  const dummyTrip = {
+    title: name || '여행 이름',
+    location: destination || '여행지',
     startDate: startDate || '2025.01.01',
     endDate: endDate || '2025.01.03',
-    companions: Array.isArray(tripData?.companions)
+    companions: Array.isArray(tripData.companions)
       ? tripData.companions
-      : typeof tripData?.companions === 'string'
+      : typeof tripData.companions === 'string'
         ? tripData.companions
             .split(',')
             .map((c) => c.trim())
             .filter((c) => c.length > 0)
-        : [],
+        : ['나', '친구'],
+
     color: color || colors.primary[700],
-    status: 'UPCOMING',
   };
 
   return (
@@ -49,7 +48,7 @@ function TravelCompleteScreen({ route }) {
       <Text style={styles.subtitle}>함께할 여행자들을 초대해볼까요?</Text>
 
       <View style={styles.cardWrapper}>
-        <TripCard trip={cardTrip} />
+        <TripCard trip={dummyTrip} />
       </View>
 
       <Text style={styles.code}>{code}</Text>
@@ -61,8 +60,7 @@ function TravelCompleteScreen({ route }) {
       <TouchableOpacity
   style={styles.skipButton}
   onPress={() =>
-    // TripStack 내부 화면으로 이동 (OnTripStack 라우트는 없음)
-    navigation.replace('PrepareScreen', { tripData })
+    navigation.replace('Prepare', { tripData })
   }
 >
   <Text style={styles.skipText}>건너뛰기</Text>

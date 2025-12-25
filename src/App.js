@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import Toast from 'react-native-toast-message';
 import { AuthProvider } from './contexts/AuthContext';
+import { TripProvider } from './contexts/TripContext';
 import RootNavigation from './navigations/RootNavigation';
 
 function App() {
@@ -16,10 +17,12 @@ function App() {
 
   return (
     <>
+    <TripProvider>
       <AuthProvider>
         <StatusBar style="auto" />
         <RootNavigation />
       </AuthProvider>
+    </TripProvider>
       <Toast />
     </>
   );

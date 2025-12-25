@@ -172,7 +172,25 @@ function CommunityHome({ navigation }) {
           });
         }}
       />
-      <FAB />
+      <FAB
+  icon="add"
+  onCreatePress={() =>
+    navigation.navigate('HomeTab', {
+      screen: 'TravelCreate',
+    })
+  }
+  onJoinPress={() =>
+    navigation.navigate('HomeTab', {
+      screen: 'Join',
+    })
+  }
+  onWritePress={() =>
+    navigation.navigate('CommunityStack', {
+      screen: 'CommunitySelectWriteTrip',
+    })
+  }
+/>
+
     </View>
   );
 }

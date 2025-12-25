@@ -9,6 +9,7 @@ import { renderSection } from '../../utils/renderSection';
 import { colors } from '../../styles/colors';
 import sharedStyles from './sharedStyles';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
+import { useTrip } from '../../contexts/TripContext';
 import {
   assignSharedItem,
   createSharedItem,
@@ -23,6 +24,7 @@ import {
 function OnTripScreen() {
   const route = useRoute();
   const navigation = useNavigation();
+  const { endTrip } = useTrip();
 
   const {
     trip,
@@ -256,10 +258,10 @@ function OnTripScreen() {
             if (trip?.id != null) {
               await updateTripStatus(trip.id, 'FINISHED');
             }
+            endTrip(trip.id);
           } catch (e) {
-            console.error('여행 종료(상태 변경) 실패:', e);
+            console.error(e);
           } finally {
-            // 현재 화면은 TripStack 내부이므로 직접 이동(중첩 navigate로 인한 라우트 누락 방지)
             navigation.navigate('EndTrip', { trip });
           }
         },

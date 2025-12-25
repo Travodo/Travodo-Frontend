@@ -49,7 +49,7 @@ function MainStack() {
         options={{
           headerShown: false,
         }}
-      />
+      /> 
       <Stack.Screen
         name="MyPageStack"
         component={MyPageStack}

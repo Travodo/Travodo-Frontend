@@ -22,7 +22,7 @@ function StartTripScreen() {
     if (!trip) return;
 
     const timer = setTimeout(() => {
-      navigation.replace('OnTripScreen', {
+      navigation.replace('OnTrip', {
         trip,
         travelers,
         necessity,
@@ -31,7 +31,7 @@ function StartTripScreen() {
         activities,
         memos,
       });
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [trip, travelers, necessity, shared, personal, activities, memos, navigation]);
