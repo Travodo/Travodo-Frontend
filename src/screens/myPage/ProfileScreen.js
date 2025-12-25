@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Alert,
   View,
@@ -14,38 +14,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
 import { useNavigation } from '@react-navigation/native';
-import { getMyInfo, deleteAccount as deleteAccountApi, uploadMyProfileImage } from '../../services/api';
+import { deleteAccount as deleteAccountApi, uploadMyProfileImage } from '../../services/api';
 import { signOut } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 
 function ProfileScreen() {
   const navigation = useNavigation();
-  const { logout } = useAuth();
-  const [me, setMe] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const refreshMe = async () => {
-    const data = await getMyInfo();
-    setMe(data);
-  };
+  const { logout, me, isMeLoading, refreshMe } = useAuth();
   
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const data = await getMyInfo();
-        if (mounted) setMe(data);
-      } catch (e) {
-        console.error('내 정보 조회 실패:', e);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    // AuthContext에서 로그인 시 내정보를 캐싱하지만, 첫 진입에서 한 번 더 보장적으로 동기화
+    refreshMe().catch(() => {});
+  }, [refreshMe]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -153,12 +134,12 @@ function ProfileScreen() {
         </View>
 
         <View style={styles.infoBox}>
-          <InfoRow label="이름" value={isLoading ? '' : me?.name || ''} />
-          <InfoRow label="닉네임" value={isLoading ? '' : me?.nickname || ''} />
-          <InfoRow label="이메일" value={isLoading ? '' : me?.email || ''} />
-          <InfoRow label="생년월일" value={isLoading ? '' : formatBirthDate(me?.birthDate)} />
-          <InfoRow label="성별" value={isLoading ? '' : formatGender(me?.gender)} />
-          <InfoRow label="연락처" value={isLoading ? '' : me?.phoneNumber || ''} />
+          <InfoRow label="이름" value={isMeLoading ? '' : me?.name || ''} />
+          <InfoRow label="닉네임" value={isMeLoading ? '' : me?.nickname || ''} />
+          <InfoRow label="이메일" value={isMeLoading ? '' : me?.email || ''} />
+          <InfoRow label="생년월일" value={isMeLoading ? '' : formatBirthDate(me?.birthDate)} />
+          <InfoRow label="성별" value={isMeLoading ? '' : formatGender(me?.gender)} />
+          <InfoRow label="연락처" value={isMeLoading ? '' : me?.phoneNumber || ''} />
 
           <TouchableOpacity onPress={Logout}>
             <Text style={styles.link}>로그아웃</Text>
