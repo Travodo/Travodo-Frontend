@@ -9,6 +9,7 @@ import {
   Keyboard,
   Platform,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,15 +26,31 @@ import { CommunityData } from '../../data/TripList';
 import Scrap from '../../../assets/ComponentsImage/Scrap.svg';
 import Close from '../../../assets/ComponentsImage/Close.svg';
 import Report from '../../../assets/ComponentsImage/Report.svg';
+import Delete from '../../../assets/ComponentsImage/Delete.svg';
+import {
+  getMyInfo,
+  getCommunityPost,
+  deleteCommunityPost,
+  likeCommunityPost,
+  unlikeCommunityPost,
+  getPostComments,
+  createPostComment,
+  unbookmarkCommunityPost,
+  bookmarkCommunityPost,
+} from '../../services/api';
+import { formatAgo } from '../../utils/dateFormatter';
 
 function CommunityContent({ route, navigation }) {
   const [commentList, setCommentList] = useState([]);
   const [inputText, setInputText] = useState('');
   const [visibleModal, setVisibleModal] = useState(false);
-  const [scrapCount, setScrapCount] = useState(post ? Number(post.hCount || 0) : 0);
-  const [isScrap, setIsScrap] = useState(post?.isScrap || false);
-
-  const { post: passedPost, postId } = route.params || {};
+  const [scrapCount, setScrapCount] = useState(Number(passedPost?.hCount || 0));
+  const [isScrap, setIsScrap] = useState(passedPost?.isScraped || false);
+  const [userId, setUserId] = useState('');
+  const [writerId, setWriterId] = useState('');
+  const [profileImg, setProfileImg] = useState(null);
+  const { post: passedPost, postId: passedPostId } = route.params || {};
+  const postId = passedPostId || passedPost?.id;
   const post = passedPost || CommunityData.find((p) => p.id.toString() === postId?.toString());
   if (!post) {
     return (
@@ -43,28 +60,82 @@ function CommunityContent({ route, navigation }) {
     );
   }
 
+  // 초기값으로 route에서 받은 images 설정
+  const [postImages, setPostImages] = useState(passedPost?.images || []);
+
   useEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
         <Pressable
           style={[styles.headerButton, { transform: [{ rotate: '-45deg' }] }]}
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           onPress={() => navigation.goBack()}
         ></Pressable>
       ),
     });
   }, []);
 
+  useEffect(() => {
+    const fetchId = async () => {
+      try {
+        const data = await getMyInfo();
+        setUserId(data.id);
+      } catch (error) {
+        console.error('정보를 가져오는데 실패했습니다.', error);
+      }
+    };
+    fetchId();
+  }, []);
+
+  useEffect(() => {
+    const fetchPostDetail = async () => {
+      if (!postId) return;
+      try {
+        const [postData, commentData] = await Promise.all([
+          getCommunityPost(postId),
+          getPostComments(postId, { page: 0, size: 50 }), // 일단 넉넉히 50개 호출
+        ]);
+        setWriterId(postData?.author?.id);
+        setScrapCount(postData?.likeCount ?? 0);
+        setIsScrap(postData?.isLiked ?? false);
+        setProfileImg(postData?.author?.profileImageUrl || null);
+        // API 응답의 imageUrls를 사용 (여러 이미지 지원)
+        setPostImages(postData?.imageUrls || []);
+        const rawComments = commentData?.content || commentData || [];
+        console.log('서버에서 온 첫 번째 댓글 데이터:', rawComments[0]);
+        const mappedComments = rawComments.map((c) => ({
+          id: c.id,
+          nickname: c.author?.nickname || '익명',
+          content: c.content,
+          date: formatAgo(c.createdAt),
+          commentlike: c.likeCount || 0,
+          isLiked: c.isLiked || false,
+          profileImageUrl: c.author?.profileImageUrl,
+        }));
+        setCommentList(mappedComments);
+      } catch (error) {
+        console.error('게시글 정보를 가져오는데 실패했습니다.', error);
+      }
+    };
+    fetchPostDetail();
+  }, [postId]);
+
+  const isMyPost = userId !== null && userId !== '' && userId === writerId;
+
   const {
     nickname,
     agoDate,
     title,
     content,
-    images,
+    images: postImagesFromRoute,
     cCount = 0,
     tripData,
     circleColor,
     tripTitle,
   } = post;
+
+  // API에서 받은 imageUrls를 우선 사용, 없으면 route에서 받은 images 사용
+  const images = postImages.length > 0 ? postImages : postImagesFromRoute || [];
 
   const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
   const normalizedTripData =
@@ -84,33 +155,80 @@ function CommunityContent({ route, navigation }) {
       : post);
 
   const { startDate, endDate, location, people, todo } = normalizedTripData || {};
-  const displayTripTitle = (normalizedTripData && normalizedTripData.tripTitle) || tripTitle || title;
+  const displayTripTitle =
+    (normalizedTripData && normalizedTripData.tripTitle) || tripTitle || title;
   const displayCircleColor = (normalizedTripData && normalizedTripData.circleColor) || circleColor;
 
-  const handleSendComment = () => {
+  const handleSendComment = async () => {
     if (inputText.trim().length === 0) return;
+    try {
+      const res = await createPostComment(postId, { content: inputText });
 
-    const newComment = {
-      id: Date.now(),
-      nickname: '히재',
-      content: inputText,
-      date: '방금 전',
-      commentlike: 0,
-      isLiked: false,
-    };
-    setCommentList((prev) => [...prev, newComment]);
-    setInputText('');
-    Keyboard.dismiss();
+      const newComment = {
+        id: res.id,
+        nickname: res.author?.nickname || '히히',
+        content: res.content,
+        date: '방금 전',
+        commentlike: 0,
+        isLiked: false,
+        profileImageUrl: res.author?.profileImageUrl,
+      };
+
+      setCommentList((prev) => [...prev, newComment]); // 목록 끝에 추가
+      setInputText('');
+      Keyboard.dismiss();
+    } catch (error) {
+      Alert.alert('알림', '댓글 등록에 실패했습니다.');
+    }
   };
 
-  const handleScrap = () => {
-    setIsScrap((prev) => !prev);
-    setScrapCount((prev) => (isScrap ? prev - 1 : prev + 1));
+  const handleScrap = async () => {
+    const isCurrentlyLiked = isScrap;
+    const nextScrapStatus = !isScrap;
+
+    setIsScrap(nextScrapStatus);
+    setScrapCount((prev) => (nextScrapStatus ? prev + 1 : prev - 1));
+
+    try {
+      if (isCurrentlyLiked) {
+        await unlikeCommunityPost(postId);
+        await unbookmarkCommunityPost(postId);
+      } else {
+        await likeCommunityPost(postId);
+        await bookmarkCommunityPost(postId);
+      }
+    } catch (error) {
+      setIsScrap(!nextScrapStatus);
+      setScrapCount((prev) => (isCurrentlyLiked ? prev : prev));
+      Alert.alert('알림', '처리에 실패했습니다.');
+    }
   };
 
   const handleModalScrap = () => {
     handleScrap();
     setVisibleModal(false);
+  };
+
+  const handleDeletePost = () => {
+    setVisibleModal(false);
+    Alert.alert('게시글 삭제', '정말로 삭제하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            console.log('삭제 시도 중, ID:', postId);
+            await deleteCommunityPost(postId);
+            Alert.alert('완료', '게시글이 삭제되었습니다.');
+            navigation.goBack();
+          } catch (error) {
+            console.error('삭제 실패', error);
+            Alert.alert('오류', '게시글 삭제에 실패했습니다.');
+          }
+        },
+      },
+    ]);
   };
 
   const handleCommentLike = (commentId) => {
@@ -141,7 +259,7 @@ function CommunityContent({ route, navigation }) {
           <Pressable style={styles.dismiss}>
             <View style={styles.innerContainer}>
               <View style={styles.profileContainer}>
-                <ProfileImage size={25} />
+                <ProfileImage size={25} imageUri={profileImg} />
                 <Text style={styles.nickname}>{nickname}</Text>
                 <Text style={styles.date}>{agoDate}</Text>
                 <View style={styles.button}>
@@ -169,11 +287,7 @@ function CommunityContent({ route, navigation }) {
                 {images &&
                   images.length > 0 &&
                   images.map((uri, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri }}
-                      style={{ width: 160, height: 160, borderRadius: 12 }}
-                    />
+                    <Image key={index} source={{ uri }} style={styles.image} />
                   ))}
               </View>
               <View style={styles.heartncomment}>
@@ -195,7 +309,10 @@ function CommunityContent({ route, navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalbox}>
               <View style={styles.closeStyle}>
-                <Pressable onPress={() => setVisibleModal(false)}>
+                <Pressable
+                  onPress={() => setVisibleModal(false)}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                >
                   <Close width={15} height={15} />
                 </Pressable>
               </View>
@@ -203,10 +320,17 @@ function CommunityContent({ route, navigation }) {
                 <Scrap width={24} height={23} />
                 <Text style={styles.scrapText}>글 저장하기</Text>
               </Pressable>
-              <Pressable style={styles.scrapContainer}>
-                <Report width={24} height={23} />
-                <Text style={styles.report}>신고하기</Text>
-              </Pressable>
+              {isMyPost ? (
+                <Pressable style={styles.scrapContainer} onPress={handleDeletePost}>
+                  <Delete width={24} height={23} />
+                  <Text style={styles.deleteText}>삭제하기</Text>
+                </Pressable>
+              ) : (
+                <Pressable style={styles.scrapContainer}>
+                  <Report width={24} height={23} />
+                  <Text style={styles.report}>신고하기</Text>
+                </Pressable>
+              )}
             </View>
           </View>
         </Modal>
@@ -280,6 +404,12 @@ const styles = StyleSheet.create({
     gap: 15,
     justifyContent: 'center',
     marginBottom: 15,
+    flexWrap: 'wrap',
+  },
+  image: {
+    width: 160,
+    height: 160,
+    borderRadius: 12,
   },
   heartncomment: {
     flexDirection: 'row',

@@ -7,7 +7,7 @@ import { colors } from '../styles/colors';
 function Heart({ style, count, onPress, isScraped }) {
   return (
     <View style={[styles.container, style]}>
-      <Pressable onPress={onPress}>
+      <Pressable onPress={onPress} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
         {isScraped ? (
           <FontAwesome name="heart" size={15} color="#E7211E" />
         ) : (
