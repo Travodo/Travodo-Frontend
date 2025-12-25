@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '../../styles/colors';
-import { getMyInfo, updateMyProfile } from '../../services/api';
+import { updateMyProfile } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 function ProfileEditScreen({ navigation }) {
+  const { me: cachedMe, isMeLoading, refreshMe } = useAuth();
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     name: '',
@@ -17,7 +19,7 @@ function ProfileEditScreen({ navigation }) {
     let mounted = true;
     (async () => {
       try {
-        const me = await getMyInfo();
+        const me = cachedMe || (await refreshMe());
         if (!mounted) return;
         setForm({
           name: me?.name ?? '',
@@ -35,7 +37,7 @@ function ProfileEditScreen({ navigation }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [cachedMe, refreshMe]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -50,19 +52,25 @@ function ProfileEditScreen({ navigation }) {
                 gender: form.gender || null,
                 phoneNumber: form.phoneNumber || null,
               });
+              // 전역 내정보 캐시 동기화
+              try {
+                await refreshMe();
+              } catch (_) {
+                // noop
+              }
               Alert.alert('완료', '프로필이 수정되었습니다.', [{ text: '확인', onPress: () => navigation.goBack() }]);
             } catch (e) {
               console.error('프로필 수정 실패:', e);
               Alert.alert('실패', '프로필 수정에 실패했습니다. 입력값을 확인해주세요.');
             }
           }}
-          disabled={loading}
+          disabled={loading || isMeLoading}
         >
           <Text style={[styles.headerAction, loading && { opacity: 0.5 }]}>저장</Text>
         </Pressable>
       ),
     });
-  }, [navigation, form, loading]);
+  }, [navigation, form, loading, isMeLoading, refreshMe]);
 
   const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 

@@ -44,14 +44,13 @@ function MainStack() {
           headerShown: false,
         }}
       />
-      {/*
       <Stack.Screen
         name="TripStack"
         component={TripStack}
         options={{
           headerShown: false,
         }}
-      /> */}
+      /> 
       <Stack.Screen
         name="MyPageStack"
         component={MyPageStack}
