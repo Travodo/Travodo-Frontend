@@ -44,7 +44,7 @@ function JoinScreen() {
       };
 
       // JoinScreen은 TripStack 내부이므로 PrepareScreen으로 바로 이동
-      navigation.replace('PrepareScreen', { tripData });
+      navigation.replace('Prepare', { tripData });
     } catch (e) {
       console.error('여행 참가 실패:', e);
       Alert.alert('실패', '여행 참가에 실패했습니다. 초대코드를 확인해주세요.');
