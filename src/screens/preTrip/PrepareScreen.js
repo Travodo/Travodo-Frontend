@@ -19,6 +19,7 @@ import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { colors } from '../../styles/colors';
 import { renderSection } from '../../utils/renderSection';
 import sharedStyles from './sharedStyles';
+import { useTrip } from '../../contexts/TripContext';
 import {
   assignSharedItem,
   createSharedItem,
@@ -41,7 +42,9 @@ import {
   updateTodo,
   deleteTodo,
   assignTodo,
-  unassignTodo
+  unassignTodo,
+  updateTripStatus,
+  deleteTrip, // 추가
 } from '../../services/api';
 
 function PrepareScreen() {
@@ -61,7 +64,10 @@ function PrepareScreen() {
   const [selectedTraveler, setSelectedTraveler] = useState(null);
   const selectedTravelerRef = useRef(null);
 
-  const colorPool = ['#769FFF', '#FFE386', '#EE8787', '#A4C664'];
+  const colorPool = React.useMemo(
+    () => ['#769FFF', '#FFE386', '#EE8787', '#A4C664'],
+    [],
+  );
 
   const [necessity, setNecessity] = useState([]);
   const [shared, setShared] = useState([]);
@@ -132,11 +138,6 @@ function PrepareScreen() {
   }
 }, [tripId, colorPool, getTripMembers, getSharedItems, getPersonalItems ]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadMembersAndShared();
-    }, [loadMembersAndShared]),
-  );
 
   const copyInviteCodeToClipboard = useCallback(async (code) => {
     const safe = String(code || '').trim();
@@ -479,14 +480,12 @@ const loadMemos = useCallback(async () => {
 
 useFocusEffect(
   useCallback(() => {
-    loadMemos();
-  }, [loadMemos])
-);
-
-useFocusEffect(
-  useCallback(() => {
-    loadTodos();
-  }, [loadTodos]),
+    (async () => {
+      await loadMembersAndShared(); 
+      await loadTodos();           
+      await loadMemos();        
+    })();
+  }, [loadMembersAndShared, loadTodos, loadMemos]),
 );
 
 
@@ -995,58 +994,110 @@ if (setter === setNecessity) {
   </Pressable>
 </View>
 
-        <View style={sharedStyles.sectionDivider} />
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.startButton, isStarting && styles.startButtonDisabled]}
-            disabled={isStarting}
-            onPress={async () => {
+<View style={sharedStyles.sectionDivider} />
+
+<View style={styles.buttonRow}>
+  {/* 여행 시작 버튼 */}
+  <TouchableOpacity
+    style={[styles.startButton, isStarting && styles.startButtonDisabled]}
+    disabled={isStarting}
+    onPress={async () => {
+      if (!tripId) {
+        Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
+        return;
+      }
+
+      try {
+        await handlerStartTrip(tripId);
+        
+        // 여행 시작 후 OnTripScreen으로 이동
+        navigation.navigate('OnTripScreen', {
+          trip,
+          travelers,
+          necessity,
+          shared,
+          personal,
+          activities,
+          memos,
+        });
+      } catch (error) {
+        console.error('여행 시작 실패:', error);
+      }
+    }}
+  >
+    <Text style={styles.startText}>
+      {isStarting ? '시작 중...' : '여행 시작'}
+    </Text>
+  </TouchableOpacity>
+
+  {/* 삭제 버튼 */}
+  <TouchableOpacity
+    style={styles.deleteButton}
+    onPress={() => {
+      Alert.alert(
+        '확인',
+        '모든 데이터를 삭제하시겠습니까?\n(서버에 저장된 데이터도 함께 삭제됩니다)',
+        [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: async () => {
               if (!tripId) {
-                Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
+                Alert.alert('실패', 'tripId가 없습니다');
                 return;
               }
-
               try {
-                // 여행 시작 처리 (서버 상태 변경만)
-                await handlerStartTrip(tripId);
+                // 1. Todo (필수 할 일)
+                for (const item of necessity) {
+                  await deleteTodo(tripId, item.id);
+                }
 
-                // 성공 후 StartTrip 화면으로 이동
-                navigation.navigate('StartTrip', {
-                  trip: { ...trip, status: 'ONGOING' },
-                  travelers,
-                  necessity,
-                  shared,
-                  personal,
-                  activities,
-                  memos,
-                });
-              } catch (error) {
-                console.log('[PrepareScreen] 여행 시작 중단됨');
+                // 2. Todo (여행 활동)
+                for (const item of activities) {
+                  await deleteTodo(tripId, item.id);
+                }
+
+                // 3. 공동 준비물
+                for (const item of shared) {
+                  await deleteSharedItem(tripId, item.id);
+                }
+
+                // 4. 개인 준비물
+                for (const item of personal) {
+                  await deletePersonalItem(tripId, item.id);
+                }
+
+                // 5. 메모
+                for (const memo of memos) {
+                  await deleteMemo(tripId, memo.id);
+                }
+
+                // 6. 로컬 상태 초기화
+                setNecessity([]);
+                setActivities([]);
+                setShared([]);
+                setPersonal([]);
+                setMemos([]);
+
+                Alert.alert('완료', '모든 데이터가 삭제되었습니다.');
+              } catch (e) {
+                console.error('전체 삭제 실패:', e);
+                Alert.alert(
+                  '실패',
+                  '일부 데이터 삭제에 실패했습니다.\n네트워크 상태를 확인해주세요.',
+                );
               }
-            }}
-          >
-            <Text style={styles.startText}>{isStarting ? '여행 시작 중...' : '여행 시작'}</Text>
-          </TouchableOpacity>
+            },
+          },
+        ],
+      );
+    }}
+  >
+    <Text style={styles.deleteText}>삭제하기</Text>
+  </TouchableOpacity>
+</View>
 
-          <TouchableOpacity
-            style={styles.deleteButton}
-            disabled={isStarting}
-            onPress={() => {
-              Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
-                { text: '취소', style: 'cancel' },
-                {
-                  text: '삭제',
-                  style: 'destructive',
-                  onPress: () => {
-                    handleDeleteTrip();
-                  },
-                },
-              ]);
-            }}
-          >
-            <Text style={styles.deleteText}>삭제하기</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </View>
   );
