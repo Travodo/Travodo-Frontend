@@ -39,7 +39,8 @@ function PrepareScreen() {
 
   const trip = route?.params?.tripData;
   const tripId = trip?.id;
-  const { tripStatus, startTrip, endTrip } = useTrip();
+  const { getTripStatus, startTrip } = useTrip();
+  const status = getTripStatus(tripId);
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
@@ -562,51 +563,50 @@ function PrepareScreen() {
         </View>
 
         <View style={sharedStyles.sectionDivider} />
-
         <View style={styles.buttonRow}>
-          {tripStatus === 'BEFORE' && (
-            <TouchableOpacity
-              style={styles.startButton}
-              onPress={() => {
-                startTrip();
-                navigation.navigate('StartTrip', {
-                  trip,
-                  travelers,
-                  necessity,
-                  shared,
-                  personal,
-                  activities,
-                  memos,
-                });
-              }}
-            >
-              <Text style={styles.startText}>여행 시작</Text>
-            </TouchableOpacity>
-          )}
+  {status === 'BEFORE' && (
+    <TouchableOpacity
+      style={styles.startButton}
+      onPress={() => {
+        startTrip(tripId); // 전역 상태 업데이트
+        navigation.navigate('StartTrip', {
+          trip,
+          travelers,
+          necessity,
+          shared,
+          personal,
+          activities,
+          memos,
+        });
+      }}
+    >
+      <Text style={styles.startText}>여행 시작</Text>
+    </TouchableOpacity>
+  )}
 
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => {
-              Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
-                { text: '취소', style: 'cancel' },
-                {
-                  text: '삭제',
-                  style: 'destructive',
-                  onPress: () => {
-                    setTravelers([]);
-                    setNecessity([]);
-                    setShared([]);
-                    setPersonal([]);
-                    setActivities([]);
-                    setMemos([]);
-                  },
-                },
-              ]);
-            }}
-          >
-            <Text style={styles.deleteText}>삭제하기</Text>
-          </TouchableOpacity>
-        </View>
+  <TouchableOpacity
+    style={styles.deleteButton}
+    onPress={() => {
+      Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: () => {
+            setTravelers([]);
+            setNecessity([]);
+            setShared([]);
+            setPersonal([]);
+            setActivities([]);
+            setMemos([]);
+          },
+        },
+      ]);
+    }}
+  >
+    <Text style={styles.deleteText}>삭제하기</Text>
+  </TouchableOpacity>
+</View>
       </ScrollView>
     </SafeAreaView>
   );

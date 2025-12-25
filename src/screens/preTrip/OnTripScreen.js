@@ -258,12 +258,10 @@ function OnTripScreen() {
             if (trip?.id != null) {
               await updateTripStatus(trip.id, 'FINISHED');
             }
-
-            endTrip();
+            endTrip(trip.id);
           } catch (e) {
-            console.error('여행 종료(상태 변경) 실패:', e);
+            console.error(e);
           } finally {
-            // 현재 화면은 TripStack 내부이므로 직접 이동(중첩 navigate로 인한 라우트 누락 방지)
             navigation.navigate('EndTrip', { trip });
           }
         },
