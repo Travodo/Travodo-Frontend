@@ -336,6 +336,113 @@ export const deleteSharedItem = async (tripId, itemId) => {
   return response.data;
 };
 
+// -----------------------------
+// 개인 준비물 (personal-items)
+// -----------------------------
+export const getPersonalItems = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/personal-items`);
+  return response.data;
+};
+
+export const createPersonalItem = async (tripId, { name }) => {
+  const response = await api.post(`/trips/${tripId}/personal-items`, { name });
+  return response.data;
+};
+
+export const updatePersonalItem = async (tripId, itemId, { name, checked }) => {
+  const response = await api.patch(`/trips/${tripId}/personal-items/${itemId}`, { name, checked });
+  return response.data;
+};
+
+export const deletePersonalItem = async (tripId, itemId) => {
+  const response = await api.delete(`/trips/${tripId}/personal-items/${itemId}`);
+  return response.data;
+};
+
+// -----------------------------
+// Todo (필수 할 일)
+// -----------------------------
+export const getTodos = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/todo`);
+  return response.data;
+};
+
+export const createTodo = async (tripId, { content }) => {
+  const response = await api.post(`/trips/${tripId}/todo`, { content });
+  return response.data;
+};
+
+export const updateTodo = async (tripId, todoId, { content, checked }) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}`, { content, checked });
+  return response.data;
+};
+
+export const deleteTodo = async (tripId, todoId) => {
+  const response = await api.delete(`/trips/${tripId}/todo/${todoId}`);
+  return response.data;
+};
+
+export const assignTodo = async (tripId, todoId) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}/assign`);
+  return response.data;
+};
+
+export const unassignTodo = async (tripId, todoId) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}/unassign`);
+  return response.data;
+};
+
+// -----------------------------
+// 여행 활동 (activities)
+// -----------------------------
+export const getActivities = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/activities`);
+  return response.data;
+};
+
+export const createActivity = async (tripId, { name }) => {
+  const response = await api.post(`/trips/${tripId}/activities`, { name });
+  return response.data;
+};
+
+export const updateActivity = async (tripId, activityId, { name }) => {
+  const response = await api.put(`/trips/${tripId}/activities/${activityId}`, { name });
+  return response.data;
+};
+
+export const updateActivityStatus = async (tripId, activityId, status) => {
+  const response = await api.patch(`/trips/${tripId}/activities/${activityId}/status`, { status });
+  return response.data;
+};
+
+export const deleteActivity = async (tripId, activityId) => {
+  const response = await api.delete(`/trips/${tripId}/activities/${activityId}`);
+  return response.data;
+};
+
+// -----------------------------
+// 메모 (memos)
+// -----------------------------
+export const getMemos = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/memos`);
+  return response.data;
+};
+
+export const createMemo = async (tripId, { title, content }) => {
+  const response = await api.post(`/trips/${tripId}/memos`, { title, content });
+  return response.data;
+};
+
+export const updateMemo = async (tripId, memoId, { title, content }) => {
+  const response = await api.put(`/trips/${tripId}/memos/${memoId}`, { title, content });
+  return response.data;
+};
+
+export const deleteMemo = async (tripId, memoId) => {
+  const response = await api.delete(`/trips/${tripId}/memos/${memoId}`);
+  return response.data;
+};
+
 // 위치 업데이트 / 동행자 위치 / POI
 export const updateMyLocation = async (tripId, { latitude, longitude }) => {
   const response = await api.post(`/trips/${tripId}/location`, { latitude, longitude });
