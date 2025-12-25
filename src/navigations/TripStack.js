@@ -9,6 +9,7 @@ import StartTripScreen from '../screens/loadingScreen/StartTripScreen';
 import ChecklistSection from '../screens/preTrip/ChecklistSection';
 import MemoScreen from '../screens/preTrip/MemoScreen';
 import OnTripScreen from '../screens/preTrip/OnTripScreen';
+import PrepareScreen from '../screens/preTrip/PrepareScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,7 +28,7 @@ function TripStack() {
       <Stack.Screen name="ChecklistScreen" component={ChecklistSection} />
       <Stack.Screen name="MemoScreen" component={MemoScreen} />
       <Stack.Screen name="OnTrip" component={OnTripScreen} />
-      <Stack.Screen name="PrepareScreen" component={PrepareScreen} />
+      <Stack.Screen name="Prepare" component={PrepareScreen} />
     </Stack.Navigator>
   );
 }

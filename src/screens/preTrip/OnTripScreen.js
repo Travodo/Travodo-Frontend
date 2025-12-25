@@ -9,6 +9,7 @@ import { renderSection } from '../../utils/renderSection';
 import { colors } from '../../styles/colors';
 import sharedStyles from './sharedStyles';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
+import { useTrip } from '../../contexts/TripContext';
 import {
   assignSharedItem,
   createSharedItem,
@@ -23,6 +24,7 @@ import {
 function OnTripScreen() {
   const route = useRoute();
   const navigation = useNavigation();
+  const { endTrip } = useTrip();
 
   const {
     trip,
@@ -256,6 +258,8 @@ function OnTripScreen() {
             if (trip?.id != null) {
               await updateTripStatus(trip.id, 'FINISHED');
             }
+
+            endTrip();
           } catch (e) {
             console.error('여행 종료(상태 변경) 실패:', e);
           } finally {

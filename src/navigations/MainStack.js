@@ -5,7 +5,6 @@ import { View } from 'react-native';
 import CommunityStack from './CommunityStack';
 import TripStack from './TripStack';
 import MyPageStack from './MyPageStack';
-import PrepareScreen from '../screens/preTrip/PrepareScreen';
 
 const Stack = createNativeStackNavigator();
 

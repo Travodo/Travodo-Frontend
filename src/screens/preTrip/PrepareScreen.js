@@ -15,7 +15,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
 import TripCard from '../../components/TripCard';
-import ChecklistRow from '../../components/ChecklistRow';
 import TravelerAvatar from '../../components/TravelerAvatar';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { colors } from '../../styles/colors';
@@ -32,6 +31,7 @@ import {
   unassignSharedItem,
   updateSharedItem,
 } from '../../services/api';
+import { useTrip } from '../../contexts/TripContext';
 
 function PrepareScreen() {
   const route = useRoute();
@@ -39,6 +39,7 @@ function PrepareScreen() {
 
   const trip = route?.params?.tripData;
   const tripId = trip?.id;
+  const { tripStatus, startTrip, endTrip } = useTrip();
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
@@ -563,22 +564,25 @@ function PrepareScreen() {
         <View style={sharedStyles.sectionDivider} />
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={() =>
-              navigation.navigate('StartTrip', {
-                trip,
-                travelers,
-                necessity,
-                shared,
-                personal,
-                activities,
-                memos,
-              })
-            }
-          >
-            <Text style={styles.startText}>여행 시작</Text>
-          </TouchableOpacity>
+          {tripStatus === 'BEFORE' && (
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={() => {
+                startTrip();
+                navigation.navigate('StartTrip', {
+                  trip,
+                  travelers,
+                  necessity,
+                  shared,
+                  personal,
+                  activities,
+                  memos,
+                });
+              }}
+            >
+              <Text style={styles.startText}>여행 시작</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={styles.deleteButton}
