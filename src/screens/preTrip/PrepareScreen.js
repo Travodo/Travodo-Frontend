@@ -35,7 +35,13 @@ import {
   deletePersonalItem,
   getMemos,
   createMemo,
-  deleteMemo
+  deleteMemo,
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  assignTodo,
+  unassignTodo
 } from '../../services/api';
 
 function PrepareScreen() {
@@ -44,6 +50,12 @@ function PrepareScreen() {
 
   const trip = route?.params?.tripData;
   const tripId = trip?.id;
+  const { getTripStatus, startTrip } = useTrip();
+  const status = getTripStatus(tripId);
+  const TODO_CATEGORY = {
+    NECESSITY: 'NECESSITY',
+    ACTIVITY: 'ACTIVITY',
+  };
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
@@ -245,6 +257,25 @@ function PrepareScreen() {
     return;
   }
 
+  // ✅ Todo 삭제(서버) - 필수 할 일 / 여행 활동
+if (setter === setNecessity || setter === setActivities) {
+  (async () => {
+    try {
+      await deleteTodo(tripId, item.id);
+
+      if (setter === setNecessity) {
+        setNecessity((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
+      } else {
+        setActivities((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
+      }
+    } catch (e) {
+      console.error('Todo 삭제 실패:', e);
+      Alert.alert('실패', '할 일/활동 삭제에 실패했습니다.');
+    }
+  })();
+  return;
+}
+
   // 그 외 로컬 삭제
   setter(list.filter((_, i) => i !== index));
 };
@@ -352,9 +383,82 @@ function PrepareScreen() {
     return;
   }
 
-  // 그 외 로컬 수정
+  // ✅ Todo 수정(서버) - 필수 할 일 / 여행 활동
+if (setter === setNecessity || setter === setActivities) {
+  (async () => {
+    try {
+      const category =
+        setter === setNecessity ? TODO_CATEGORY.NECESSITY : TODO_CATEGORY.ACTIVITY;
+
+      const updated = await updateTodo(tripId, item.id, {
+        name: newContent,
+        category, 
+      });
+
+      const next = (prev) =>
+        prev.map((x) =>
+          String(x.id) === String(item.id)
+            ? {
+                ...x,
+                content: updated?.name ?? newContent,
+                checked: !!updated?.checked,
+                travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                travelerName: updated?.assigneeName ?? null,
+                travelerColor:
+                  updated?.assigneeId != null
+                    ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                      null
+                    : null,
+              }
+            : x,
+        );
+
+      if (setter === setNecessity) setNecessity(next);
+      else setActivities(next);
+    } catch (e) {
+      console.error('Todo 수정 실패:', e);
+      Alert.alert('실패', '할 일/활동 수정에 실패했습니다.');
+    }
+  })();
+  return;
+}
+
+
   setter(list.map((it, i) => (i === index ? { ...it, content: newContent } : it)));
 };
+
+const loadTodos = useCallback(async () => {
+  if (!tripId) return;
+
+  try {
+    const data = await getTodos(tripId);
+
+    const colorMap = {};
+    travelers.forEach((t) => {
+      colorMap[String(t.id)] = t.color;
+    });
+
+    const normalize = (it) => ({
+      id: String(it.id),
+      content: it.name, 
+      checked: !!it.checked,
+      travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
+      travelerName: it.assigneeName ?? null,
+      travelerColor:
+        it.assigneeId != null ? colorMap[String(it.assigneeId)] ?? null : null,
+
+      category: it.category ?? it.type ?? null,
+    });
+
+    const list = (data || []).map(normalize);
+
+    setNecessity(list.filter((x) => x.category === TODO_CATEGORY.NECESSITY));
+    setActivities(list.filter((x) => x.category === TODO_CATEGORY.ACTIVITY));
+  } catch (e) {
+    console.error('Todo(필수/활동) 조회 실패:', e);
+  }
+}, [tripId, travelers]);
+
 
 const loadMemos = useCallback(async () => {
   if (!tripId) return;
@@ -378,6 +482,13 @@ useFocusEffect(
     loadMemos();
   }, [loadMemos])
 );
+
+useFocusEffect(
+  useCallback(() => {
+    loadTodos();
+  }, [loadTodos]),
+);
+
 
 const addItem = (setter, list) => {
   if (!text.trim()) return;
@@ -436,6 +547,43 @@ const addItem = (setter, list) => {
     })();
     return;
   }
+
+if (setter === setNecessity || setter === setActivities) {
+  (async () => {
+    try {
+      const category =
+        setter === setNecessity ? TODO_CATEGORY.NECESSITY : TODO_CATEGORY.ACTIVITY;
+
+      const created = await createTodo(tripId, {
+        name: text.trim(),
+        category,
+      });
+
+      const newItem = {
+        id: String(created?.id),
+        content: created?.name ?? text.trim(),
+        checked: !!created?.checked,
+        travelerId: created?.assigneeId != null ? String(created.assigneeId) : null,
+        travelerName: created?.assigneeName ?? null,
+        travelerColor:
+          created?.assigneeId != null
+            ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
+            : null,
+      };
+
+      if (setter === setNecessity) setNecessity((prev) => [...prev, newItem]);
+      else setActivities((prev) => [...prev, newItem]);
+
+      setText('');
+      setAdding(null);
+    } catch (e) {
+      console.error('Todo 생성 실패:', e);
+      Alert.alert('실패', '할 일/활동 추가에 실패했습니다.');
+    }
+  })();
+  return;
+}
+
 
   // 그 외 로컬 추가
   setter([
@@ -507,6 +655,45 @@ const addItem = (setter, list) => {
     return;
   }
 
+  // ✅ Todo 체크 변경(서버) - 필수 할 일 / 여행 활동
+if (setter === setNecessity || setter === setActivities) {
+  (async () => {
+    try {
+      const category =
+        setter === setNecessity ? TODO_CATEGORY.NECESSITY : TODO_CATEGORY.ACTIVITY;
+
+      const updated = await updateTodo(tripId, item.id, {
+        checked: !item.checked,
+        category,
+      });
+
+      const patch = (prev) =>
+        prev.map((x) =>
+          String(x.id) === String(item.id)
+            ? {
+                ...x,
+                checked: !!updated?.checked,
+                travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                travelerName: updated?.assigneeName ?? null,
+                travelerColor:
+                  updated?.assigneeId != null
+                    ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                      null
+                    : null,
+              }
+            : x,
+        );
+
+      if (setter === setNecessity) setNecessity(patch);
+      else setActivities(patch);
+    } catch (e) {
+      console.error('Todo 체크 변경 실패:', e);
+      Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
+    }
+  })();
+  return;
+}
+
   // 그 외
   setter(list.map((it, i) => (i === index ? { ...it, checked: !it.checked } : it)));
 };
@@ -514,6 +701,41 @@ const addItem = (setter, list) => {
 
   const assignTraveler = (list, setter, index) => {
     const item = list[index];
+    // ✅ Todo 담당자 지정/해제(서버) - 필수 할 일만
+if (setter === setNecessity) {
+  const item = list[index];
+
+  (async () => {
+    try {
+      const updated = item.travelerId
+        ? await unassignTodo(tripId, item.id)
+        : await assignTodo(tripId, item.id);
+
+      setNecessity((prev) =>
+        prev.map((x) =>
+          String(x.id) === String(item.id)
+            ? {
+                ...x,
+                travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                travelerName: updated?.assigneeName ?? null,
+                travelerColor:
+                  updated?.assigneeId != null
+                    ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                      null
+                    : null,
+              }
+            : x,
+        ),
+      );
+    } catch (e) {
+      console.error('Todo 담당자 변경 실패:', e);
+      Alert.alert('안내', '담당자 지정/해제는 본인만 할 수 있습니다.');
+    }
+  })();
+
+  return;
+}
+
     if (setter === setShared) {
       (async () => {
         try {

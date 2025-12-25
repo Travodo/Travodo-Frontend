@@ -440,6 +440,42 @@ export const deleteMemo = async (tripId, memoId) => {
 };
 
 
+// TODO 관련
+export const getTodos = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/todo`);
+  return response.data;
+};
+
+export const createTodo = async (tripId, { name, category }) => {
+  const response = await api.post(`/trips/${tripId}/todo`, { name, category });
+  return response.data;
+};
+
+export const updateTodo = async (tripId, todoId, { name, checked, category }) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}`, {
+    name,
+    checked,
+    category,
+  });
+  return response.data;
+};
+
+export const deleteTodo = async (tripId, todoId) => {
+  const response = await api.delete(`/trips/${tripId}/todo/${todoId}`);
+  return response.data;
+};
+
+export const assignTodo = async (tripId, todoId) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}/assign`);
+  return response.data;
+};
+
+export const unassignTodo = async (tripId, todoId) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}/unassign`);
+  return response.data;
+};
+
+
 // 위치 업데이트 / 동행자 위치 / POI
 export const updateMyLocation = async (tripId, { latitude, longitude }) => {
   const response = await api.post(`/trips/${tripId}/location`, { latitude, longitude });
