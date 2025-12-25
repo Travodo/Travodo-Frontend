@@ -35,6 +35,8 @@ import {
   unlikeCommunityPost,
   getPostComments,
   createPostComment,
+  unbookmarkCommunityPost,
+  bookmarkCommunityPost,
 } from '../../services/api';
 import { formatAgo } from '../../utils/dateFormatter';
 
@@ -57,7 +59,7 @@ function CommunityContent({ route, navigation }) {
       </View>
     );
   }
-  
+
   // 초기값으로 route에서 받은 images 설정
   const [postImages, setPostImages] = useState(passedPost?.images || []);
 
@@ -131,9 +133,9 @@ function CommunityContent({ route, navigation }) {
     circleColor,
     tripTitle,
   } = post;
-  
+
   // API에서 받은 imageUrls를 우선 사용, 없으면 route에서 받은 images 사용
-  const images = postImages.length > 0 ? postImages : (postImagesFromRoute || []);
+  const images = postImages.length > 0 ? postImages : postImagesFromRoute || [];
 
   const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
   const normalizedTripData =
@@ -190,8 +192,10 @@ function CommunityContent({ route, navigation }) {
     try {
       if (isCurrentlyLiked) {
         await unlikeCommunityPost(postId);
+        await unbookmarkCommunityPost(postId);
       } else {
         await likeCommunityPost(postId);
+        await bookmarkCommunityPost(postId);
       }
     } catch (error) {
       setIsScrap(!nextScrapStatus);
@@ -283,11 +287,7 @@ function CommunityContent({ route, navigation }) {
                 {images &&
                   images.length > 0 &&
                   images.map((uri, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri }}
-                      style={styles.image}
-                    />
+                    <Image key={index} source={{ uri }} style={styles.image} />
                   ))}
               </View>
               <View style={styles.heartncomment}>
