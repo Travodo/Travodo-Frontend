@@ -47,7 +47,6 @@ function CommunityContent({ route, navigation }) {
   const [userId, setUserId] = useState('');
   const [writerId, setWriterId] = useState('');
   const [profileImg, setProfileImg] = useState(null);
-
   const { post: passedPost, postId: passedPostId } = route.params || {};
   const postId = passedPostId || passedPost?.id;
   const post = passedPost || CommunityData.find((p) => p.id.toString() === postId?.toString());
@@ -58,6 +57,9 @@ function CommunityContent({ route, navigation }) {
       </View>
     );
   }
+  
+  // 초기값으로 route에서 받은 images 설정
+  const [postImages, setPostImages] = useState(passedPost?.images || []);
 
   useEffect(() => {
     navigation.setOptions({
@@ -95,6 +97,8 @@ function CommunityContent({ route, navigation }) {
         setScrapCount(postData?.likeCount ?? 0);
         setIsScrap(postData?.isLiked ?? false);
         setProfileImg(postData?.author?.profileImageUrl || null);
+        // API 응답의 imageUrls를 사용 (여러 이미지 지원)
+        setPostImages(postData?.imageUrls || []);
         const rawComments = commentData?.content || commentData || [];
         console.log('서버에서 온 첫 번째 댓글 데이터:', rawComments[0]);
         const mappedComments = rawComments.map((c) => ({
@@ -121,12 +125,15 @@ function CommunityContent({ route, navigation }) {
     agoDate,
     title,
     content,
-    images,
+    images: postImagesFromRoute,
     cCount = 0,
     tripData,
     circleColor,
     tripTitle,
   } = post;
+  
+  // API에서 받은 imageUrls를 우선 사용, 없으면 route에서 받은 images 사용
+  const images = postImages.length > 0 ? postImages : (postImagesFromRoute || []);
 
   const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
   const normalizedTripData =
@@ -279,7 +286,7 @@ function CommunityContent({ route, navigation }) {
                     <Image
                       key={index}
                       source={{ uri }}
-                      style={{ width: 160, height: 160, borderRadius: 12 }}
+                      style={styles.image}
                     />
                   ))}
               </View>
@@ -397,6 +404,12 @@ const styles = StyleSheet.create({
     gap: 15,
     justifyContent: 'center',
     marginBottom: 15,
+    flexWrap: 'wrap',
+  },
+  image: {
+    width: 160,
+    height: 160,
+    borderRadius: 12,
   },
   heartncomment: {
     flexDirection: 'row',
