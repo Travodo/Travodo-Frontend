@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Alert,
   View,
@@ -29,10 +29,15 @@ function ProfileScreen() {
   const [me, setMe] = useState(null);
   const [isMeLoading, setIsLoading] = useState(true);
 
-  const refreshMe = async () => {
-    const data = await getMyInfo();
-    setMe(data);
-  };
+  const refreshMe = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getMyInfo();
+      setMe(data);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     // AuthContext에서 로그인 시 내정보를 캐싱하지만, 첫 진입에서 한 번 더 보장적으로 동기화
@@ -152,12 +157,12 @@ function ProfileScreen() {
         </View>
 
         <View style={styles.infoBox}>
-          <InfoRow label="이름" value={isMeLoading ? '' : me?.name || ''} />
-          <InfoRow label="닉네임" value={isMeLoading ? '' : me?.nickname || ''} />
-          <InfoRow label="이메일" value={isMeLoading ? '' : me?.email || ''} />
-          <InfoRow label="생년월일" value={isMeLoading ? '' : formatBirthDate(me?.birthDate)} />
-          <InfoRow label="성별" value={isMeLoading ? '' : formatGender(me?.gender)} />
-          <InfoRow label="연락처" value={isMeLoading ? '' : me?.phoneNumber || ''} />
+          <InfoRow label="이름" value={isLoading ? '' : me?.name || ''} />
+          <InfoRow label="닉네임" value={isLoading ? '' : me?.nickname || ''} />
+          <InfoRow label="이메일" value={isLoading ? '' : me?.email || ''} />
+          <InfoRow label="생년월일" value={isLoading ? '' : formatBirthDate(me?.birthDate)} />
+          <InfoRow label="성별" value={isLoading ? '' : formatGender(me?.gender)} />
+          <InfoRow label="연락처" value={isLoading ? '' : me?.phoneNumber || ''} />
 
           <TouchableOpacity onPress={Logout}>
             <Text style={styles.link}>로그아웃</Text>
