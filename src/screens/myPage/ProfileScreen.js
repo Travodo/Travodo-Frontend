@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Alert,
   View,
@@ -13,46 +13,20 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { getMyInfo, deleteAccount as deleteAccountApi, uploadMyProfileImage } from '../../services/api';
+import { useNavigation } from '@react-navigation/native';
+import { deleteAccount as deleteAccountApi, uploadMyProfileImage } from '../../services/api';
 import { signOut } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 
 function ProfileScreen() {
   const navigation = useNavigation();
-  const { logout } = useAuth();
-  const [me, setMe] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchMe = useCallback(
-    async ({ showLoading = true } = {}) => {
-      try {
-        if (showLoading) setIsLoading(true);
-        const data = await getMyInfo();
-        setMe(data);
-      } catch (e) {
-        console.error('내 정보 조회 실패:', e);
-        Alert.alert('실패', '내 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
-      } finally {
-        if (showLoading) setIsLoading(false);
-      }
-    },
-    [],
-  );
-
-  const refreshMe = async () => fetchMe({ showLoading: false });
+  const { logout, me, isMeLoading, refreshMe } = useAuth();
   
   useEffect(() => {
-    fetchMe({ showLoading: true });
-  }, [fetchMe]);
-
-  // 프로필 수정 화면에서 돌아온 경우 등, 화면이 다시 포커스될 때 최신 내정보로 동기화
-  useFocusEffect(
-    useCallback(() => {
-      fetchMe({ showLoading: false });
-    }, [fetchMe]),
-  );
+    // AuthContext에서 로그인 시 내정보를 캐싱하지만, 첫 진입에서 한 번 더 보장적으로 동기화
+    refreshMe().catch(() => {});
+  }, [refreshMe]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -160,12 +134,12 @@ function ProfileScreen() {
         </View>
 
         <View style={styles.infoBox}>
-          <InfoRow label="이름" value={isLoading ? '' : me?.name || ''} />
-          <InfoRow label="닉네임" value={isLoading ? '' : me?.nickname || ''} />
-          <InfoRow label="이메일" value={isLoading ? '' : me?.email || ''} />
-          <InfoRow label="생년월일" value={isLoading ? '' : formatBirthDate(me?.birthDate)} />
-          <InfoRow label="성별" value={isLoading ? '' : formatGender(me?.gender)} />
-          <InfoRow label="연락처" value={isLoading ? '' : me?.phoneNumber || ''} />
+          <InfoRow label="이름" value={isMeLoading ? '' : me?.name || ''} />
+          <InfoRow label="닉네임" value={isMeLoading ? '' : me?.nickname || ''} />
+          <InfoRow label="이메일" value={isMeLoading ? '' : me?.email || ''} />
+          <InfoRow label="생년월일" value={isMeLoading ? '' : formatBirthDate(me?.birthDate)} />
+          <InfoRow label="성별" value={isMeLoading ? '' : formatGender(me?.gender)} />
+          <InfoRow label="연락처" value={isMeLoading ? '' : me?.phoneNumber || ''} />
 
           <TouchableOpacity onPress={Logout}>
             <Text style={styles.link}>로그아웃</Text>
