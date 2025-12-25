@@ -466,6 +466,17 @@ export const reportPost = async (postId, data) => {
   return response.data;
 };
 
+export const likeComment = async (commentId) => {
+  const response = await api.post(`/community/comments/${commentId}/likes`);
+  return response.data;
+};
+
+export const unlikeComment = async (commentId) => {
+  const response = await api.delete(`/community/comments/${commentId}/likes`);
+  return response.data;
+};
+
+
 // -----------------------------
 // Upload (S3)
 // -----------------------------
