@@ -3,7 +3,11 @@ import { useState, useCallback, useEffect } from 'react';
 import PostList from '../../components/PostList';
 import { colors } from '../../styles/colors';
 // API 함수 임포트 (unbookmark 함수 포함)
-import { getBookmarkedPosts, unbookmarkCommunityPost } from '../../services/api';
+import {
+  getBookmarkedPosts,
+  unbookmarkCommunityPost,
+  unlikeCommunityPost,
+} from '../../services/api';
 import { useFocusEffect } from '@react-navigation/native';
 
 function CommunityScrap({ navigation }) {
@@ -74,6 +78,7 @@ function CommunityScrap({ navigation }) {
   const handleUnScrap = async (postId) => {
     try {
       await unbookmarkCommunityPost(postId);
+      await unlikeCommunityPost(postId);
       // 성공 시 리스트에서 즉시 제거 (필터링)
       setScrapPosts((prev) => prev.filter((post) => post.id !== postId));
     } catch (e) {

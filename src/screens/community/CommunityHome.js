@@ -6,7 +6,13 @@ import Dropdown from '../../components/Dropdown';
 import { CATEGORY_TABS, CommunityData } from '../../data/TripList';
 import { useFocusEffect } from '@react-navigation/native';
 import FAB from '../../components/FAB';
-import { getCommunityPosts, likeCommunityPost, unlikeCommunityPost } from '../../services/api';
+import {
+  bookmarkCommunityPost,
+  getCommunityPosts,
+  likeCommunityPost,
+  unbookmarkCommunityPost,
+  unlikeCommunityPost,
+} from '../../services/api';
 import { formatAgo } from '../../utils/dateFormatter';
 
 const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
@@ -83,8 +89,10 @@ function CommunityHome({ navigation }) {
     try {
       if (isCurrentlyLiked) {
         await unlikeCommunityPost(postId);
+        await unbookmarkCommunityPost(postId);
       } else {
         await likeCommunityPost(postId);
+        await bookmarkCommunityPost(postId);
       }
     } catch (error) {
       setAllPosts((prevPosts) =>
