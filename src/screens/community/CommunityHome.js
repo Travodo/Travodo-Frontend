@@ -5,9 +5,9 @@ import CategoriesList from '../../components/CategoriesList';
 import Dropdown from '../../components/Dropdown';
 import { CATEGORY_TABS, CommunityData } from '../../data/TripList';
 import { useFocusEffect } from '@react-navigation/native';
-import { colors } from '../../styles/colors';
 import FAB from '../../components/FAB';
 import { getCommunityPosts, likeCommunityPost, unlikeCommunityPost } from '../../services/api';
+import { formatAgo } from '../../utils/dateFormatter';
 
 const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
 function CommunityHome({ navigation }) {
@@ -32,7 +32,7 @@ function CommunityHome({ navigation }) {
             hCount: p.likeCount ?? 0,
             cCount: p.commentCount ?? 0,
             isScraped: p.isLiked ?? false,
-            agoDate: p.createdAt ? String(p.createdAt) : '',
+            agoDate: p.createdAt ? formatAgo(p.createdAt) : '',
             images: p.thumbnailUrl ? [p.thumbnailUrl] : [],
             category: '기타',
             // 상세 화면(CommunityContent)이 기대하는 여행 정보 형태로 정규화

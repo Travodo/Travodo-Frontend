@@ -36,6 +36,7 @@ import {
   getPostComments,
   createPostComment,
 } from '../../services/api';
+import { formatAgo } from '../../utils/dateFormatter';
 
 function CommunityContent({ route, navigation }) {
   const [commentList, setCommentList] = useState([]);
@@ -100,7 +101,7 @@ function CommunityContent({ route, navigation }) {
           id: c.id,
           nickname: c.author?.nickname || '익명',
           content: c.content,
-          date: c.createdAt,
+          date: formatAgo(c.createdAt),
           commentlike: c.likeCount || 0,
           isLiked: c.isLiked || false,
           profileImageUrl: c.author?.profileImageUrl,
