@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
@@ -48,26 +48,6 @@ function OnTripScreen() {
   const tripId = trip?.id;
   const colorPool = ['#769FFF', '#FFE386', '#EE8787', '#A4C664'];
 
-  const travelerColorMap = useMemo(() => {
-    const map = {};
-    travelers.forEach((t) => {
-      map[String(t.id)] = t.color;
-    });
-    return map;
-  }, [travelers]);
-
-  const mapSharedItem = useCallback(
-    (it) => ({
-      id: String(it.id),
-      content: it.name,
-      checked: !!it.checked,
-      travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
-      travelerName: it.assigneeName ?? null,
-      travelerColor: it.assigneeId != null ? travelerColorMap[String(it.assigneeId)] ?? null : null,
-    }),
-    [travelerColorMap],
-  );
-
   const loadMembersAndShared = useCallback(async () => {
     if (!tripId) return;
     try {
@@ -85,14 +65,27 @@ function OnTripScreen() {
           color: colorPool[idx % colorPool.length],
           isLeader: !!m.isLeader,
         }));
-      setTravelers(mappedMembers);
+      const nextColorMap = {};
+      mappedMembers.forEach((t) => {
+        nextColorMap[String(t.id)] = t.color;
+      });
 
       const items = await getSharedItems(tripId);
-      setShared((items || []).map(mapSharedItem));
+      const mappedShared = (items || []).map((it) => ({
+        id: String(it.id),
+        content: it.name,
+        checked: !!it.checked,
+        travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
+        travelerName: it.assigneeName ?? null,
+        travelerColor: it.assigneeId != null ? (nextColorMap[String(it.assigneeId)] ?? null) : null,
+      }));
+
+      setTravelers(mappedMembers);
+      setShared(mappedShared);
     } catch (e) {
       console.error('여행 멤버/공동 준비물 조회 실패:', e);
     }
-  }, [tripId, mapSharedItem]);
+  }, [tripId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -106,7 +99,20 @@ function OnTripScreen() {
       (async () => {
         try {
           const created = await createSharedItem(tripId, { name: text.trim() });
-          setShared((prev) => [...prev, mapSharedItem(created)]);
+          setShared((prev) => [
+            ...prev,
+            {
+              id: String(created?.id),
+              content: created?.name ?? text.trim(),
+              checked: !!created?.checked,
+              travelerId: created?.assigneeId != null ? String(created.assigneeId) : null,
+              travelerName: created?.assigneeName ?? null,
+              travelerColor:
+                created?.assigneeId != null
+                  ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
+                  : null,
+            },
+          ]);
           setText('');
           setAdding(null);
         } catch (e) {
@@ -144,7 +150,24 @@ function OnTripScreen() {
       (async () => {
         try {
           const updated = await updateSharedItem(tripId, item.id, { name: value });
-          setShared((prev) => prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)));
+          setShared((prev) =>
+            prev.map((x) =>
+              String(x.id) === String(item.id)
+                ? {
+                    ...x,
+                    content: updated?.name ?? value,
+                    checked: !!updated?.checked,
+                    travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                    travelerName: updated?.assigneeName ?? null,
+                    travelerColor:
+                      updated?.assigneeId != null
+                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                          null
+                        : null,
+                  }
+                : x,
+            ),
+          );
         } catch (e) {
           console.error('공동 준비물 수정 실패:', e);
           Alert.alert('실패', '공동 준비물 수정에 실패했습니다.');
@@ -161,7 +184,23 @@ function OnTripScreen() {
       (async () => {
         try {
           const updated = await updateSharedItem(tripId, item.id, { checked: !item.checked });
-          setShared((prev) => prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)));
+          setShared((prev) =>
+            prev.map((x) =>
+              String(x.id) === String(item.id)
+                ? {
+                    ...x,
+                    checked: !!updated?.checked,
+                    travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                    travelerName: updated?.assigneeName ?? null,
+                    travelerColor:
+                      updated?.assigneeId != null
+                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                          null
+                        : null,
+                  }
+                : x,
+            ),
+          );
         } catch (e) {
           console.error('공동 준비물 체크 변경 실패:', e);
           Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
@@ -178,7 +217,22 @@ function OnTripScreen() {
       (async () => {
         try {
           const updated = item.travelerId ? await unassignSharedItem(tripId, item.id) : await assignSharedItem(tripId, item.id);
-          setShared((prev) => prev.map((x) => (String(x.id) === String(item.id) ? mapSharedItem(updated) : x)));
+          setShared((prev) =>
+            prev.map((x) =>
+              String(x.id) === String(item.id)
+                ? {
+                    ...x,
+                    travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                    travelerName: updated?.assigneeName ?? null,
+                    travelerColor:
+                      updated?.assigneeId != null
+                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                          null
+                        : null,
+                  }
+                : x,
+            ),
+          );
         } catch (e) {
           console.error('공동 준비물 담당자 변경 실패:', e);
           Alert.alert('안내', '담당자 지정/해제는 본인만 할 수 있습니다.');
