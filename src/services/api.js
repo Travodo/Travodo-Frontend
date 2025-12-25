@@ -375,6 +375,71 @@ export const deleteSharedItem = async (tripId, itemId) => {
   return response.data;
 };
 
+
+// 개인 준비물(personal-items)
+export const getPersonalItems = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/personal-items`);
+  return response.data;
+};
+
+export const createPersonalItem = async (tripId, { name }) => {
+  const response = await api.post(`/trips/${tripId}/personal-items`, { name });
+  return response.data;
+};
+
+export const updatePersonalItem = async (tripId, itemId, { name, checked }) => {
+  const response = await api.patch(
+    `/trips/${tripId}/personal-items/${itemId}`,
+    { name, checked },
+  );
+  return response.data;
+};
+
+export const deletePersonalItem = async (tripId, itemId) => {
+  const response = await api.delete(
+    `/trips/${tripId}/personal-items/${itemId}`,
+  );
+  return response.data;
+};
+
+
+// 메모 관련
+export const getMemos = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/memos`);
+  return response.data;
+};
+
+export const getMemoDetail = async (tripId, memoId) => {
+  const response = await api.get(
+    `/trips/${tripId}/memos/${memoId}`,
+  );
+  return response.data;
+};
+
+export const createMemo = async (tripId, { title, content }) => {
+  const response = await api.post(
+    `/trips/${tripId}/memos`,
+    { title, content },
+  );
+  return response.data;
+};
+
+export const updateMemo = async (tripId, memoId, { title, content }) => {
+  const response = await api.put(
+    `/trips/${tripId}/memos/${memoId}`,
+    { title, content },
+  );
+  return response.data;
+};
+
+export const deleteMemo = async (tripId, memoId) => {
+  const response = await api.delete(
+    `/trips/${tripId}/memos/${memoId}`,
+  );
+  return response.data;
+};
+
+
 // 위치 업데이트 / 동행자 위치 / POI
 export const updateMyLocation = async (tripId, { latitude, longitude }) => {
   const response = await api.post(`/trips/${tripId}/location`, { latitude, longitude });

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -28,8 +29,13 @@ import {
   regenerateInviteCode,
   unassignSharedItem,
   updateSharedItem,
-  deleteTrip,
-  updateTripStatus,
+  getPersonalItems,
+  createPersonalItem,
+  updatePersonalItem,
+  deletePersonalItem,
+  getMemos,
+  createMemo,
+  deleteMemo
 } from '../../services/api';
 
 function PrepareScreen() {
@@ -57,44 +63,62 @@ function PrepareScreen() {
   const [isStarting, setIsStarting] = useState(false);
 
   const loadMembersAndShared = useCallback(async () => {
-    if (!tripId) return;
-    try {
-      const members = await getTripMembers(tripId);
-      const mappedMembers = (members || [])
-        .slice()
-        .sort((a, b) => {
-          if (a.isLeader && !b.isLeader) return -1;
-          if (!a.isLeader && b.isLeader) return 1;
-          return String(a.nickname || '').localeCompare(String(b.nickname || ''));
-        })
-        .map((m, idx) => ({
-          id: m.userId,
-          name: m.nickname,
-          color: colorPool[idx % colorPool.length],
-          isLeader: !!m.isLeader,
-        }));
+  if (!tripId) return;
 
-      const nextColorMap = {};
-      mappedMembers.forEach((t) => {
-        nextColorMap[String(t.id)] = t.color;
-      });
+  try {
+    const members = await getTripMembers(tripId);
 
-      const items = await getSharedItems(tripId);
-      const mappedShared = (items || []).map((it) => ({
-        id: String(it.id),
-        content: it.name,
-        checked: !!it.checked,
-        travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
-        travelerName: it.assigneeName ?? null,
-        travelerColor: it.assigneeId != null ? (nextColorMap[String(it.assigneeId)] ?? null) : null,
+    const mappedMembers = (members || [])
+      .slice()
+      .sort((a, b) => {
+        if (a.isLeader && !b.isLeader) return -1;
+        if (!a.isLeader && b.isLeader) return 1;
+        return String(a.nickname || '').localeCompare(String(b.nickname || ''));
+      })
+      .map((m, idx) => ({
+        id: String(m.userId),
+        name: m.nickname,
+        color: colorPool[idx % colorPool.length],
+        isLeader: !!m.isLeader,
       }));
 
-      setTravelers(mappedMembers);
-      setShared(mappedShared);
-    } catch (e) {
-      console.error('여행 멤버/공동 준비물 조회 실패:', e);
-    }
-  }, [tripId]);
+    const colorMap = {};
+    mappedMembers.forEach((m) => {
+      colorMap[String(m.id)] = m.color;
+    });
+
+    const sharedItems = await getSharedItems(tripId);
+
+    const mappedShared = (sharedItems || []).map((it) => ({
+      id: String(it.id),
+      content: it.name,
+      checked: !!it.checked,
+      travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
+      travelerName: it.assigneeName ?? null,
+      travelerColor:
+        it.assigneeId != null
+          ? colorMap[String(it.assigneeId)] ?? null
+          : null,
+    }));
+
+    const personalItems = await getPersonalItems(tripId);
+
+    const mappedPersonal = (personalItems || []).map((it) => ({
+      id: String(it.id),
+      content: it.name,
+      checked: !!it.checked,
+      travelerId: null,
+      travelerName: null,
+      travelerColor: null,
+    }));
+
+    setTravelers(mappedMembers);
+    setShared(mappedShared);
+    setPersonal(mappedPersonal);
+  } catch (e) {
+    console.error('여행 멤버 / 준비물 조회 실패:', e);
+  }
+}, [tripId, colorPool, getTripMembers, getSharedItems, getPersonalItems ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -114,6 +138,8 @@ function PrepareScreen() {
       text2Style: { fontSize: 13 },
     });
   }, []);
+
+
 
   const fetchAndCopyInviteCode = useCallback(async () => {
     if (!tripId || inviting) return;
@@ -189,21 +215,39 @@ function PrepareScreen() {
   }, [fetchAndCopyInviteCode, regenerateAndCopyInviteCode]);
 
   const deleteItem = (list, setter, index) => {
-    const item = list[index];
-    if (setter === setShared) {
-      (async () => {
-        try {
-          await deleteSharedItem(tripId, item.id);
-          setShared((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
-        } catch (e) {
-          console.error('공동 준비물 삭제 실패:', e);
-          Alert.alert('실패', '공동 준비물 삭제에 실패했습니다.');
-        }
-      })();
-      return;
-    }
-    setter(list.filter((_, i) => i !== index));
-  };
+  const item = list[index];
+
+  // 공동 준비물 삭제(서버)
+  if (setter === setShared) {
+    (async () => {
+      try {
+        await deleteSharedItem(tripId, item.id);
+        setShared((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
+      } catch (e) {
+        console.error('공동 준비물 삭제 실패:', e);
+        Alert.alert('실패', '공동 준비물 삭제에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // 개인 준비물 삭제(서버)
+  if (setter === setPersonal) {
+    (async () => {
+      try {
+        await deletePersonalItem(tripId, item.id);
+        setPersonal((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
+      } catch (e) {
+        console.error('개인 준비물 삭제 실패:', e);
+        Alert.alert('실패', '개인 준비물 삭제에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // 그 외 로컬 삭제
+  setter(list.filter((_, i) => i !== index));
+};
 
   const handleDeleteTrip = async () => {
     if (!tripId) {
@@ -255,117 +299,218 @@ function PrepareScreen() {
   };
 
   const editItem = (list, setter, index, newContent) => {
-    const item = list[index];
-    if (setter === setShared) {
-      (async () => {
-        try {
-          const updated = await updateSharedItem(tripId, item.id, { name: newContent });
-          setShared((prev) =>
-            prev.map((x) =>
-              String(x.id) === String(item.id)
-                ? {
-                    ...x,
-                    content: updated?.name ?? newContent,
-                    checked: !!updated?.checked,
-                    travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
-                    travelerName: updated?.assigneeName ?? null,
-                    travelerColor:
-                      updated?.assigneeId != null
-                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
-                            ?.color ?? null)
-                        : null,
-                  }
-                : x,
-            ),
-          );
-        } catch (e) {
-          console.error('공동 준비물 수정 실패:', e);
-          Alert.alert('실패', '공동 준비물 수정에 실패했습니다.');
-        }
-      })();
-      return;
-    }
-    setter(list.map((it, i) => (i === index ? { ...it, content: newContent } : it)));
-  };
+  const item = list[index];
 
-  const addItem = (setter, list) => {
-    if (!text.trim()) return;
-    if (setter === setShared) {
-      (async () => {
-        try {
-          const created = await createSharedItem(tripId, { name: text.trim() });
-          setShared((prev) => [
-            ...prev,
-            {
-              id: String(created?.id),
-              content: created?.name ?? text.trim(),
-              checked: !!created?.checked,
-              travelerId: created?.assigneeId != null ? String(created.assigneeId) : null,
-              travelerName: created?.assigneeName ?? null,
-              travelerColor:
-                created?.assigneeId != null
-                  ? (travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
-                    null)
-                  : null,
-            },
-          ]);
-          setText('');
-          setAdding(null);
-        } catch (e) {
-          console.error('공동 준비물 생성 실패:', e);
-          Alert.alert('실패', '공동 준비물 추가에 실패했습니다.');
-        }
-      })();
-      return;
-    }
-    setter([
-      ...list,
-      {
-        id: Date.now().toString(),
-        content: text,
-        checked: false,
-        travelerId: null,
-        travelerName: null,
-        travelerColor: null,
-      },
-    ]);
+  // 공동 준비물 수정(서버)
+  if (setter === setShared) {
+    (async () => {
+      try {
+        const updated = await updateSharedItem(tripId, item.id, { name: newContent });
+        setShared((prev) =>
+          prev.map((x) =>
+            String(x.id) === String(item.id)
+              ? {
+                  ...x,
+                  content: updated?.name ?? newContent,
+                  checked: !!updated?.checked,
+                  travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                  travelerName: updated?.assigneeName ?? null,
+                  travelerColor:
+                    updated?.assigneeId != null
+                      ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                        null
+                      : null,
+                }
+              : x,
+          ),
+        );
+      } catch (e) {
+        console.error('공동 준비물 수정 실패:', e);
+        Alert.alert('실패', '공동 준비물 수정에 실패했습니다.');
+      }
+    })();
+    return;
+  }
 
-    setText('');
-    setAdding(null);
-  };
+  // 개인 준비물 수정(서버)
+  if (setter === setPersonal) {
+    (async () => {
+      try {
+        const updated = await updatePersonalItem(tripId, item.id, { name: newContent });
+        setPersonal((prev) =>
+          prev.map((x) =>
+            String(x.id) === String(item.id)
+              ? { ...x, content: updated?.name ?? newContent }
+              : x,
+          ),
+        );
+      } catch (e) {
+        console.error('개인 준비물 수정 실패:', e);
+        Alert.alert('실패', '개인 준비물 수정에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // 그 외 로컬 수정
+  setter(list.map((it, i) => (i === index ? { ...it, content: newContent } : it)));
+};
+
+const loadMemos = useCallback(async () => {
+  if (!tripId) return;
+  try {
+    const data = await getMemos(tripId);
+    setMemos(
+      (data || []).map(m => ({
+        id: String(m.id),
+        title: m.title,
+        content: m.content,
+        updatedAt: m.updatedAt,
+      }))
+    );
+  } catch (e) {
+    console.error('메모 조회 실패', e);
+  }
+}, [tripId]);
+
+useFocusEffect(
+  useCallback(() => {
+    loadMemos();
+  }, [loadMemos])
+);
+
+const addItem = (setter, list) => {
+  if (!text.trim()) return;
+
+  // 공동 준비물 추가(서버)
+  if (setter === setShared) {
+    (async () => {
+      try {
+        const created = await createSharedItem(tripId, { name: text.trim() });
+        setShared((prev) => [
+          ...prev,
+          {
+            id: String(created?.id),
+            content: created?.name ?? text.trim(),
+            checked: !!created?.checked,
+            travelerId: created?.assigneeId != null ? String(created.assigneeId) : null,
+            travelerName: created?.assigneeName ?? null,
+            travelerColor:
+              created?.assigneeId != null
+                ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
+                : null,
+          },
+        ]);
+        setText('');
+        setAdding(null);
+      } catch (e) {
+        console.error('공동 준비물 생성 실패:', e);
+        Alert.alert('실패', '공동 준비물 추가에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // 개인 준비물 추가(서버)
+  if (setter === setPersonal) {
+    (async () => {
+      try {
+        const created = await createPersonalItem(tripId, { name: text.trim() });
+        setPersonal((prev) => [
+          ...prev,
+          {
+            id: String(created?.id),
+            content: created?.name ?? text.trim(),
+            checked: !!created?.checked,
+            travelerId: null,
+            travelerName: null,
+            travelerColor: null,
+          },
+        ]);
+        setText('');
+        setAdding(null);
+      } catch (e) {
+        console.error('개인 준비물 생성 실패:', e);
+        Alert.alert('실패', '개인 준비물 추가에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // 그 외 로컬 추가
+  setter([
+    ...list,
+    {
+      id: Date.now().toString(),
+      content: text.trim(),
+      checked: false,
+      travelerId: null,
+      travelerName: null,
+      travelerColor: null,
+    },
+  ]);
+
+  setText('');
+  setAdding(null);
+};
 
   const toggleCheck = (list, setter, index) => {
-    const item = list[index];
-    if (setter === setShared) {
-      (async () => {
-        try {
-          const updated = await updateSharedItem(tripId, item.id, { checked: !item.checked });
-          setShared((prev) =>
-            prev.map((x) =>
-              String(x.id) === String(item.id)
-                ? {
-                    ...x,
-                    checked: !!updated?.checked,
-                    travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
-                    travelerName: updated?.assigneeName ?? null,
-                    travelerColor:
-                      updated?.assigneeId != null
-                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
-                            ?.color ?? null)
-                        : null,
-                  }
-                : x,
-            ),
-          );
-        } catch (e) {
-          console.error('공동 준비물 체크 변경 실패:', e);
-          Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
-        }
-      })();
-      return;
-    }
-    setter(list.map((it, i) => (i === index ? { ...it, checked: !it.checked } : it)));
-  };
+  const item = list[index];
+
+  // 공동 준비물 체크 변경(서버)
+  if (setter === setShared) {
+    (async () => {
+      try {
+        const updated = await updateSharedItem(tripId, item.id, { checked: !item.checked });
+        setShared((prev) =>
+          prev.map((x) =>
+            String(x.id) === String(item.id)
+              ? {
+                  ...x,
+                  checked: !!updated?.checked,
+                  travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                  travelerName: updated?.assigneeName ?? null,
+                  travelerColor:
+                    updated?.assigneeId != null
+                      ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                        null
+                      : null,
+                }
+              : x,
+          ),
+        );
+      } catch (e) {
+        console.error('공동 준비물 체크 변경 실패:', e);
+        Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // 개인 준비물 체크 변경(서버)
+  if (setter === setPersonal) {
+    (async () => {
+      try {
+        const updated = await updatePersonalItem(tripId, item.id, { checked: !item.checked });
+        setPersonal((prev) =>
+          prev.map((x) =>
+            String(x.id) === String(item.id)
+              ? { ...x, checked: !!updated?.checked }
+              : x,
+          ),
+        );
+      } catch (e) {
+        console.error('개인 준비물 체크 변경 실패:', e);
+        Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // 그 외
+  setter(list.map((it, i) => (i === index ? { ...it, checked: !it.checked } : it)));
+};
+
 
   const assignTraveler = (list, setter, index) => {
     const item = list[index];
@@ -402,7 +547,7 @@ function PrepareScreen() {
       list.map((item, i) => {
         if (i !== index) return item;
 
-        const currentSelectedTraveler = selectedTravelerRef.current ?? selectedTraveler;
+        const currentSelectedTraveler = selectedTraveler;
         if (!currentSelectedTraveler) {
           Alert.alert('알림', '여행자를 먼저 선택해주세요!');
           return item;
@@ -563,47 +708,70 @@ function PrepareScreen() {
         <Text style={sharedStyles.sectionTitle}>메모장</Text>
 
         {memos.map((memo) => (
-          <View key={memo.id} style={sharedStyles.memoRow}>
-            <Pressable
-              style={sharedStyles.memoLeft}
-              onPress={() =>
-                navigation.navigate('MemoScreen', {
-                  memo,
-                  onSave: (updatedMemo) => {
-                    setMemos((prev) =>
-                      prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)),
-                    );
-                  },
-                })
-              }
-            >
-              <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
-              <Text style={sharedStyles.memoText}>{memo.title}</Text>
-            </Pressable>
+  <View key={memo.id} style={sharedStyles.memoRow}>
+    
+    <Pressable
+      style={sharedStyles.memoLeft}
+      onPress={() =>
+        navigation.navigate('MemoScreen', {
+          tripId,
+          memo,
+          onSave: (updatedMemo) => {
+            setMemos((prev) =>
+              prev.map((m) =>
+                m.id === updatedMemo.id ? updatedMemo : m
+              )
+            );
+          },
+        })
+      }
+    >
+      <MaterialIcons
+        name="description"
+        size={22}
+        color={colors.grayscale[500]}
+      />
+      <Text style={sharedStyles.memoText}>{memo.title}</Text>
+    </Pressable>
 
-            <Pressable
-              onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))}
-              hitSlop={8}
-            >
-              <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
-            </Pressable>
-          </View>
-        ))}
+    <Pressable
+      hitSlop={8}
+      onPress={async () => {
+        try {
+          await deleteMemo(tripId, memo.id);
+          setMemos((prev) =>
+            prev.filter((m) => m.id !== memo.id)
+          );
+        } catch (e) {
+          Alert.alert('실패', '메모 삭제에 실패했습니다.');
+        }
+      }}
+    >
+      <MaterialIcons
+        name="delete-outline"
+        size={20}
+        color={colors.grayscale[600]}
+      />
+    </Pressable>
+  </View>
+))}
+
 
         <View style={sharedStyles.plusCenter}>
-          <Pressable
-            style={sharedStyles.plusButton}
-            onPress={() =>
-              navigation.navigate('MemoScreen', {
-                onSave: (newMemo) => {
-                  setMemos((prev) => [...prev, newMemo]);
-                },
-              })
-            }
-          >
-            <Plus width={24} height={24} />
-          </Pressable>
-        </View>
+  <Pressable
+    style={sharedStyles.plusButton}
+    onPress={() =>
+      navigation.navigate('MemoScreen', {
+        tripId,
+        onSave: (newMemo) => {
+          setMemos((prev) => [...prev, newMemo]);
+        },
+      })
+    }
+  >
+    <Plus width={24} height={24} />
+  </Pressable>
+</View>
 
         <View style={sharedStyles.sectionDivider} />
         <View style={styles.buttonRow}>
