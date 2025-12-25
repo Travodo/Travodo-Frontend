@@ -259,6 +259,11 @@ export const createTrip = async (data) => {
   return response.data;
 };
 
+export const deleteTrip = async (tripId) => {
+  const response = await api.delete(`/trips/${tripId}`);
+  return response.data;
+};
+
 export const joinTripByInviteCode = async (inviteCode) => {
   const response = await api.post('/trips/join', { inviteCode });
   return response.data;
@@ -475,7 +480,6 @@ export const unlikeComment = async (commentId) => {
   const response = await api.delete(`/community/comments/${commentId}/likes`);
   return response.data;
 };
-
 
 // -----------------------------
 // Upload (S3)

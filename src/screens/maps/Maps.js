@@ -5,6 +5,7 @@ import { colors } from '../../styles/colors';
 import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
 import MyLocation from '../../../assets/ComponentsImage/MyLocation.svg';
+import { updateMyLocation, getCurrentTrip } from '../../services/api';
 
 const DUMMY_USERS = [
   {
@@ -45,10 +46,21 @@ function Maps() {
   const [myLocation, setMyLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [myStatus, setMyStatus] = useState('ongoing');
+  const [myStatus, setMyStatus] = useState('');
+  const [currentTrip, setCurrentTrip] = useState('');
   const mapRef = useRef(null);
 
   const message = myStatus === 'ongoing' ? '여행 진행 중' : '여행이 시작되지 않았어요.';
+
+  const getTripStatus = async () => {
+    try {
+      const data = await getCurrentTrip();
+      setCurrentTrip(data);
+      console.log(currentTrip);
+    } catch (error) {
+      console.error('현재 진행 중인 여행조회 실패', error);
+    }
+  };
 
   const fetchTripData = async () => {
     try {
@@ -58,13 +70,24 @@ function Maps() {
     }
   };
 
-  const sendMyLocation = async (location) => {
+  const sendMyLocation = async () => {
     try {
-      // post
+      const { status } = Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      await updateMyLocation(tripId, { latitude, longitude });
+      console.log('위치 전송 성공');
     } catch (error) {
-      // error
+      console.error('위치 전송 실패', error);
     }
   };
+
+  useEffect(() => {
+    getTripStatus();
+  }, []);
 
   useEffect(() => {
     (async () => {

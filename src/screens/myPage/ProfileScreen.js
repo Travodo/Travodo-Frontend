@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   View,
@@ -27,7 +27,7 @@ function ProfileScreen() {
   const navigation = useNavigation();
   const { logout } = useAuth();
   const [me, setMe] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isMeLoading, setIsLoading] = useState(true);
 
   const refreshMe = async () => {
     const data = await getMyInfo();
@@ -133,7 +133,7 @@ function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView style={styles.container} bounces={false} overScrollMode="never">
         <View style={styles.profileSection}>
           <View style={styles.profileWrapper}>
@@ -168,7 +168,7 @@ function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

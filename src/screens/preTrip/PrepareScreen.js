@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   Pressable,
   TextInput,
   TouchableOpacity,
@@ -30,8 +29,9 @@ import {
   regenerateInviteCode,
   unassignSharedItem,
   updateSharedItem,
+  deleteTrip,
+  updateTripStatus,
 } from '../../services/api';
-import { useTrip } from '../../contexts/TripContext';
 
 function PrepareScreen() {
   const route = useRoute();
@@ -39,8 +39,6 @@ function PrepareScreen() {
 
   const trip = route?.params?.tripData;
   const tripId = trip?.id;
-  const { getTripStatus, startTrip } = useTrip();
-  const status = getTripStatus(tripId);
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
@@ -210,6 +208,33 @@ function PrepareScreen() {
     setter(list.filter((_, i) => i !== index));
   };
 
+  const handleDeleteTrip = async () => {
+    if (!tripId) {
+      Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
+      return;
+    }
+    try {
+      await deleteTrip(tripId);
+      setTravelers([]);
+      setNecessity([]);
+      setShared([]);
+      setPersonal([]);
+      setActivities([]);
+      setMemos([]);
+      navigation.goBack();
+    } catch (error) {
+      console.error('삭제 실패', error);
+    }
+  };
+
+  const handlerStartTrip = async (tripId) => {
+    try {
+      await updateTripStatus(tripId, 'ONGOING');
+    } catch (error) {
+      console.log('여행 상태 변경 실패', error);
+    }
+  };
+
   const editItem = (list, setter, index, newContent) => {
     const item = list[index];
     if (setter === setShared) {
@@ -228,8 +253,8 @@ function PrepareScreen() {
                     // travelerColor는 travelers state 기반으로 계산(없으면 그대로 유지)
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -261,7 +286,8 @@ function PrepareScreen() {
               travelerName: created?.assigneeName ?? null,
               travelerColor:
                 created?.assigneeId != null
-                  ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
+                  ? (travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
+                    null)
                   : null,
             },
           ]);
@@ -306,8 +332,8 @@ function PrepareScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -341,8 +367,8 @@ function PrepareScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -381,14 +407,14 @@ function PrepareScreen() {
 
   if (!trip) {
     return (
-      <SafeAreaView style={sharedStyles.container}>
+      <View style={sharedStyles.container}>
         <Text style={sharedStyles.pageTitle}>여행 정보를 불러올 수 없습니다</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={sharedStyles.container}>
+    <View style={sharedStyles.container}>
       <Text style={sharedStyles.pageTitle}>여행 준비 리스트</Text>
       <Text style={sharedStyles.subTitle}>신나는 여행을 준비해 봐요!</Text>
 
@@ -564,51 +590,45 @@ function PrepareScreen() {
 
         <View style={sharedStyles.sectionDivider} />
         <View style={styles.buttonRow}>
-  {status === 'BEFORE' && (
-    <TouchableOpacity
-      style={styles.startButton}
-      onPress={() => {
-        startTrip(tripId); // 전역 상태 업데이트
-        navigation.navigate('StartTrip', {
-          trip,
-          travelers,
-          necessity,
-          shared,
-          personal,
-          activities,
-          memos,
-        });
-      }}
-    >
-      <Text style={styles.startText}>여행 시작</Text>
-    </TouchableOpacity>
-  )}
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => {
+              // 전역 상태 업데이트
+              handlerStartTrip();
+              navigation.navigate('StartTrip', {
+                trip,
+                travelers,
+                necessity,
+                shared,
+                personal,
+                activities,
+                memos,
+              });
+            }}
+          >
+            <Text style={styles.startText}>여행 시작</Text>
+          </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.deleteButton}
-    onPress={() => {
-      Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: () => {
-            setTravelers([]);
-            setNecessity([]);
-            setShared([]);
-            setPersonal([]);
-            setActivities([]);
-            setMemos([]);
-          },
-        },
-      ]);
-    }}
-  >
-    <Text style={styles.deleteText}>삭제하기</Text>
-  </TouchableOpacity>
-</View>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => {
+              Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
+                { text: '취소', style: 'cancel' },
+                {
+                  text: '삭제',
+                  style: 'destructive',
+                  onPress: () => {
+                    handleDeleteTrip();
+                  },
+                },
+              ]);
+            }}
+          >
+            <Text style={styles.deleteText}>삭제하기</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

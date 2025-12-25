@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
@@ -9,7 +8,6 @@ import { renderSection } from '../../utils/renderSection';
 import { colors } from '../../styles/colors';
 import sharedStyles from './sharedStyles';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
-import { useTrip } from '../../contexts/TripContext';
 import {
   assignSharedItem,
   createSharedItem,
@@ -24,7 +22,6 @@ import {
 function OnTripScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { endTrip } = useTrip();
 
   const {
     trip,
@@ -111,7 +108,8 @@ function OnTripScreen() {
               travelerName: created?.assigneeName ?? null,
               travelerColor:
                 created?.assigneeId != null
-                  ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
+                  ? (travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
+                    null)
                   : null,
             },
           ]);
@@ -163,8 +161,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -196,8 +194,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -218,7 +216,9 @@ function OnTripScreen() {
     if (setter === setShared) {
       (async () => {
         try {
-          const updated = item.travelerId ? await unassignSharedItem(tripId, item.id) : await assignSharedItem(tripId, item.id);
+          const updated = item.travelerId
+            ? await unassignSharedItem(tripId, item.id)
+            : await assignSharedItem(tripId, item.id);
           setShared((prev) =>
             prev.map((x) =>
               String(x.id) === String(item.id)
@@ -228,8 +228,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -258,7 +258,6 @@ function OnTripScreen() {
             if (trip?.id != null) {
               await updateTripStatus(trip.id, 'FINISHED');
             }
-            endTrip(trip.id);
           } catch (e) {
             console.error(e);
           } finally {
@@ -282,12 +281,7 @@ function OnTripScreen() {
         <Text style={sharedStyles.sectionTitle}>여행자</Text>
         <View style={sharedStyles.travelerList}>
           {travelers.map((t) => (
-            <TravelerAvatar 
-              key={t.id} 
-              name={t.name} 
-              color={t.color}
-              showDelete={false}
-            />
+            <TravelerAvatar key={t.id} name={t.name} color={t.color} showDelete={false} />
           ))}
         </View>
 
@@ -375,7 +369,9 @@ function OnTripScreen() {
                 navigation.navigate('MemoScreen', {
                   memo,
                   onSave: (updatedMemo) => {
-                    setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
+                    setMemos((prev) =>
+                      prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)),
+                    );
                   },
                 })
               }
@@ -384,7 +380,10 @@ function OnTripScreen() {
               <Text style={sharedStyles.memoText}>{memo.title}</Text>
             </Pressable>
 
-            <Pressable onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))} hitSlop={8}>
+            <Pressable
+              onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))}
+              hitSlop={8}
+            >
               <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
             </Pressable>
           </View>
@@ -408,10 +407,7 @@ function OnTripScreen() {
         <View style={sharedStyles.sectionDivider} />
 
         <View style={styles.endButtonWrapper}>
-          <Pressable 
-            style={styles.endButton} 
-            onPress={handleEndTrip}
-          >
+          <Pressable style={styles.endButton} onPress={handleEndTrip}>
             <Text style={styles.endButtonText}>여행 종료</Text>
           </Pressable>
         </View>

@@ -1,49 +1,54 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { getUpcomingTrips } from '../../services/api';
+import { getUpcomingTrips, getCurrentTrip } from '../../services/api';
 
 function HomeScreen({ route }) {
   const navigation = useNavigation();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ongoingTrips, setOngoingTrips] = useState([]);
 
-  const loadUpcoming = useCallback(async () => {
-    setLoading(true);
+  // 데이터 가져오기 함수
+  const fetchTripsData = async () => {
+    // 이미 로딩 중이 아니라면 로딩 표시 (UX에 따라 첫 로딩만 표시할 수도 있음)
+    // setLoading(true);
+
     try {
-      const raw = await getUpcomingTrips();
-      // 서버/프록시 환경에 따라 배열이 아닌 래핑 객체로 올 수 있어 방어
-      const list = Array.isArray(raw) ? raw : (raw?.trips ?? raw?.data ?? []);
-      const mapped = (list || []).map((t) => ({
-        id: t.id,
-        name: t.name,
-        destination: t.place,
-        place: t.place,
-        startDate: String(t.startDate || '').replace(/-/g, '.'),
-        endDate: String(t.endDate || '').replace(/-/g, '.'),
-        dDay: t.dDay,
-        color: t.color,
-        status: t.status,
-        companions: [],
-      }));
-      setTrips(mapped);
-    } catch (e) {
-      console.error('다가오는 여행 조회 실패:', e);
-      setTrips([]);
+      console.log('홈 화면 데이터 갱신 중...'); // 디버깅용 로그
+
+      // 1. 현재 진행 중인 여행
+      const currentTripResponse = await getCurrentTrip();
+      if (currentTripResponse && currentTripResponse.id) {
+        setOngoingTrips([currentTripResponse]);
+      } else {
+        setOngoingTrips([]);
+      }
+
+      // 2. 다가오는 여행
+      const upcomingTripsResponse = await getUpcomingTrips();
+      if (Array.isArray(upcomingTripsResponse)) {
+        setTrips(upcomingTripsResponse);
+      } else {
+        setTrips([]);
+      }
+    } catch (error) {
+      console.error('여행 데이터 가져오기 실패:', error);
+      // Alert.alert('오류', '여행 정보를 불러오는데 실패했습니다.'); // 너무 잦은 알림 방지
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  // 홈으로 돌아올 때마다 갱신 (여행 생성 후에도 자동 반영)
+  // 화면이 포커스될 때 + refresh 파라미터가 바뀔 때 실행
   useFocusEffect(
     useCallback(() => {
-      loadUpcoming();
-    }, [loadUpcoming]),
+      fetchTripsData();
+    }, [route.params?.refresh]), // route.params.refresh가 변경되면 재실행
   );
 
   return (
@@ -51,35 +56,49 @@ function HomeScreen({ route }) {
       <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never" bounces={false}>
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
-        <CalendarView trips={trips} />
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>다가오는 여행</Text>
-          <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>
-          {loading ? (
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary[700]} />
-          ) : trips.length === 0 ? (
-            <Text style={styles.emptyText}>아직 계획된 여행이 없어요!</Text>
-          ) : (
-            trips.map((trip) => <TripCard key={trip.id} trip={trip} />)
-          )}
-        </View>
+          </View>
+        ) : (
+          <>
+            <CalendarView trips={[...ongoingTrips, ...trips]} />
+
+            {/* 현재 진행 중인 여행 */}
+            {ongoingTrips.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>지금 여행 중! ✈️</Text>
+                {ongoingTrips.map((trip) => (
+                  <TripCard key={trip.id} trip={trip} />
+                ))}
+              </View>
+            )}
+
+            {/* 다가오는 여행 */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>다가오는 여행</Text>
+              <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>
+              {trips.length === 0 ? (
+                <Text style={styles.emptyText}>아직 계획된 여행이 없어요!</Text>
+              ) : (
+                trips.map((trip) => <TripCard key={trip.id} trip={trip} />)
+              )}
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <FAB
-  icon="add"
-  onCreatePress={() =>
-    navigation.navigate('TravelCreate')
-  }
-  onJoinPress={() =>
-    navigation.navigate('Join')
-  }
-  onWritePress={() =>
-    navigation.navigate('CommunityStack', {
-      screen: 'CommunitySelectWriteTrip',
-    })
-  }
-/>
-
+        icon="add"
+        onCreatePress={() => navigation.navigate('TravelCreate')}
+        onJoinPress={() => navigation.navigate('Join')}
+        onWritePress={() =>
+          navigation.navigate('CommunityStack', {
+            screen: 'CommunitySelectWriteTrip',
+          })
+        }
+      />
     </View>
   );
 }
@@ -94,6 +113,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 4,
   },
+  loadingContainer: {
+    marginTop: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerText: {
     fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
@@ -106,11 +130,9 @@ const styles = StyleSheet.create({
     color: colors.grayscale[900],
     marginBottom: 20,
   },
-
   section: {
     marginTop: 10,
   },
-
   sectionTitle: {
     fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
@@ -123,7 +145,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[800],
   },
-
   emptyText: {
     marginTop: 36,
     textAlign: 'center',
