@@ -9,7 +9,6 @@ import StartTripScreen from '../screens/loadingScreen/StartTripScreen';
 import ChecklistSection from '../screens/preTrip/ChecklistSection';
 import MemoScreen from '../screens/preTrip/MemoScreen';
 import OnTripScreen from '../screens/preTrip/OnTripScreen';
-import PrepareScreen from '../screens/preTrip/PrepareScreen';
 
 const Stack = createNativeStackNavigator();
 

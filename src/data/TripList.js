@@ -60,12 +60,13 @@ export const data = [
 // 3. 카테고리 탭
 export const CATEGORY_TABS = [
   { id: 'c0', label: '전체' },
-  { id: 'c1', label: '커플 / 연인' },
-  { id: 'c2', label: '가족 / 친지' },
-  { id: 'c3', label: '직장 / 동료' },
-  { id: 'c4', label: '친구 / 지인' },
-  { id: 'c5', label: '여행 / 취미' },
-  { id: 'c6', label: '스터디 / 모임' },
+  { id: 'c1', label: '휴양 / 힐링' },
+  { id: 'c2', label: '액티비티' },
+  { id: 'c3', label: '역사 / 문화' },
+  { id: 'c4', label: '쇼핑' },
+  { id: 'c5', label: '자연 / 캠핑' },
+  { id: 'c6', label: '호캉스' },
+  { id: 'c7', label: '미식' },
 ];
 
 // ★ [추가 1] 지난 여행 데이터 (LasttripScreen 오류 해결용)

@@ -17,7 +17,7 @@ function HomeScreen({ route }) {
     try {
       const raw = await getUpcomingTrips();
       // 서버/프록시 환경에 따라 배열이 아닌 래핑 객체로 올 수 있어 방어
-      const list = Array.isArray(raw) ? raw : raw?.trips ?? raw?.data ?? [];
+      const list = Array.isArray(raw) ? raw : (raw?.trips ?? raw?.data ?? []);
       const mapped = (list || []).map((t) => ({
         id: t.id,
         name: t.name,

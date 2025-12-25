@@ -217,7 +217,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    // backgroundColor: ... (여기서 지정 안 하고 위에서 user.color로 덮어씁니다)
     borderWidth: 3,
     borderColor: '#fff',
     shadowColor: '#000',

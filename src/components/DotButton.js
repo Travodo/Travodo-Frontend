@@ -3,7 +3,11 @@ import PropTypes from 'prop-types';
 
 function DotButton({ onPress }) {
   return (
-    <Pressable style={[styles.container, { transform: [{ rotate: `90deg` }] }]} onPress={onPress}>
+    <Pressable
+      style={[styles.container, { transform: [{ rotate: `90deg` }] }]}
+      onPress={onPress}
+      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+    >
       <Text style={styles.text}>. . .</Text>
     </Pressable>
   );

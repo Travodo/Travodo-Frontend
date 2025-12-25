@@ -24,21 +24,9 @@ import { colors } from '../../styles/colors';
 import Close from '../../../assets/ComponentsImage/Close.svg';
 import Categories from '../../components/Categories';
 import { createCommunityPost } from '../../services/api';
+import { CATEGORY_TABS } from '../../data/TripList';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const TAG_LIST = [
-  '휴양 / 힐링',
-  '액티비티',
-  '역사 / 문화',
-  '쇼핑',
-  '자연 / 캠핑',
-  '호캉스',
-  '미식',
-  'asd',
-  'aasd',
-  'asdasdasd',
-  'asdasd',
-];
 
 function CommunityWrite({ route, navigation }) {
   const tripData = route?.params?.tripData ?? null;
@@ -129,7 +117,7 @@ function CommunityWrite({ route, navigation }) {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsMultipleSelection: true,
       selectionLimit: 10,
-      quality: 0.7,
+      quality: 0.1,
     });
 
     if (!result.canceled) {
@@ -165,13 +153,13 @@ function CommunityWrite({ route, navigation }) {
     const tags = selectedTags.map(mapTag);
 
     try {
-    await createCommunityPost({
-      title,
-      content,
-      tags,
+      await createCommunityPost({
+        title,
+        content,
+        tags,
         tripId,
-      imageUris: selectedImages,
-    });
+        imageUris: selectedImages,
+      });
 
       Alert.alert('완료', '게시글이 등록되었습니다.', [
         { text: '확인', onPress: () => navigation.navigate('BottomTab') },
@@ -240,7 +228,10 @@ function CommunityWrite({ route, navigation }) {
           <Animated.View style={[styles.bottomSheet, { transform: [{ translateY: sheetAnim }] }]}>
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>설정</Text>
-              <Pressable onPress={closeSetting}>
+              <Pressable
+                onPress={closeSetting}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
                 <Text style={{ fontSize: 18 }}>✕</Text>
               </Pressable>
             </View>
@@ -272,7 +263,10 @@ function CommunityWrite({ route, navigation }) {
             <View style={styles.modalTitleContainer}>
               <Text style={styles.modalTitle}>태그 선택</Text>
               <View style={styles.closeStyle}>
-                <Pressable onPress={() => setVisibleModal(false)}>
+                <Pressable
+                  onPress={() => setVisibleModal(false)}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                >
                   <Close width={15} height={15} />
                 </Pressable>
               </View>
@@ -280,12 +274,12 @@ function CommunityWrite({ route, navigation }) {
             <View style={styles.tagSection}>
               <Text style={styles.sectionTitle}>여행 스타일</Text>
               <View style={styles.tagContainer}>
-                {TAG_LIST.map((tag) => (
+                {CATEGORY_TABS.map((tag) => (
                   <Categories
-                    key={tag}
-                    property={tag}
-                    disable={selectedTags.includes(tag)}
-                    onPress={() => toggleTag(tag)}
+                    key={tag.id}
+                    property={tag.label}
+                    disable={selectedTags.includes(tag.label)}
+                    onPress={() => toggleTag(tag.label)}
                   />
                 ))}
               </View>
