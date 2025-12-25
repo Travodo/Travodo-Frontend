@@ -3,7 +3,7 @@ import { useFonts } from 'expo-font';
 import Toast from 'react-native-toast-message';
 import { AuthProvider } from './contexts/AuthContext';
 import RootNavigation from './navigations/RootNavigation';
-
+import { TripProvider } from './contexts/TripContext';
 function App() {
   const [fontsLoaded] = useFonts({
     'Pretendard-Regular': require('../assets/Fonts/Pretendard-Regular.otf'),
@@ -17,8 +17,10 @@ function App() {
   return (
     <>
       <AuthProvider>
-        <StatusBar style="auto" />
-        <RootNavigation />
+        <TripProvider>
+          <StatusBar style="auto" />
+          <RootNavigation />
+        </TripProvider>
       </AuthProvider>
       <Toast />
     </>

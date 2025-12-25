@@ -286,13 +286,47 @@ export const updateTripStatus = async (tripId, status) => {
 };
 
 export const getUpcomingTrips = async () => {
-  const response = await api.get('/trips/upcoming');
-  return response.data;
+  try {
+    const response = await api.get('/trips/upcoming');
+    console.log('[API] getUpcomingTrips 성공:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[API] getUpcomingTrips 실패:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      message: error.response?.data?.message || error.message,
+      data: error.response?.data,
+    });
+    throw error;
+  }
 };
 
 export const getCurrentTrip = async () => {
-  const response = await api.get('/trips/current');
-  return response.data;
+  try {
+    const response = await api.get('/trips/current');
+    console.log('[API] getCurrentTrip 성공:', response.data);
+    return response.data;
+  } catch (error) {
+    // 404는 진행중인 여행이 없는 정상 상황
+    if (error.response?.status === 404) {
+      console.log('[API] getCurrentTrip: 현재 진행중인 여행 없음');
+      return null;
+    }
+
+    // 500 에러는 로그만 남기고 null 반환 (앱은 계속 작동)
+    if (error.response?.status === 500) {
+      console.warn('[API] getCurrentTrip: 서버 오류 (500) - null 반환');
+      return null;
+    }
+
+    console.error('[API] getCurrentTrip 실패:', {
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message,
+    });
+
+    // 그 외 에러는 null 반환 (앱 중단 방지)
+    return null;
+  }
 };
 
 export const getTripsByMonth = async (year, month) => {
@@ -501,5 +535,68 @@ export const uploadImages = async (imageUris = []) => {
   });
   return response.data;
 };
+
+// 요청 인터셉터: 토큰 추가
+api.interceptors.request.use(
+  async (config) => {
+    const token = await getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (__DEV__) {
+      const hasAuth = !!config.headers?.Authorization;
+      console.log(`[api] ${config.method?.toUpperCase()} ${config.url} auth=${hasAuth}`);
+      // 토큰의 앞부분만 로깅 (보안)
+      if (token) {
+        console.log(`[api] Token: ${token.substring(0, 30)}...`);
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// 응답 인터셉터: 에러 처리 강화
+api.interceptors.response.use(
+  (response) => {
+    if (__DEV__) {
+      console.log(
+        `[api] ✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`,
+      );
+    }
+    return response;
+  },
+  async (error) => {
+    if (__DEV__) {
+      console.log('=== API 에러 상세 ===');
+      console.log('URL:', error.config?.url);
+      console.log('Method:', error.config?.method?.toUpperCase());
+      console.log('상태 코드:', error.response?.status);
+      console.log('에러 메시지:', error.response?.data?.message || error.message);
+      console.log('에러 상세:', JSON.stringify(error.response?.data, null, 2));
+    }
+
+    if (error.response?.status === 401) {
+      console.log('[api] 401 Unauthorized - 로그아웃 처리');
+      await removeToken();
+      if (typeof unauthorizedHandler === 'function') {
+        try {
+          unauthorizedHandler();
+        } catch (_) {
+          // noop
+        }
+      }
+    }
+
+    // 500 에러도 로깅
+    if (error.response?.status === 500) {
+      console.error('[api] 500 서버 에러 - 백엔드 확인 필요');
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export default api;
