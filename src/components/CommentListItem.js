@@ -10,6 +10,7 @@ function CommentListItem({ data, onLike }) {
       renderItem={({ item }) => (
         <CommentItem
           nickname={item.nickname}
+          commentImageUri={item.profileImageUrl}
           date={item.date}
           comment={item.content}
           hcount={item.commentlike || 0}

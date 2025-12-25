@@ -33,6 +33,8 @@ import {
   deleteCommunityPost,
   likeCommunityPost,
   unlikeCommunityPost,
+  getPostComments,
+  createPostComment,
 } from '../../services/api';
 
 function CommunityContent({ route, navigation }) {
@@ -43,6 +45,7 @@ function CommunityContent({ route, navigation }) {
   const [isScrap, setIsScrap] = useState(passedPost?.isScraped || false);
   const [userId, setUserId] = useState('');
   const [writerId, setWriterId] = useState('');
+  const [profileImg, setProfileImg] = useState(null);
 
   const { post: passedPost, postId: passedPostId } = route.params || {};
   const postId = passedPostId || passedPost?.id;
@@ -83,10 +86,26 @@ function CommunityContent({ route, navigation }) {
     const fetchPostDetail = async () => {
       if (!postId) return;
       try {
-        const data = await getCommunityPost(postId);
-        setWriterId(data?.author?.id);
-        setScrapCount(data?.likeCount ?? 0);
-        setIsScrap(data?.isLiked ?? false);
+        const [postData, commentData] = await Promise.all([
+          getCommunityPost(postId),
+          getPostComments(postId, { page: 0, size: 50 }), // 일단 넉넉히 50개 호출
+        ]);
+        setWriterId(postData?.author?.id);
+        setScrapCount(postData?.likeCount ?? 0);
+        setIsScrap(postData?.isLiked ?? false);
+        setProfileImg(postData?.author?.profileImageUrl || null);
+        const rawComments = commentData?.content || commentData || [];
+        console.log('서버에서 온 첫 번째 댓글 데이터:', rawComments[0]);
+        const mappedComments = rawComments.map((c) => ({
+          id: c.id,
+          nickname: c.author?.nickname || '익명',
+          content: c.content,
+          date: c.createdAt,
+          commentlike: c.likeCount || 0,
+          isLiked: c.isLiked || false,
+          profileImageUrl: c.author?.profileImageUrl,
+        }));
+        setCommentList(mappedComments);
       } catch (error) {
         console.error('게시글 정보를 가져오는데 실패했습니다.', error);
       }
@@ -130,20 +149,27 @@ function CommunityContent({ route, navigation }) {
     (normalizedTripData && normalizedTripData.tripTitle) || tripTitle || title;
   const displayCircleColor = (normalizedTripData && normalizedTripData.circleColor) || circleColor;
 
-  const handleSendComment = () => {
+  const handleSendComment = async () => {
     if (inputText.trim().length === 0) return;
+    try {
+      const res = await createPostComment(postId, { content: inputText });
 
-    const newComment = {
-      id: Date.now(),
-      nickname: '히재',
-      content: inputText,
-      date: '방금 전',
-      commentlike: 0,
-      isLiked: false,
-    };
-    setCommentList((prev) => [...prev, newComment]);
-    setInputText('');
-    Keyboard.dismiss();
+      const newComment = {
+        id: res.id,
+        nickname: res.author?.nickname || '히히',
+        content: res.content,
+        date: '방금 전',
+        commentlike: 0,
+        isLiked: false,
+        profileImageUrl: res.author?.profileImageUrl,
+      };
+
+      setCommentList((prev) => [...prev, newComment]); // 목록 끝에 추가
+      setInputText('');
+      Keyboard.dismiss();
+    } catch (error) {
+      Alert.alert('알림', '댓글 등록에 실패했습니다.');
+    }
   };
 
   const handleScrap = async () => {
@@ -221,7 +247,7 @@ function CommunityContent({ route, navigation }) {
           <Pressable style={styles.dismiss}>
             <View style={styles.innerContainer}>
               <View style={styles.profileContainer}>
-                <ProfileImage size={25} />
+                <ProfileImage size={25} imageUri={profileImg} />
                 <Text style={styles.nickname}>{nickname}</Text>
                 <Text style={styles.date}>{agoDate}</Text>
                 <View style={styles.button}>
@@ -275,7 +301,10 @@ function CommunityContent({ route, navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalbox}>
               <View style={styles.closeStyle}>
-                <Pressable onPress={() => setVisibleModal(false)}>
+                <Pressable
+                  onPress={() => setVisibleModal(false)}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                >
                   <Close width={15} height={15} />
                 </Pressable>
               </View>

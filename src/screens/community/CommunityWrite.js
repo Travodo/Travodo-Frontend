@@ -117,7 +117,7 @@ function CommunityWrite({ route, navigation }) {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsMultipleSelection: true,
       selectionLimit: 10,
-      quality: 0.01,
+      quality: 0.1,
     });
 
     if (!result.canceled) {
@@ -228,7 +228,10 @@ function CommunityWrite({ route, navigation }) {
           <Animated.View style={[styles.bottomSheet, { transform: [{ translateY: sheetAnim }] }]}>
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>설정</Text>
-              <Pressable onPress={closeSetting}>
+              <Pressable
+                onPress={closeSetting}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
                 <Text style={{ fontSize: 18 }}>✕</Text>
               </Pressable>
             </View>
@@ -260,7 +263,10 @@ function CommunityWrite({ route, navigation }) {
             <View style={styles.modalTitleContainer}>
               <Text style={styles.modalTitle}>태그 선택</Text>
               <View style={styles.closeStyle}>
-                <Pressable onPress={() => setVisibleModal(false)}>
+                <Pressable
+                  onPress={() => setVisibleModal(false)}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                >
                   <Close width={15} height={15} />
                 </Pressable>
               </View>

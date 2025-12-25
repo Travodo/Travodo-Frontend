@@ -7,7 +7,7 @@ import { CATEGORY_TABS, CommunityData } from '../../data/TripList';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../../styles/colors';
 import FAB from '../../components/FAB';
-import { getCommunityPosts } from '../../services/api';
+import { getCommunityPosts, likeCommunityPost, unlikeCommunityPost } from '../../services/api';
 
 const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
 function CommunityHome({ navigation }) {
@@ -26,6 +26,7 @@ function CommunityHome({ navigation }) {
           const mapped = content.map((p) => ({
             id: p.id,
             nickname: p.author?.nickname || '',
+            profileImage: p.author?.profileImageUrl || null,
             title: p.title,
             content: p.summary || p.content || '',
             hCount: p.likeCount ?? 0,
@@ -60,18 +61,46 @@ function CommunityHome({ navigation }) {
   );
 
   const handleScrap = async (postId) => {
-    const updatedPosts = allPosts.map((post) => {
-      if (post.id === postId) {
-        const newScrapStatus = !post.isScraped;
-        return {
-          ...post,
-          isScraped: newScrapStatus,
-          hCount: newScrapStatus ? (post.hCount || 0) + 1 : (post.hCount || 0) - 1,
-        };
+    const targetPost = allPosts.find((p) => p.id === postId);
+    if (!targetPost) return;
+
+    const isCurrentlyLiked = targetPost.isScraped;
+    const nextStatus = !isCurrentlyLiked;
+
+    setAllPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            isScraped: nextStatus,
+            hCount: nextStatus ? (post.hCount || 0) + 1 : (post.hCount || 0) - 1,
+          };
+        }
+        return post;
+      }),
+    );
+
+    try {
+      if (isCurrentlyLiked) {
+        await unlikeCommunityPost(postId);
+      } else {
+        await likeCommunityPost(postId);
       }
-      return post;
-    });
-    setAllPosts(updatedPosts);
+    } catch (error) {
+      setAllPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isScraped: isCurrentlyLiked,
+              hCount: targetPost.hCount,
+            };
+          }
+          return post;
+        }),
+      );
+      Alert.alert('알림', '좋아요 처리에 실패했습니다.');
+    }
   };
   const selectCategories = (categoryLabel) => {
     if (categoryLabel === '전체') {

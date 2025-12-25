@@ -14,7 +14,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
 import { useNavigation } from '@react-navigation/native';
-import { getMyInfo, deleteAccount as deleteAccountApi, uploadMyProfileImage } from '../../services/api';
+import {
+  getMyInfo,
+  deleteAccount as deleteAccountApi,
+  uploadMyProfileImage,
+} from '../../services/api';
 import { signOut } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
@@ -29,7 +33,7 @@ function ProfileScreen() {
     const data = await getMyInfo();
     setMe(data);
   };
-  
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -51,7 +55,14 @@ function ProfileScreen() {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity onPress={() => navigation.navigate('ProfileEditScreen')}>
-          <Text style={{ paddingRight: 10, fontFamily: 'Pretendard-SemiBold', color: colors.primary[700], fontSize: 16 }}>
+          <Text
+            style={{
+              paddingRight: 10,
+              fontFamily: 'Pretendard-SemiBold',
+              color: colors.primary[700],
+              fontSize: 16,
+            }}
+          >
             수정
           </Text>
         </TouchableOpacity>
