@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   View,
@@ -13,7 +13,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getMyInfo, deleteAccount as deleteAccountApi, uploadMyProfileImage } from '../../services/api';
 import { signOut } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -25,27 +25,34 @@ function ProfileScreen() {
   const [me, setMe] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshMe = async () => {
-    const data = await getMyInfo();
-    setMe(data);
-  };
-  
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
+  const fetchMe = useCallback(
+    async ({ showLoading = true } = {}) => {
       try {
+        if (showLoading) setIsLoading(true);
         const data = await getMyInfo();
-        if (mounted) setMe(data);
+        setMe(data);
       } catch (e) {
         console.error('내 정보 조회 실패:', e);
+        Alert.alert('실패', '내 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
       } finally {
-        if (mounted) setIsLoading(false);
+        if (showLoading) setIsLoading(false);
       }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    },
+    [],
+  );
+
+  const refreshMe = async () => fetchMe({ showLoading: false });
+  
+  useEffect(() => {
+    fetchMe({ showLoading: true });
+  }, [fetchMe]);
+
+  // 프로필 수정 화면에서 돌아온 경우 등, 화면이 다시 포커스될 때 최신 내정보로 동기화
+  useFocusEffect(
+    useCallback(() => {
+      fetchMe({ showLoading: false });
+    }, [fetchMe]),
+  );
 
   useEffect(() => {
     navigation.setOptions({
