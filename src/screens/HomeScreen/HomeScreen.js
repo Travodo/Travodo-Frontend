@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
@@ -6,19 +6,27 @@ import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getUpcomingTrips } from '../../services/api';
+import { useTrip } from '../../contexts/TripContext';
 
 function HomeScreen({ route }) {
   const navigation = useNavigation();
-  const [trips, setTrips] = useState([]);
+  const { ongoingTrip, isLoaded } = useTrip();
+
+  const [upcomingTrips, setUpcomingTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadUpcoming = useCallback(async () => {
+  const loadTripsData = useCallback(async () => {
     setLoading(true);
     try {
-      const raw = await getUpcomingTrips();
-      // 서버/프록시 환경에 따라 배열이 아닌 래핑 객체로 올 수 있어 방어
-      const list = Array.isArray(raw) ? raw : raw?.trips ?? raw?.data ?? [];
-      const mapped = (list || []).map((t) => ({
+      console.log('[HomeScreen] 여행 데이터 로딩 시작...');
+
+      const upcomingData = await getUpcomingTrips();
+
+      const list = Array.isArray(upcomingData)
+        ? upcomingData
+        : (upcomingData?.trips ?? upcomingData?.data ?? []);
+
+      const mappedUpcoming = list.map((t) => ({
         id: t.id,
         name: t.name,
         destination: t.place,
@@ -28,62 +36,77 @@ function HomeScreen({ route }) {
         dDay: t.dDay,
         color: t.color,
         status: t.status,
+        maxMembers: t.maxMembers,
         companions: [],
       }));
-      setTrips(mapped);
+
+      console.log('[HomeScreen] UPCOMING 여행:', mappedUpcoming.length, '개');
+      console.log('[HomeScreen] Context ONGOING 여행:', ongoingTrip ? ongoingTrip.name : '없음');
+
+      setUpcomingTrips(mappedUpcoming);
     } catch (e) {
-      console.error('다가오는 여행 조회 실패:', e);
-      setTrips([]);
+      console.error('[HomeScreen] 여행 데이터 로딩 실패:', e.message);
+      setUpcomingTrips([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [ongoingTrip]);
 
-  // 홈으로 돌아올 때마다 갱신 (여행 생성 후에도 자동 반영)
   useFocusEffect(
     useCallback(() => {
-      loadUpcoming();
-    }, [loadUpcoming]),
+      // Context가 로드될 때까지 대기
+      if (isLoaded) {
+        loadTripsData();
+      }
+    }, [loadTripsData, isLoaded]),
   );
+
+  // 캘린더에는 모든 여행 표시
+  const allTrips = ongoingTrip ? [ongoingTrip, ...upcomingTrips] : upcomingTrips;
 
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never" bounces={false}>
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
-        <CalendarView trips={trips} />
+        <CalendarView trips={allTrips} />
+
+        {/* 진행 중인 여행 섹션 */}
+        {ongoingTrip && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>진행 중인 여행</Text>
+            <Text style={styles.sectionSub}>현재 여행을 즐기고 계시네요! 🎉</Text>
+            <TripCard trip={ongoingTrip} />
+          </View>
+        )}
+
+        {/* 다가오는 여행 섹션 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>다가오는 여행</Text>
           <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>
+
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary[700]} />
-          ) : trips.length === 0 ? (
+          ) : !ongoingTrip && upcomingTrips.length === 0 ? (
             <Text style={styles.emptyText}>아직 계획된 여행이 없어요!</Text>
+          ) : upcomingTrips.length === 0 ? (
+            <Text style={styles.emptyText}>다가오는 여행이 없어요!</Text>
           ) : (
-            trips.map((trip) => <TripCard key={trip.id} trip={trip} />)
+            upcomingTrips.map((trip) => <TripCard key={trip.id} trip={trip} />)
           )}
         </View>
       </ScrollView>
 
       <FAB
-  icon="add"
-  onCreatePress={() =>
-    navigation.navigate('TripStack', {
-      screen: 'TravelCreate',
-    })
-  }
-  onJoinPress={() =>
-    navigation.navigate('TripStack', {
-      screen: 'Join',
-    })
-  }
-  onWritePress={() =>
-    navigation.navigate('CommunityStack', {
-      screen: 'CommunitySelectWriteTrip',
-    })
-  }
-/>
-
+        icon="add"
+        onCreatePress={() => navigation.navigate('TravelCreate')}
+        onJoinPress={() => navigation.navigate('Join')}
+        onWritePress={() =>
+          navigation.navigate('CommunityStack', {
+            screen: 'CommunitySelectWriteTrip',
+          })
+        }
+      />
     </View>
   );
 }
@@ -110,11 +133,9 @@ const styles = StyleSheet.create({
     color: colors.grayscale[900],
     marginBottom: 20,
   },
-
   section: {
     marginTop: 10,
   },
-
   sectionTitle: {
     fontSize: 20,
     fontFamily: 'Pretendard-SemiBold',
@@ -127,7 +148,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[800],
   },
-
   emptyText: {
     marginTop: 36,
     textAlign: 'center',

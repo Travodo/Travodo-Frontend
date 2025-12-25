@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   View,
@@ -14,15 +14,26 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
 import { useNavigation } from '@react-navigation/native';
-import { deleteAccount as deleteAccountApi, uploadMyProfileImage } from '../../services/api';
+import {
+  getMyInfo,
+  deleteAccount as deleteAccountApi,
+  uploadMyProfileImage,
+} from '../../services/api';
 import { signOut } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 
 function ProfileScreen() {
   const navigation = useNavigation();
-  const { logout, me, isMeLoading, refreshMe } = useAuth();
-  
+  const { logout } = useAuth();
+  const [me, setMe] = useState(null);
+  const [isMeLoading, setIsLoading] = useState(true);
+
+  const refreshMe = async () => {
+    const data = await getMyInfo();
+    setMe(data);
+  };
+
   useEffect(() => {
     // AuthContext에서 로그인 시 내정보를 캐싱하지만, 첫 진입에서 한 번 더 보장적으로 동기화
     refreshMe().catch(() => {});
@@ -32,7 +43,14 @@ function ProfileScreen() {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity onPress={() => navigation.navigate('ProfileEditScreen')}>
-          <Text style={{ paddingRight: 10, fontFamily: 'Pretendard-SemiBold', color: colors.primary[700], fontSize: 16 }}>
+          <Text
+            style={{
+              paddingRight: 10,
+              fontFamily: 'Pretendard-SemiBold',
+              color: colors.primary[700],
+              fontSize: 16,
+            }}
+          >
             수정
           </Text>
         </TouchableOpacity>
@@ -115,7 +133,7 @@ function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView style={styles.container} bounces={false} overScrollMode="never">
         <View style={styles.profileSection}>
           <View style={styles.profileWrapper}>
@@ -150,7 +168,7 @@ function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

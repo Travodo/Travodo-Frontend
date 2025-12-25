@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import TripCard from '../../components/TripCard';
@@ -109,7 +108,8 @@ function OnTripScreen() {
               travelerName: created?.assigneeName ?? null,
               travelerColor:
                 created?.assigneeId != null
-                  ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
+                  ? (travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
+                    null)
                   : null,
             },
           ]);
@@ -161,8 +161,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -194,8 +194,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -216,7 +216,9 @@ function OnTripScreen() {
     if (setter === setShared) {
       (async () => {
         try {
-          const updated = item.travelerId ? await unassignSharedItem(tripId, item.id) : await assignSharedItem(tripId, item.id);
+          const updated = item.travelerId
+            ? await unassignSharedItem(tripId, item.id)
+            : await assignSharedItem(tripId, item.id);
           setShared((prev) =>
             prev.map((x) =>
               String(x.id) === String(item.id)
@@ -226,8 +228,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -257,9 +259,8 @@ function OnTripScreen() {
               await updateTripStatus(trip.id, 'FINISHED');
             }
           } catch (e) {
-            console.error('여행 종료(상태 변경) 실패:', e);
+            console.error(e);
           } finally {
-            // 현재 화면은 TripStack 내부이므로 직접 이동(중첩 navigate로 인한 라우트 누락 방지)
             navigation.navigate('EndTrip', { trip });
           }
         },
@@ -280,12 +281,7 @@ function OnTripScreen() {
         <Text style={sharedStyles.sectionTitle}>여행자</Text>
         <View style={sharedStyles.travelerList}>
           {travelers.map((t) => (
-            <TravelerAvatar 
-              key={t.id} 
-              name={t.name} 
-              color={t.color}
-              showDelete={false}
-            />
+            <TravelerAvatar key={t.id} name={t.name} color={t.color} showDelete={false} />
           ))}
         </View>
 
@@ -373,7 +369,9 @@ function OnTripScreen() {
                 navigation.navigate('MemoScreen', {
                   memo,
                   onSave: (updatedMemo) => {
-                    setMemos((prev) => prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)));
+                    setMemos((prev) =>
+                      prev.map((m) => (m.id === updatedMemo.id ? updatedMemo : m)),
+                    );
                   },
                 })
               }
@@ -382,7 +380,10 @@ function OnTripScreen() {
               <Text style={sharedStyles.memoText}>{memo.title}</Text>
             </Pressable>
 
-            <Pressable onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))} hitSlop={8}>
+            <Pressable
+              onPress={() => setMemos((prev) => prev.filter((m) => m.id !== memo.id))}
+              hitSlop={8}
+            >
               <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
             </Pressable>
           </View>
@@ -406,10 +407,7 @@ function OnTripScreen() {
         <View style={sharedStyles.sectionDivider} />
 
         <View style={styles.endButtonWrapper}>
-          <Pressable 
-            style={styles.endButton} 
-            onPress={handleEndTrip}
-          >
+          <Pressable style={styles.endButton} onPress={handleEndTrip}>
             <Text style={styles.endButtonText}>여행 종료</Text>
           </Pressable>
         </View>

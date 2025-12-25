@@ -106,10 +106,10 @@ export default function TripCard({ trip, hideActions = false }) {
       }
       return;
     }
-    if (canDirect('PrepareScreen')) {
-      navigation.navigate('PrepareScreen', { tripData: trip });
+    if (canDirect('Prepare')) {
+      navigation.navigate('Prepare', { tripData: trip });
     } else {
-    navigation.navigate('TripStack', { screen: 'PrepareScreen', params: { tripData: trip } });
+    navigation.navigate('TripStack', { screen: 'Prepare', params: { tripData: trip } });
     }
   };
 

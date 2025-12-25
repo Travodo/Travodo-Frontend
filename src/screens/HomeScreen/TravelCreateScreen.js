@@ -9,6 +9,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Alert
 } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import Button from '../../components/Button';

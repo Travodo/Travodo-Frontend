@@ -6,6 +6,7 @@ import { colors } from '../styles/colors';
 import { View } from 'react-native';
 import CommunityWrite from '../screens/community/CommunityWrite';
 import CommunityScrap from '../screens/community/CommunityScrap';
+import EditCommentScreen from '../screens/community/EditCommentScreen';
 const Stack = createNativeStackNavigator();
 
 function CommunityStack() {
@@ -50,6 +51,11 @@ function CommunityStack() {
           headerShown: true,
           headerTitle: '글쓰기',
         }}
+      />
+      <Stack.Screen
+      name="EditComment"
+      component={EditCommentScreen}
+      options={{ title: '댓글 수정' }}
       />
     </Stack.Navigator>
   );

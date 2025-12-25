@@ -5,9 +5,15 @@ import CategoriesList from '../../components/CategoriesList';
 import Dropdown from '../../components/Dropdown';
 import { CATEGORY_TABS, CommunityData } from '../../data/TripList';
 import { useFocusEffect } from '@react-navigation/native';
-import { colors } from '../../styles/colors';
 import FAB from '../../components/FAB';
-import { getCommunityPosts } from '../../services/api';
+import {
+  bookmarkCommunityPost,
+  getCommunityPosts,
+  likeCommunityPost,
+  unbookmarkCommunityPost,
+  unlikeCommunityPost,
+} from '../../services/api';
+import { formatAgo } from '../../utils/dateFormatter';
 
 const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
 function CommunityHome({ navigation }) {
@@ -26,12 +32,13 @@ function CommunityHome({ navigation }) {
           const mapped = content.map((p) => ({
             id: p.id,
             nickname: p.author?.nickname || '',
+            profileImage: p.author?.profileImageUrl || null,
             title: p.title,
             content: p.summary || p.content || '',
             hCount: p.likeCount ?? 0,
             cCount: p.commentCount ?? 0,
-            isScraped: p.isBookmarked ?? false,
-            agoDate: p.createdAt ? String(p.createdAt) : '',
+            isScraped: p.isLiked ?? false,
+            agoDate: p.createdAt ? formatAgo(p.createdAt) : '',
             images: p.thumbnailUrl ? [p.thumbnailUrl] : [],
             category: '기타',
             // 상세 화면(CommunityContent)이 기대하는 여행 정보 형태로 정규화
@@ -60,18 +67,48 @@ function CommunityHome({ navigation }) {
   );
 
   const handleScrap = async (postId) => {
-    const updatedPosts = allPosts.map((post) => {
-      if (post.id === postId) {
-        const newScrapStatus = !post.isScraped;
-        return {
-          ...post,
-          isScraped: newScrapStatus,
-          hCount: newScrapStatus ? (post.hCount || 0) + 1 : (post.hCount || 0) - 1,
-        };
+    const targetPost = allPosts.find((p) => p.id === postId);
+    if (!targetPost) return;
+
+    const isCurrentlyLiked = targetPost.isScraped;
+    const nextStatus = !isCurrentlyLiked;
+
+    setAllPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            isScraped: nextStatus,
+            hCount: nextStatus ? (post.hCount || 0) + 1 : (post.hCount || 0) - 1,
+          };
+        }
+        return post;
+      }),
+    );
+
+    try {
+      if (isCurrentlyLiked) {
+        await unlikeCommunityPost(postId);
+        await unbookmarkCommunityPost(postId);
+      } else {
+        await likeCommunityPost(postId);
+        await bookmarkCommunityPost(postId);
       }
-      return post;
-    });
-    setAllPosts(updatedPosts);
+    } catch (error) {
+      setAllPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isScraped: isCurrentlyLiked,
+              hCount: targetPost.hCount,
+            };
+          }
+          return post;
+        }),
+      );
+      Alert.alert('알림', '좋아요 처리에 실패했습니다.');
+    }
   };
   const selectCategories = (categoryLabel) => {
     if (categoryLabel === '전체') {
@@ -128,11 +165,32 @@ function CommunityHome({ navigation }) {
         onPress={(item) => {
           navigation.navigate('CommunityStack', {
             screen: 'CommunityContent',
-            params: { post: item },
+            params: {
+              post: item,
+              postId: item.id,
+            },
           });
         }}
       />
-      <FAB />
+      <FAB
+  icon="add"
+  onCreatePress={() =>
+    navigation.navigate('HomeTab', {
+      screen: 'TravelCreate',
+    })
+  }
+  onJoinPress={() =>
+    navigation.navigate('HomeTab', {
+      screen: 'Join',
+    })
+  }
+  onWritePress={() =>
+    navigation.navigate('CommunityStack', {
+      screen: 'CommunitySelectWriteTrip',
+    })
+  }
+/>
+
     </View>
   );
 }
