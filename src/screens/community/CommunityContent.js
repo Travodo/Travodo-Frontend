@@ -122,6 +122,7 @@ function CommunityContent({ route, navigation }) {
           getCommunityPost(postId),
           getPostComments(postId, { page: 0, size: 50 }),
         ]);
+
         setWriterId(postData?.author?.id);
         setScrapCount(postData?.likeCount ?? 0);
         setIsScrap(postData?.isLiked ?? false);
@@ -139,7 +140,9 @@ function CommunityContent({ route, navigation }) {
           isLiked: c.isLiked || false,
           profileImageUrl: c.author?.profileImageUrl,
         }));
+
         setCommentList(mappedComments);
+        // ---------------------------------------------------------
       } catch (error) {
         console.error('게시글 정보를 가져오는데 실패했습니다.', error);
       }

@@ -183,8 +183,12 @@ function CommunityWrite({ route, navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.container}>
-        <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 120, flexGrow: 1 }}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
+          <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
             <CommunityWriteTripCard data={tripData} />
             <View style={styles.titleBox}>
               <TextInput
@@ -216,8 +220,8 @@ function CommunityWrite({ route, navigation }) {
                 </View>
               ))}
             </View>
-          </ScrollView>
-        </Pressable>
+          </Pressable>
+        </ScrollView>
         <View style={[styles.bottomBar, { bottom: keyboardHeight }]}>
           <CameraBottomBar onCameraPress={pickImage} onMorePress={openSetting} />
         </View>

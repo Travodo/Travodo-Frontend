@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   Pressable,
-  TextInput,
   TouchableOpacity,
   Alert,
 } from 'react-native';
@@ -20,6 +19,7 @@ import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { colors } from '../../styles/colors';
 import { renderSection } from '../../utils/renderSection';
 import sharedStyles from './sharedStyles';
+import { useTrip } from '../../contexts/TripContext';
 import {
   assignSharedItem,
   createSharedItem,
@@ -30,29 +30,21 @@ import {
   regenerateInviteCode,
   unassignSharedItem,
   updateSharedItem,
-  // 개인 준비물 API
   getPersonalItems,
   createPersonalItem,
   updatePersonalItem,
   deletePersonalItem,
-  // Todo API
+  getMemos,
+  createMemo,
+  deleteMemo,
   getTodos,
   createTodo,
   updateTodo,
   deleteTodo,
   assignTodo,
   unassignTodo,
-  // 여행 활동 API
-  getActivities,
-  createActivity,
-  updateActivity,
-  updateActivityStatus,
-  deleteActivity,
-  // 메모 API
-  getMemos,
-  createMemo,
-  updateMemo,
-  deleteMemo,
+  updateTripStatus,
+  deleteTrip, // 추가
 } from '../../services/api';
 
 function PrepareScreen() {
@@ -63,12 +55,19 @@ function PrepareScreen() {
   const tripId = trip?.id;
   const { getTripStatus, startTrip } = useTrip();
   const status = getTripStatus(tripId);
+  const TODO_CATEGORY = {
+    NECESSITY: 'NECESSITY',
+    ACTIVITY: 'ACTIVITY',
+  };
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
   const selectedTravelerRef = useRef(null);
 
-  const colorPool = ['#769FFF', '#FFE386', '#EE8787', '#A4C664'];
+  const colorPool = React.useMemo(
+    () => ['#769FFF', '#FFE386', '#EE8787', '#A4C664'],
+    [],
+  );
 
   const [necessity, setNecessity] = useState([]);
   const [shared, setShared] = useState([]);
@@ -79,19 +78,15 @@ function PrepareScreen() {
   const [adding, setAdding] = useState(null);
   const [text, setText] = useState('');
   const [inviting, setInviting] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
- const loadAllData = useCallback(async () => {
+  const loadMembersAndShared = useCallback(async () => {
   if (!tripId) return;
-  
-  let mappedMembers = [];
-  let colorMap = {};
 
-  // 1. 멤버 로드
   try {
     const members = await getTripMembers(tripId);
-    const memberList = Array.isArray(members) ? members : (members?.data || []);
-    
-    mappedMembers = memberList
+
+    const mappedMembers = (members || [])
       .slice()
       .sort((a, b) => {
         if (a.isLeader && !b.isLeader) return -1;
@@ -99,65 +94,34 @@ function PrepareScreen() {
         return String(a.nickname || '').localeCompare(String(b.nickname || ''));
       })
       .map((m, idx) => ({
-        id: m.userId,
+        id: String(m.userId),
         name: m.nickname,
         color: colorPool[idx % colorPool.length],
         isLeader: !!m.isLeader,
       }));
 
-    mappedMembers.forEach((t) => {
-      colorMap[String(t.id)] = t.color;
+    const colorMap = {};
+    mappedMembers.forEach((m) => {
+      colorMap[String(m.id)] = m.color;
     });
-    setTravelers(mappedMembers);
-  } catch (e) {
-    console.error('멤버 로드 실패:', e);
-    setTravelers([]);
-  }
 
-  // 2. 공동 준비물 로드
-  try {
-    const response = await getSharedItems(tripId);
-    const sharedItems = Array.isArray(response) ? response : (response?.data || []);
-    
-    const mappedShared = sharedItems.map((it) => ({
+    const sharedItems = await getSharedItems(tripId);
+
+    const mappedShared = (sharedItems || []).map((it) => ({
       id: String(it.id),
       content: it.name,
       checked: !!it.checked,
       travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
       travelerName: it.assigneeName ?? null,
-      travelerColor: it.assigneeId != null ? (colorMap[String(it.assigneeId)] ?? null) : null,
+      travelerColor:
+        it.assigneeId != null
+          ? colorMap[String(it.assigneeId)] ?? null
+          : null,
     }));
-    setShared(mappedShared);
-  } catch (e) {
-    console.error('공동 준비물 로드 실패:', e);
-    setShared([]);
-  }
 
-  // 3. Todo 로드
-  try {
-    const response = await getTodos(tripId);
-    const todos = Array.isArray(response) ? response : (response?.data || []);
-    
-    const mappedTodos = todos.map((it) => ({
-      id: String(it.id),
-      content: it.content,
-      checked: !!it.checked,
-      travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
-      travelerName: it.assigneeName ?? null,
-      travelerColor: it.assigneeId != null ? (colorMap[String(it.assigneeId)] ?? null) : null,
-    }));
-    setNecessity(mappedTodos);
-  } catch (e) {
-    console.error('Todo 로드 실패:', e);
-    setNecessity([]);
-  }
+    const personalItems = await getPersonalItems(tripId);
 
-  // 4. 개인 준비물 로드
-  try {
-    const response = await getPersonalItems(tripId);
-    const personalItems = Array.isArray(response) ? response : (response?.data || []);
-    
-    const mappedPersonal = personalItems.map((it) => ({
+    const mappedPersonal = (personalItems || []).map((it) => ({
       id: String(it.id),
       content: it.name,
       checked: !!it.checked,
@@ -165,42 +129,15 @@ function PrepareScreen() {
       travelerName: null,
       travelerColor: null,
     }));
+
+    setTravelers(mappedMembers);
+    setShared(mappedShared);
     setPersonal(mappedPersonal);
   } catch (e) {
-    console.error('개인 준비물 로드 실패:', e);
-    setPersonal([]);
+    console.error('여행 멤버 / 준비물 조회 실패:', e);
   }
+}, [tripId, colorPool, getTripMembers, getSharedItems, getPersonalItems ]);
 
-  // 5. 여행 활동 - 🔥 PrepareScreen에서는 로컬 상태로만 관리
-  // Activities는 날짜별로 관리되므로 여행 준비 단계에서는 API 연동 불필요
-  console.log('ℹ️ 여행 활동은 PrepareScreen에서 로컬 상태로만 관리합니다.');
-  // setActivities는 이미 빈 배열로 초기화되어 있음
-
-  // 6. 메모 로드
-  try {
-    const response = await getMemos(tripId);
-    const memoItems = Array.isArray(response) ? response : (response?.data || response?.memos || []);
-    
-    const mappedMemos = Array.isArray(memoItems)
-      ? memoItems.map((it) => ({
-          id: String(it.id),
-          title: it.title,
-          content: it.content,
-        }))
-      : [];
-    
-    setMemos(mappedMemos);
-  } catch (e) {
-    console.error('메모 로드 실패:', e.response?.data || e.message);
-    setMemos([]);
-  }
-}, [tripId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadAllData();
-    }, [loadAllData]),
-  );
 
   // 초대코드 복사
   const copyInviteCodeToClipboard = useCallback(async (code) => {
@@ -215,6 +152,8 @@ function PrepareScreen() {
       text2Style: { fontSize: 13 },
     });
   }, []);
+
+
 
   const fetchAndCopyInviteCode = useCallback(async () => {
     if (!tripId || inviting) return;
@@ -292,105 +231,269 @@ function PrepareScreen() {
   const deleteItem = (list, setter, index) => {
   const item = list[index];
 
+  // 공동 준비물 삭제(서버)
   if (setter === setShared) {
-    // 공동 준비물 삭제
     (async () => {
       try {
         await deleteSharedItem(tripId, item.id);
         setShared((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
-        Toast.show({
-          type: 'success',
-          text1: '삭제 완료',
-          text2: '공동 준비물이 삭제되었습니다.',
-        });
       } catch (e) {
-        console.error('공동 준비물 삭제 실패:', e.response?.data || e.message);
+        console.error('공동 준비물 삭제 실패:', e);
         Alert.alert('실패', '공동 준비물 삭제에 실패했습니다.');
       }
     })();
-  } else if (setter === setNecessity) {
-    // Todo 삭제
-    (async () => {
-      try {
-        await deleteTodo(tripId, item.id);
-        setNecessity((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
-        Toast.show({
-          type: 'success',
-          text1: '삭제 완료',
-          text2: 'Todo가 삭제되었습니다.',
-        });
-      } catch (e) {
-        console.error('Todo 삭제 실패:', e.response?.data || e.message);
-        
-        // 🔥 500 에러인 경우 서버 문제일 가능성이 높으므로 낙관적 업데이트
-        if (e.response?.status === 500) {
-          Alert.alert(
-            '서버 오류',
-            '서버에서 오류가 발생했습니다. 그래도 삭제를 진행할까요?',
-            [
-              { text: '취소', style: 'cancel' },
-              {
-                text: '삭제',
-                style: 'destructive',
-                onPress: () => {
-                  setNecessity((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
-                  Toast.show({
-                    type: 'info',
-                    text1: '로컬에서 삭제됨',
-                    text2: '다음 동기화 시 서버에서도 확인됩니다.',
-                  });
-                },
-              },
-            ],
-          );
-        } else {
-          Alert.alert('실패', 'Todo 삭제에 실패했습니다.');
-        }
-      }
-    })();
-  } else if (setter === setPersonal) {
-    // 개인 준비물 삭제
+    return;
+  }
+
+  // 개인 준비물 삭제(서버)
+  if (setter === setPersonal) {
     (async () => {
       try {
         await deletePersonalItem(tripId, item.id);
         setPersonal((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
-        Toast.show({
-          type: 'success',
-          text1: '삭제 완료',
-          text2: '개인 준비물이 삭제되었습니다.',
-        });
       } catch (e) {
-        console.error('개인 준비물 삭제 실패:', e.response?.data || e.message);
-        
-        if (e.response?.status === 500) {
-          Alert.alert(
-            '서버 오류',
-            '서버에서 오류가 발생했습니다. 그래도 삭제를 진행할까요?',
-            [
-              { text: '취소', style: 'cancel' },
-              {
-                text: '삭제',
-                style: 'destructive',
-                onPress: () => {
-                  setPersonal((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
-                },
-              },
-            ],
-          );
-        } else {
-          Alert.alert('실패', '개인 준비물 삭제에 실패했습니다.');
-        }
+        console.error('개인 준비물 삭제 실패:', e);
+        Alert.alert('실패', '개인 준비물 삭제에 실패했습니다.');
       }
     })();
-  } else if (setter === setActivities) {
-    // 활동 삭제 - 로컬 상태만 업데이트
-    setter(list.filter((_, i) => i !== index));
+    return;
   }
+
+  // ✅ Todo 삭제(서버) - 필수 할 일 / 여행 활동
+if (setter === setNecessity || setter === setActivities) {
+  (async () => {
+    try {
+      await deleteTodo(tripId, item.id);
+
+      if (setter === setNecessity) {
+        setNecessity((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
+      } else {
+        setActivities((prev) => prev.filter((x) => String(x.id) !== String(item.id)));
+      }
+    } catch (e) {
+      console.error('Todo 삭제 실패:', e);
+      Alert.alert('실패', '할 일/활동 삭제에 실패했습니다.');
+    }
+  })();
+  return;
+}
+
+  // 그 외 로컬 삭제
+  setter(list.filter((_, i) => i !== index));
 };
 
-  const addItem = (setter, list) => {
+  const handleDeleteTrip = async () => {
+    if (!tripId) {
+      Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
+      return;
+    }
+    try {
+      await deleteTrip(tripId);
+      setTravelers([]);
+      setNecessity([]);
+      setShared([]);
+      setPersonal([]);
+      setActivities([]);
+      setMemos([]);
+      navigation.goBack();
+    } catch (error) {
+      console.error('삭제 실패', error);
+    }
+  };
+
+  const handlerStartTrip = async (tripId) => {
+    if (!tripId) {
+      Alert.alert('오류', '여행 ID를 찾을 수 없습니다.');
+      return;
+    }
+
+    setIsStarting(true);
+    try {
+      console.log('[PrepareScreen] 여행 시작 요청 - tripId:', tripId);
+
+      // 서버에 상태 변경 요청
+      await updateTripStatus(tripId, 'ONGOING');
+      console.log('[PrepareScreen] 서버 상태 변경 완료');
+
+      Toast.show({
+        type: 'success',
+        text1: '여행이 시작되었습니다!',
+        text2: '즐거운 여행 되세요 🎉',
+        text1Style: { fontSize: 16 },
+        text2Style: { fontSize: 13 },
+      });
+    } catch (error) {
+      console.error('[PrepareScreen] 여행 상태 변경 실패:', error);
+      Alert.alert('실패', error.response?.data?.message || '여행 상태 변경에 실패했습니다.');
+      throw error;
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  const editItem = (list, setter, index, newContent) => {
+  const item = list[index];
+
+  // 공동 준비물 수정(서버)
+  if (setter === setShared) {
+    (async () => {
+      try {
+        const updated = await updateSharedItem(tripId, item.id, { name: newContent });
+        setShared((prev) =>
+          prev.map((x) =>
+            String(x.id) === String(item.id)
+              ? {
+                  ...x,
+                  content: updated?.name ?? newContent,
+                  checked: !!updated?.checked,
+                  travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                  travelerName: updated?.assigneeName ?? null,
+                  travelerColor:
+                    updated?.assigneeId != null
+                      ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                        null
+                      : null,
+                }
+              : x,
+          ),
+        );
+      } catch (e) {
+        console.error('공동 준비물 수정 실패:', e);
+        Alert.alert('실패', '공동 준비물 수정에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // 개인 준비물 수정(서버)
+  if (setter === setPersonal) {
+    (async () => {
+      try {
+        const updated = await updatePersonalItem(tripId, item.id, { name: newContent });
+        setPersonal((prev) =>
+          prev.map((x) =>
+            String(x.id) === String(item.id)
+              ? { ...x, content: updated?.name ?? newContent }
+              : x,
+          ),
+        );
+      } catch (e) {
+        console.error('개인 준비물 수정 실패:', e);
+        Alert.alert('실패', '개인 준비물 수정에 실패했습니다.');
+      }
+    })();
+    return;
+  }
+
+  // ✅ Todo 수정(서버) - 필수 할 일 / 여행 활동
+if (setter === setNecessity || setter === setActivities) {
+  (async () => {
+    try {
+      const category =
+        setter === setNecessity ? TODO_CATEGORY.NECESSITY : TODO_CATEGORY.ACTIVITY;
+
+      const updated = await updateTodo(tripId, item.id, {
+        name: newContent,
+        category, 
+      });
+
+      const next = (prev) =>
+        prev.map((x) =>
+          String(x.id) === String(item.id)
+            ? {
+                ...x,
+                content: updated?.name ?? newContent,
+                checked: !!updated?.checked,
+                travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                travelerName: updated?.assigneeName ?? null,
+                travelerColor:
+                  updated?.assigneeId != null
+                    ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                      null
+                    : null,
+              }
+            : x,
+        );
+
+      if (setter === setNecessity) setNecessity(next);
+      else setActivities(next);
+    } catch (e) {
+      console.error('Todo 수정 실패:', e);
+      Alert.alert('실패', '할 일/활동 수정에 실패했습니다.');
+    }
+  })();
+  return;
+}
+
+
+  setter(list.map((it, i) => (i === index ? { ...it, content: newContent } : it)));
+};
+
+const loadTodos = useCallback(async () => {
+  if (!tripId) return;
+
+  try {
+    const data = await getTodos(tripId);
+
+    const colorMap = {};
+    travelers.forEach((t) => {
+      colorMap[String(t.id)] = t.color;
+    });
+
+    const normalize = (it) => ({
+      id: String(it.id),
+      content: it.name, 
+      checked: !!it.checked,
+      travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
+      travelerName: it.assigneeName ?? null,
+      travelerColor:
+        it.assigneeId != null ? colorMap[String(it.assigneeId)] ?? null : null,
+
+      category: it.category ?? it.type ?? null,
+    });
+
+    const list = (data || []).map(normalize);
+
+    setNecessity(list.filter((x) => x.category === TODO_CATEGORY.NECESSITY));
+    setActivities(list.filter((x) => x.category === TODO_CATEGORY.ACTIVITY));
+  } catch (e) {
+    console.error('Todo(필수/활동) 조회 실패:', e);
+  }
+}, [tripId, travelers]);
+
+
+const loadMemos = useCallback(async () => {
+  if (!tripId) return;
+  try {
+    const data = await getMemos(tripId);
+    setMemos(
+      (data || []).map(m => ({
+        id: String(m.id),
+        title: m.title,
+        content: m.content,
+        updatedAt: m.updatedAt,
+      }))
+    );
+  } catch (e) {
+    console.error('메모 조회 실패', e);
+  }
+}, [tripId]);
+
+useFocusEffect(
+  useCallback(() => {
+    (async () => {
+      await loadMembersAndShared(); 
+      await loadTodos();           
+      await loadMemos();        
+    })();
+  }, [loadMembersAndShared, loadTodos, loadMemos]),
+);
+
+
+const addItem = (setter, list) => {
   if (!text.trim()) return;
 
+  // 공동 준비물 추가(서버)
   if (setter === setShared) {
     (async () => {
       try {
@@ -416,32 +519,11 @@ function PrepareScreen() {
         Alert.alert('실패', '공동 준비물 추가에 실패했습니다.');
       }
     })();
-  } else if (setter === setNecessity) {
-    (async () => {
-      try {
-        const created = await createTodo(tripId, { content: text.trim() });
-        setNecessity((prev) => [
-          ...prev,
-          {
-            id: String(created?.id),
-            content: created?.content ?? text.trim(),
-            checked: !!created?.checked,
-            travelerId: created?.assigneeId != null ? String(created.assigneeId) : null,
-            travelerName: created?.assigneeName ?? null,
-            travelerColor:
-              created?.assigneeId != null
-                ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
-                : null,
-          },
-        ]);
-        setText('');
-        setAdding(null);
-      } catch (e) {
-        console.error('Todo 생성 실패:', e);
-        Alert.alert('실패', 'Todo 추가에 실패했습니다.');
-      }
-    })();
-  } else if (setter === setPersonal) {
+    return;
+  }
+
+  // 개인 준비물 추가(서버)
+  if (setter === setPersonal) {
     (async () => {
       try {
         const created = await createPersonalItem(tripId, { name: text.trim() });
@@ -463,27 +545,67 @@ function PrepareScreen() {
         Alert.alert('실패', '개인 준비물 추가에 실패했습니다.');
       }
     })();
-  } else if (setter === setActivities) {
-    // 🔥 활동 추가 - 로컬 상태만 업데이트 (API 연동 제거)
-    setter([
-      ...list,
-      {
-        id: Date.now().toString(),
-        content: text.trim(),
-        checked: false,
-        travelerId: null,
-        travelerName: null,
-        travelerColor: null,
-      },
-    ]);
-    setText('');
-    setAdding(null);
+    return;
   }
+
+if (setter === setNecessity || setter === setActivities) {
+  (async () => {
+    try {
+      const category =
+        setter === setNecessity ? TODO_CATEGORY.NECESSITY : TODO_CATEGORY.ACTIVITY;
+
+      const created = await createTodo(tripId, {
+        name: text.trim(),
+        category,
+      });
+
+      const newItem = {
+        id: String(created?.id),
+        content: created?.name ?? text.trim(),
+        checked: !!created?.checked,
+        travelerId: created?.assigneeId != null ? String(created.assigneeId) : null,
+        travelerName: created?.assigneeName ?? null,
+        travelerColor:
+          created?.assigneeId != null
+            ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
+            : null,
+      };
+
+      if (setter === setNecessity) setNecessity((prev) => [...prev, newItem]);
+      else setActivities((prev) => [...prev, newItem]);
+
+      setText('');
+      setAdding(null);
+    } catch (e) {
+      console.error('Todo 생성 실패:', e);
+      Alert.alert('실패', '할 일/활동 추가에 실패했습니다.');
+    }
+  })();
+  return;
+}
+
+
+  // 그 외 로컬 추가
+  setter([
+    ...list,
+    {
+      id: Date.now().toString(),
+      content: text.trim(),
+      checked: false,
+      travelerId: null,
+      travelerName: null,
+      travelerColor: null,
+    },
+  ]);
+
+  setText('');
+  setAdding(null);
 };
 
-const toggleCheck = (list, setter, index) => {
+  const toggleCheck = (list, setter, index) => {
   const item = list[index];
 
+  // 공동 준비물 체크 변경(서버)
   if (setter === setShared) {
     (async () => {
       try {
@@ -494,6 +616,13 @@ const toggleCheck = (list, setter, index) => {
               ? {
                   ...x,
                   checked: !!updated?.checked,
+                  travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                  travelerName: updated?.assigneeName ?? null,
+                  travelerColor:
+                    updated?.assigneeId != null
+                      ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                        null
+                      : null,
                 }
               : x,
           ),
@@ -503,36 +632,18 @@ const toggleCheck = (list, setter, index) => {
         Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
       }
     })();
-  } else if (setter === setNecessity) {
-    (async () => {
-      try {
-        const updated = await updateTodo(tripId, item.id, { checked: !item.checked });
-        setNecessity((prev) =>
-          prev.map((x) =>
-            String(x.id) === String(item.id)
-              ? {
-                  ...x,
-                  checked: !!updated?.checked,
-                }
-              : x,
-          ),
-        );
-      } catch (e) {
-        console.error('Todo 체크 변경 실패:', e);
-        Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
-      }
-    })();
-  } else if (setter === setPersonal) {
+    return;
+  }
+
+  // 개인 준비물 체크 변경(서버)
+  if (setter === setPersonal) {
     (async () => {
       try {
         const updated = await updatePersonalItem(tripId, item.id, { checked: !item.checked });
         setPersonal((prev) =>
           prev.map((x) =>
             String(x.id) === String(item.id)
-              ? {
-                  ...x,
-                  checked: !!updated?.checked,
-                }
+              ? { ...x, checked: !!updated?.checked }
               : x,
           ),
         );
@@ -541,151 +652,124 @@ const toggleCheck = (list, setter, index) => {
         Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
       }
     })();
-  } else if (setter === setActivities) {
-    // 활동 체크 - 로컬 상태만 업데이트
-    setter(list.map((it, i) => (i === index ? { ...it, checked: !it.checked } : it)));
+    return;
   }
+
+  // ✅ Todo 체크 변경(서버) - 필수 할 일 / 여행 활동
+if (setter === setNecessity || setter === setActivities) {
+  (async () => {
+    try {
+      const category =
+        setter === setNecessity ? TODO_CATEGORY.NECESSITY : TODO_CATEGORY.ACTIVITY;
+
+      const updated = await updateTodo(tripId, item.id, {
+        checked: !item.checked,
+        category,
+      });
+
+      const patch = (prev) =>
+        prev.map((x) =>
+          String(x.id) === String(item.id)
+            ? {
+                ...x,
+                checked: !!updated?.checked,
+                travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                travelerName: updated?.assigneeName ?? null,
+                travelerColor:
+                  updated?.assigneeId != null
+                    ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                      null
+                    : null,
+              }
+            : x,
+        );
+
+      if (setter === setNecessity) setNecessity(patch);
+      else setActivities(patch);
+    } catch (e) {
+      console.error('Todo 체크 변경 실패:', e);
+      Alert.alert('실패', '체크 상태 변경에 실패했습니다.');
+    }
+  })();
+  return;
+}
+
+  // 그 외
+  setter(list.map((it, i) => (i === index ? { ...it, checked: !it.checked } : it)));
 };
 
-// 🔥 editItem 함수 추가
-const editItem = (list, setter, index, newContent) => {
+
+  const assignTraveler = (list, setter, index) => {
+    const item = list[index];
+    // ✅ Todo 담당자 지정/해제(서버) - 필수 할 일만
+if (setter === setNecessity) {
   const item = list[index];
 
-  if (setter === setShared) {
-    (async () => {
-      try {
-        const updated = await updateSharedItem(tripId, item.id, { name: newContent });
-        setShared((prev) =>
-          prev.map((x) =>
-            String(x.id) === String(item.id)
-              ? {
-                  ...x,
-                  content: updated?.name ?? newContent,
-                  checked: !!updated?.checked,
-                  travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
-                  travelerName: updated?.assigneeName ?? null,
-                  travelerColor:
-                    updated?.assigneeId != null
-                      ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ?? null
-                      : null,
-                }
-              : x,
-          ),
-        );
-      } catch (e) {
-        console.error('공동 준비물 수정 실패:', e);
-        Alert.alert('실패', '공동 준비물 수정에 실패했습니다.');
-      }
-    })();
-  } else if (setter === setNecessity) {
-    (async () => {
-      try {
-        const updated = await updateTodo(tripId, item.id, { content: newContent });
-        setNecessity((prev) =>
-          prev.map((x) =>
-            String(x.id) === String(item.id)
-              ? {
-                  ...x,
-                  content: updated?.content ?? newContent,
-                  checked: !!updated?.checked,
-                }
-              : x,
-          ),
-        );
-      } catch (e) {
-        console.error('Todo 수정 실패:', e);
-        Alert.alert('실패', 'Todo 수정에 실패했습니다.');
-      }
-    })();
-  } else if (setter === setPersonal) {
-    (async () => {
-      try {
-        const updated = await updatePersonalItem(tripId, item.id, { name: newContent });
-        setPersonal((prev) =>
-          prev.map((x) =>
-            String(x.id) === String(item.id)
-              ? {
-                  ...x,
-                  content: updated?.name ?? newContent,
-                  checked: !!updated?.checked,
-                }
-              : x,
-          ),
-        );
-      } catch (e) {
-        console.error('개인 준비물 수정 실패:', e);
-        Alert.alert('실패', '개인 준비물 수정에 실패했습니다.');
-      }
-    })();
-  } else if (setter === setActivities) {
-    // 활동 수정 - 로컬 상태만 업데이트
-    setter(list.map((it, i) => (i === index ? { ...it, content: newContent } : it)));
-  }
-};
+  (async () => {
+    try {
+      const updated = item.travelerId
+        ? await unassignTodo(tripId, item.id)
+        : await assignTodo(tripId, item.id);
 
-// 🔥 assignTraveler 함수도 추가 (필요한 경우)
-const assignTraveler = (list, setter, index) => {
-  const item = list[index];
+      setNecessity((prev) =>
+        prev.map((x) =>
+          String(x.id) === String(item.id)
+            ? {
+                ...x,
+                travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                travelerName: updated?.assigneeName ?? null,
+                travelerColor:
+                  updated?.assigneeId != null
+                    ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
+                      null
+                    : null,
+              }
+            : x,
+        ),
+      );
+    } catch (e) {
+      console.error('Todo 담당자 변경 실패:', e);
+      Alert.alert('안내', '담당자 지정/해제는 본인만 할 수 있습니다.');
+    }
+  })();
 
-  if (setter === setShared) {
-    (async () => {
-      try {
-        const updated = item.travelerId
-          ? await unassignSharedItem(tripId, item.id)
-          : await assignSharedItem(tripId, item.id);
-        setShared((prev) =>
-          prev.map((x) =>
-            String(x.id) === String(item.id)
-              ? {
-                  ...x,
-                  travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
-                  travelerName: updated?.assigneeName ?? null,
-                  travelerColor:
-                    updated?.assigneeId != null
-                      ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ?? null
-                      : null,
-                }
-              : x,
-          ),
-        );
-      } catch (e) {
-        console.error('공동 준비물 담당자 변경 실패:', e);
-        Alert.alert('안내', '담당자 지정/해제는 본인만 할 수 있습니다.');
-      }
-    })();
-  } else if (setter === setNecessity) {
-    (async () => {
-      try {
-        const updated = item.travelerId
-          ? await unassignTodo(tripId, item.id)
-          : await assignTodo(tripId, item.id);
-        setNecessity((prev) =>
-          prev.map((x) =>
-            String(x.id) === String(item.id)
-              ? {
-                  ...x,
-                  travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
-                  travelerName: updated?.assigneeName ?? null,
-                  travelerColor:
-                    updated?.assigneeId != null
-                      ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ?? null
-                      : null,
-                }
-              : x,
-          ),
-        );
-      } catch (e) {
-        console.error('Todo 담당자 변경 실패:', e);
-        Alert.alert('안내', '담당자 지정/해제는 본인만 할 수 있습니다.');
-      }
-    })();
-  } else {
-    // Personal, Activities는 담당자 지정 없음
+  return;
+}
+
+    if (setter === setShared) {
+      (async () => {
+        try {
+          const updated = item.travelerId
+            ? await unassignSharedItem(tripId, item.id)
+            : await assignSharedItem(tripId, item.id);
+          setShared((prev) =>
+            prev.map((x) =>
+              String(x.id) === String(item.id)
+                ? {
+                    ...x,
+                    travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
+                    travelerName: updated?.assigneeName ?? null,
+                    travelerColor:
+                      updated?.assigneeId != null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
+                        : null,
+                  }
+                : x,
+            ),
+          );
+        } catch (e) {
+          console.error('공동 준비물 담당자 변경 실패:', e);
+          Alert.alert('안내', '담당자 지정/해제는 본인만 할 수 있습니다.');
+        }
+      })();
+      return;
+    }
     setter(
       list.map((item, i) => {
         if (i !== index) return item;
 
-        const currentSelectedTraveler = selectedTravelerRef.current ?? selectedTraveler;
+        const currentSelectedTraveler = selectedTraveler;
         if (!currentSelectedTraveler) {
           Alert.alert('알림', '여행자를 먼저 선택해주세요!');
           return item;
@@ -708,14 +792,14 @@ const assignTraveler = (list, setter, index) => {
 
   if (!trip) {
     return (
-      <SafeAreaView style={sharedStyles.container}>
+      <View style={sharedStyles.container}>
         <Text style={sharedStyles.pageTitle}>여행 정보를 불러올 수 없습니다</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={sharedStyles.container}>
+    <View style={sharedStyles.container}>
       <Text style={sharedStyles.pageTitle}>여행 준비 리스트</Text>
       <Text style={sharedStyles.subTitle}>신나는 여행을 준비해 봐요!</Text>
 
@@ -847,102 +931,178 @@ const assignTraveler = (list, setter, index) => {
         <Text style={sharedStyles.sectionTitle}>메모장</Text>
 
         {memos.map((memo) => (
-          <View key={memo.id} style={sharedStyles.memoRow}>
-            <Pressable
-              style={sharedStyles.memoLeft}
-              onPress={() =>
-                navigation.navigate('MemoScreen', {
-                  tripId,
-                  memo,
-                  onSave: loadAllData, // 메모 저장 후 전체 새로고침
-                })
-              }
-            >
-              <MaterialIcons name="description" size={22} color={colors.grayscale[500]} />
-              <Text style={sharedStyles.memoText}>{memo.title}</Text>
-            </Pressable>
+  <View key={memo.id} style={sharedStyles.memoRow}>
+    
+    <Pressable
+      style={sharedStyles.memoLeft}
+      onPress={() =>
+        navigation.navigate('MemoScreen', {
+          tripId,
+          memo,
+          onSave: (updatedMemo) => {
+            setMemos((prev) =>
+              prev.map((m) =>
+                m.id === updatedMemo.id ? updatedMemo : m
+              )
+            );
+          },
+        })
+      }
+    >
+      <MaterialIcons
+        name="description"
+        size={22}
+        color={colors.grayscale[500]}
+      />
+      <Text style={sharedStyles.memoText}>{memo.title}</Text>
+    </Pressable>
 
-            <Pressable
-              onPress={async () => {
-                try {
-                  await deleteMemo(tripId, memo.id);
-                  setMemos((prev) => prev.filter((m) => m.id !== memo.id));
-                } catch (e) {
-                  console.error('메모 삭제 실패:', e);
-                  Alert.alert('실패', '메모 삭제에 실패했습니다.');
-                }
-              }}
-              hitSlop={8}
-            >
-              <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
-            </Pressable>
-          </View>
-        ))}
+    <Pressable
+      hitSlop={8}
+      onPress={async () => {
+        try {
+          await deleteMemo(tripId, memo.id);
+          setMemos((prev) =>
+            prev.filter((m) => m.id !== memo.id)
+          );
+        } catch (e) {
+          Alert.alert('실패', '메모 삭제에 실패했습니다.');
+        }
+      }}
+    >
+      <MaterialIcons
+        name="delete-outline"
+        size={20}
+        color={colors.grayscale[600]}
+      />
+    </Pressable>
+  </View>
+))}
+
 
         <View style={sharedStyles.plusCenter}>
-          <Pressable
-            style={sharedStyles.plusButton}
-            onPress={() =>
-              navigation.navigate('MemoScreen', {
-                tripId,
-                onSave: loadAllData, // 메모 생성 후 전체 새로고침
-              })
-            }
-          >
-            <Plus width={24} height={24} />
-          </Pressable>
-        </View>
+  <Pressable
+    style={sharedStyles.plusButton}
+    onPress={() =>
+      navigation.navigate('MemoScreen', {
+        tripId,
+        onSave: (newMemo) => {
+          setMemos((prev) => [...prev, newMemo]);
+        },
+      })
+    }
+  >
+    <Plus width={24} height={24} />
+  </Pressable>
+</View>
 
-        <View style={sharedStyles.sectionDivider} />
+<View style={sharedStyles.sectionDivider} />
 
-        <View style={styles.buttonRow}>
-          {status === 'BEFORE' && (
-            <TouchableOpacity
-              style={styles.startButton}
-              onPress={() => {
-                startTrip(tripId);
-                navigation.navigate('StartTrip', {
-                  trip,
-                  travelers,
-                  necessity,
-                  shared,
-                  personal,
-                  activities,
-                  memos,
-                });
-              }}
-            >
-              <Text style={styles.startText}>여행 시작</Text>
-            </TouchableOpacity>
-          )}
+<View style={styles.buttonRow}>
+  {/* 여행 시작 버튼 */}
+  <TouchableOpacity
+    style={[styles.startButton, isStarting && styles.startButtonDisabled]}
+    disabled={isStarting}
+    onPress={async () => {
+      if (!tripId) {
+        Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
+        return;
+      }
 
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => {
-              Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
-                { text: '취소', style: 'cancel' },
-                {
-                  text: '삭제',
-                  style: 'destructive',
-                  onPress: () => {
-                    setTravelers([]);
-                    setNecessity([]);
-                    setShared([]);
-                    setPersonal([]);
-                    setActivities([]);
-                    setMemos([]);
-                  },
-                },
-              ]);
-            }}
-          >
-            <Text style={styles.deleteText}>삭제하기</Text>
-          </TouchableOpacity>
-        </View>
+      try {
+        await handlerStartTrip(tripId);
+        
+        // 여행 시작 후 OnTripScreen으로 이동
+        navigation.navigate('OnTripScreen', {
+          trip,
+          travelers,
+          necessity,
+          shared,
+          personal,
+          activities,
+          memos,
+        });
+      } catch (error) {
+        console.error('여행 시작 실패:', error);
+      }
+    }}
+  >
+    <Text style={styles.startText}>
+      {isStarting ? '시작 중...' : '여행 시작'}
+    </Text>
+  </TouchableOpacity>
+
+  {/* 삭제 버튼 */}
+  <TouchableOpacity
+    style={styles.deleteButton}
+    onPress={() => {
+      Alert.alert(
+        '확인',
+        '모든 데이터를 삭제하시겠습니까?\n(서버에 저장된 데이터도 함께 삭제됩니다)',
+        [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: async () => {
+              if (!tripId) {
+                Alert.alert('실패', 'tripId가 없습니다');
+                return;
+              }
+              try {
+                // 1. Todo (필수 할 일)
+                for (const item of necessity) {
+                  await deleteTodo(tripId, item.id);
+                }
+
+                // 2. Todo (여행 활동)
+                for (const item of activities) {
+                  await deleteTodo(tripId, item.id);
+                }
+
+                // 3. 공동 준비물
+                for (const item of shared) {
+                  await deleteSharedItem(tripId, item.id);
+                }
+
+                // 4. 개인 준비물
+                for (const item of personal) {
+                  await deletePersonalItem(tripId, item.id);
+                }
+
+                // 5. 메모
+                for (const memo of memos) {
+                  await deleteMemo(tripId, memo.id);
+                }
+
+                // 6. 로컬 상태 초기화
+                setNecessity([]);
+                setActivities([]);
+                setShared([]);
+                setPersonal([]);
+                setMemos([]);
+
+                Alert.alert('완료', '모든 데이터가 삭제되었습니다.');
+              } catch (e) {
+                console.error('전체 삭제 실패:', e);
+                Alert.alert(
+                  '실패',
+                  '일부 데이터 삭제에 실패했습니다.\n네트워크 상태를 확인해주세요.',
+                );
+              }
+            },
+          },
+        ],
+      );
+    }}
+  >
+    <Text style={styles.deleteText}>삭제하기</Text>
+  </TouchableOpacity>
+</View>
+
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
-}
 
 export default PrepareScreen;
 
@@ -984,6 +1144,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     borderRadius: 23,
     marginHorizontal: 7,
+  },
+  startButtonDisabled: {
+    opacity: 0.5,
   },
   startText: {
     color: colors.grayscale[100],

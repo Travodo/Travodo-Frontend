@@ -259,6 +259,11 @@ export const createTrip = async (data) => {
   return response.data;
 };
 
+export const deleteTrip = async (tripId) => {
+  const response = await api.delete(`/trips/${tripId}`);
+  return response.data;
+};
+
 export const joinTripByInviteCode = async (inviteCode) => {
   const response = await api.post('/trips/join', { inviteCode });
   return response.data;
@@ -289,7 +294,6 @@ export const getCurrentTrip = async () => {
   const response = await api.get('/trips/current');
   return response.data;
 };
-
 export const getTripsByMonth = async (year, month) => {
   const response = await api.get('/trips/calendar', { params: { year, month } });
   return response.data;
@@ -336,9 +340,8 @@ export const deleteSharedItem = async (tripId, itemId) => {
   return response.data;
 };
 
-// -----------------------------
-// 개인 준비물 (personal-items)
-// -----------------------------
+
+// 개인 준비물(personal-items)
 export const getPersonalItems = async (tripId) => {
   const response = await api.get(`/trips/${tripId}/personal-items`);
   return response.data;
@@ -355,25 +358,67 @@ export const updatePersonalItem = async (tripId, itemId, { name, checked }) => {
 };
 
 export const deletePersonalItem = async (tripId, itemId) => {
-  const response = await api.delete(`/trips/${tripId}/personal-items/${itemId}`);
+  const response = await api.delete(
+    `/trips/${tripId}/personal-items/${itemId}`,
+  );
   return response.data;
 };
 
-// -----------------------------
-// Todo (필수 할 일)
-// -----------------------------
+
+// 메모 관련
+export const getMemos = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/memos`);
+  return response.data;
+};
+
+export const getMemoDetail = async (tripId, memoId) => {
+  const response = await api.get(
+    `/trips/${tripId}/memos/${memoId}`,
+  );
+  return response.data;
+};
+
+export const createMemo = async (tripId, { title, content }) => {
+  const response = await api.post(
+    `/trips/${tripId}/memos`,
+    { title, content },
+  );
+  return response.data;
+};
+
+export const updateMemo = async (tripId, memoId, { title, content }) => {
+  const response = await api.put(
+    `/trips/${tripId}/memos/${memoId}`,
+    { title, content },
+  );
+  return response.data;
+};
+
+export const deleteMemo = async (tripId, memoId) => {
+  const response = await api.delete(
+    `/trips/${tripId}/memos/${memoId}`,
+  );
+  return response.data;
+};
+
+
+// TODO 관련
 export const getTodos = async (tripId) => {
   const response = await api.get(`/trips/${tripId}/todo`);
   return response.data;
 };
 
-export const createTodo = async (tripId, { content }) => {
-  const response = await api.post(`/trips/${tripId}/todo`, { content });
+export const createTodo = async (tripId, { name, category }) => {
+  const response = await api.post(`/trips/${tripId}/todo`, { name, category });
   return response.data;
 };
 
-export const updateTodo = async (tripId, todoId, { content, checked }) => {
-  const response = await api.patch(`/trips/${tripId}/todo/${todoId}`, { content, checked });
+export const updateTodo = async (tripId, todoId, { name, checked, category }) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}`, {
+    name,
+    checked,
+    category,
+  });
   return response.data;
 };
 
@@ -392,56 +437,6 @@ export const unassignTodo = async (tripId, todoId) => {
   return response.data;
 };
 
-// -----------------------------
-// 여행 활동 (activities)
-// -----------------------------
-export const getActivities = async (tripId) => {
-  const response = await api.get(`/trips/${tripId}/activities`);
-  return response.data;
-};
-
-export const createActivity = async (tripId, { name }) => {
-  const response = await api.post(`/trips/${tripId}/activities`, { name });
-  return response.data;
-};
-
-export const updateActivity = async (tripId, activityId, { name }) => {
-  const response = await api.put(`/trips/${tripId}/activities/${activityId}`, { name });
-  return response.data;
-};
-
-export const updateActivityStatus = async (tripId, activityId, status) => {
-  const response = await api.patch(`/trips/${tripId}/activities/${activityId}/status`, { status });
-  return response.data;
-};
-
-export const deleteActivity = async (tripId, activityId) => {
-  const response = await api.delete(`/trips/${tripId}/activities/${activityId}`);
-  return response.data;
-};
-
-// -----------------------------
-// 메모 (memos)
-// -----------------------------
-export const getMemos = async (tripId) => {
-  const response = await api.get(`/trips/${tripId}/memos`);
-  return response.data;
-};
-
-export const createMemo = async (tripId, { title, content }) => {
-  const response = await api.post(`/trips/${tripId}/memos`, { title, content });
-  return response.data;
-};
-
-export const updateMemo = async (tripId, memoId, { title, content }) => {
-  const response = await api.put(`/trips/${tripId}/memos/${memoId}`, { title, content });
-  return response.data;
-};
-
-export const deleteMemo = async (tripId, memoId) => {
-  const response = await api.delete(`/trips/${tripId}/memos/${memoId}`);
-  return response.data;
-};
 
 // 위치 업데이트 / 동행자 위치 / POI
 export const updateMyLocation = async (tripId, { latitude, longitude }) => {
@@ -583,7 +578,6 @@ export const unlikeComment = async (commentId) => {
   return response.data;
 };
 
-
 // -----------------------------
 // Upload (S3)
 // -----------------------------
@@ -604,5 +598,68 @@ export const uploadImages = async (imageUris = []) => {
   });
   return response.data;
 };
+
+// 요청 인터셉터: 토큰 추가
+api.interceptors.request.use(
+  async (config) => {
+    const token = await getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (__DEV__) {
+      const hasAuth = !!config.headers?.Authorization;
+      console.log(`[api] ${config.method?.toUpperCase()} ${config.url} auth=${hasAuth}`);
+      // 토큰의 앞부분만 로깅 (보안)
+      if (token) {
+        console.log(`[api] Token: ${token}...`);
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// 응답 인터셉터: 에러 처리 강화
+api.interceptors.response.use(
+  (response) => {
+    if (__DEV__) {
+      console.log(
+        `[api] ✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`,
+      );
+    }
+    return response;
+  },
+  async (error) => {
+    if (__DEV__) {
+      console.log('=== API 에러 상세 ===');
+      console.log('URL:', error.config?.url);
+      console.log('Method:', error.config?.method?.toUpperCase());
+      console.log('상태 코드:', error.response?.status);
+      console.log('에러 메시지:', error.response?.data?.message || error.message);
+      console.log('에러 상세:', JSON.stringify(error.response?.data, null, 2));
+    }
+
+    if (error.response?.status === 401) {
+      console.log('[api] 401 Unauthorized - 로그아웃 처리');
+      await removeToken();
+      if (typeof unauthorizedHandler === 'function') {
+        try {
+          unauthorizedHandler();
+        } catch (_) {
+          // noop
+        }
+      }
+    }
+
+    // 500 에러도 로깅
+    if (error.response?.status === 500) {
+      console.error('[api] 500 서버 에러 - 백엔드 확인 필요');
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export default api;

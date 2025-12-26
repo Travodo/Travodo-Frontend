@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Alert,
   View,
@@ -25,7 +25,24 @@ import * as ImagePicker from 'expo-image-picker';
 
 function ProfileScreen() {
   const navigation = useNavigation();
-  const { logout, me, refreshMe } = useAuth();
+  const { logout } = useAuth();
+  const [me, setMe] = useState(null);
+  const [isMeLoading, setIsLoading] = useState(true);
+
+  const refreshMe = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getMyInfo();
+      setMe(data);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // AuthContext에서 로그인 시 내정보를 캐싱하지만, 첫 진입에서 한 번 더 보장적으로 동기화
+    refreshMe().catch(() => {});
+  }, [refreshMe]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -120,8 +137,8 @@ function ProfileScreen() {
     );
   };
 
-    return (
-    <SafeAreaView style={styles.container}>
+  return (
+    <View style={styles.container}>
       <ScrollView style={styles.container} bounces={false} overScrollMode="never">
         <View style={styles.profileSection}>
           <View style={styles.profileWrapper}>
@@ -140,12 +157,12 @@ function ProfileScreen() {
         </View>
 
         <View style={styles.infoBox}>
-          <InfoRow label="이름" value={me?.name || ''} />
-          <InfoRow label="닉네임" value={me?.nickname || ''} />
-          <InfoRow label="이메일" value={me?.email || ''} />
-          <InfoRow label="생년월일" value={formatBirthDate(me?.birthDate)} />
-          <InfoRow label="성별" value={formatGender(me?.gender)} />
-          <InfoRow label="연락처" value={me?.phoneNumber || ''} />
+          <InfoRow label="이름" value={isLoading ? '' : me?.name || ''} />
+          <InfoRow label="닉네임" value={isLoading ? '' : me?.nickname || ''} />
+          <InfoRow label="이메일" value={isLoading ? '' : me?.email || ''} />
+          <InfoRow label="생년월일" value={isLoading ? '' : formatBirthDate(me?.birthDate)} />
+          <InfoRow label="성별" value={isLoading ? '' : formatGender(me?.gender)} />
+          <InfoRow label="연락처" value={isLoading ? '' : me?.phoneNumber || ''} />
 
           <TouchableOpacity onPress={Logout}>
             <Text style={styles.link}>로그아웃</Text>
@@ -156,7 +173,7 @@ function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 const InfoRow = ({ label, value }) => (

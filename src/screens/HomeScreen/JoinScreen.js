@@ -17,7 +17,7 @@ import { joinTripByInviteCode } from '../../services/api';
 
 function JoinScreen() {
   const navigation = useNavigation();
-  
+
   const [code, setCode] = useState('');
   const CODE_LENGTH = 5;
   const [joining, setJoining] = useState(false);
@@ -67,7 +67,11 @@ function JoinScreen() {
           <CodeInput value={code} onChange={setCode} />
 
           <View style={{ alignItems: 'center', marginTop: 60 }}>
-            <Button text={joining ? '참가 중...' : '참가하기'} onPress={handleJoin} disabled={joining} />
+            <Button
+              text={joining ? '참가 중...' : '참가하기'}
+              onPress={handleJoin}
+              disabled={joining}
+            />
           </View>
 
           <TouchableOpacity
