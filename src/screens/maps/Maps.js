@@ -5,89 +5,53 @@ import { colors } from '../../styles/colors';
 import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
 import MyLocation from '../../../assets/ComponentsImage/MyLocation.svg';
-import { updateMyLocation, getCurrentTrip } from '../../services/api';
-
-const DUMMY_USERS = [
-  {
-    id: 1,
-    name: '철수',
-    myStatus: 'ongoing',
-    latitude: 37.57,
-    longitude: 126.975,
-    color: '#FF5733',
-  }, // 주황
-  {
-    id: 2,
-    name: '영희',
-    myStatus: 'upcoming',
-    latitude: 37.565,
-    longitude: 126.98,
-    color: '#33FF57',
-  },
-  {
-    id: 3,
-    name: '민수',
-    myStatus: 'finished',
-    latitude: 37.56,
-    longitude: 126.97,
-    color: '#3357FF',
-  },
-  {
-    id: 4,
-    name: '지수',
-    myStatus: 'ongoing',
-    latitude: 37.568,
-    longitude: 126.982,
-    color: '#FF33F6',
-  }, // 핑크
-];
+import { updateMyLocation, getMemberLocations } from '../../services/api';
+import { useTrip } from '../../contexts/TripContext';
 
 function Maps() {
   const [myLocation, setMyLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [myStatus, setMyStatus] = useState('');
-  const [currentTrip, setCurrentTrip] = useState('');
+  const [members, setMembers] = useState([]);
+
+  const { ongoingTrip, isLoaded: isContextLoaded } = useTrip();
   const mapRef = useRef(null);
 
   const message = myStatus === 'ongoing' ? '여행 진행 중' : '여행이 시작되지 않았어요.';
 
-  const getTripStatus = async () => {
-    try {
-      const data = await getCurrentTrip();
-      setCurrentTrip(data);
-      console.log(currentTrip);
-    } catch (error) {
-      console.error('현재 진행 중인 여행조회 실패', error);
+  useEffect(() => {
+    if (ongoingTrip) {
+      setMyStatus('ongoing');
+    } else {
+      setMyStatus('');
     }
-  };
+  }, [ongoingTrip]);
 
-  const fetchTripData = async () => {
+  const sendMyLocation = async (coords) => {
+    if (!ongoingTrip || !ongoingTrip.id) return;
+
     try {
-      // get
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const sendMyLocation = async () => {
-    try {
-      const { status } = Location.getForegroundPermissionsAsync();
-      if (status !== 'granted') return;
-
-      const location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-
-      await updateMyLocation(tripId, { latitude, longitude });
-      console.log('위치 전송 성공');
+      const { latitude, longitude } = coords;
+      await updateMyLocation(ongoingTrip.id, { latitude, longitude });
     } catch (error) {
       console.error('위치 전송 실패', error);
     }
   };
 
-  useEffect(() => {
-    getTripStatus();
-  }, []);
+  const fetchMemberLocations = async () => {
+    if (!ongoingTrip || !ongoingTrip.id) return;
+
+    try {
+      const data = await getMemberLocations(ongoingTrip.id);
+      const validMembers = Array.isArray(data)
+        ? data.filter((m) => m.latitude !== 0 && m.longitude !== 0)
+        : [];
+      setMembers(validMembers);
+    } catch (error) {
+      console.error('팀원 위치 조회 실패:', error);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -98,6 +62,7 @@ function Maps() {
           setIsLoading(false);
           return;
         }
+
         let locationData = await Location.getLastKnownPositionAsync();
 
         if (!locationData) {
@@ -114,6 +79,7 @@ function Maps() {
       }
     })();
   }, []);
+
   const moveToCurrentLocation = () => {
     if (myLocation && mapRef.current) {
       mapRef.current.animateToRegion(
@@ -126,13 +92,16 @@ function Maps() {
         500,
       );
     } else {
+      if (isLoading) return;
       alert('아직 위치를 못 찾았어요!');
     }
   };
 
   useEffect(() => {
     let myLocationSubscription = null;
-    (async () => {
+    let memberFetchInterval = null;
+
+    const startTracking = async () => {
       if (myStatus === 'ongoing') {
         myLocationSubscription = await Location.watchPositionAsync(
           {
@@ -145,16 +114,27 @@ function Maps() {
             sendMyLocation(newLocation.coords);
           },
         );
+
+        fetchMemberLocations();
+        memberFetchInterval = setInterval(fetchMemberLocations, 10000);
+      } else {
+        setMembers([]);
       }
-    })();
+    };
+
+    startTracking();
+
     return () => {
       if (myLocationSubscription) {
         myLocationSubscription.remove();
       }
+      if (memberFetchInterval) {
+        clearInterval(memberFetchInterval);
+      }
     };
-  }, [myStatus]);
+  }, [myStatus, ongoingTrip]);
 
-  if (isLoading) {
+  if (isLoading || !isContextLoaded) {
     return (
       <View style={[styles.screen, { justifyContent: 'center' }]}>
         <ActivityIndicator size="large" color={colors.primary[700]} />
@@ -168,33 +148,40 @@ function Maps() {
         style={styles.map}
         ref={mapRef}
         initialRegion={{
-          latitude: myLocation ? myLocation.latitude : 37.4877, // 내 위치 없으면 성공회대
+          latitude: myLocation ? myLocation.latitude : 37.4877,
           longitude: myLocation ? myLocation.longitude : 126.8251,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
         showsUserLocation={true}
-        // iOS에서 PROVIDER_GOOGLE는 네이티브 GoogleMaps 설정이 필요합니다.
-        // (설정 전에는 기본 Apple Maps 사용)
         provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
       >
         {myStatus === 'ongoing' &&
-          DUMMY_USERS.filter((user) => user.myStatus === 'ongoing').map((user) => (
+          members.map((member) => (
             <Marker
-              key={user.id}
+              key={member.memberId}
               coordinate={{
-                latitude: user.latitude,
-                longitude: user.longitude,
+                latitude: member.latitude,
+                longitude: member.longitude,
               }}
-              title={user.name}
+              title={member.nickname}
+              description={member.nickname}
             >
-              <View style={[styles.userLocationDot, { backgroundColor: user.color }]} />
+              <View
+                style={[
+                  styles.userLocationDot,
+                  { backgroundColor: member.color || colors.primary[700] },
+                ]}
+              />
             </Marker>
           ))}
       </MapView>
+
       <View style={styles.textContainer}>
         <Text style={styles.text}>{message}</Text>
+        {ongoingTrip && <Text style={[styles.text, { fontSize: 12 }]}>{ongoingTrip.name}</Text>}
       </View>
+
       <Pressable onPress={moveToCurrentLocation} style={styles.button}>
         <MyLocation width={18} height={18} />
       </Pressable>
@@ -219,6 +206,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 12,
     top: 54,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   text: {
     fontFamily: 'Pretendard-SemiBold',
@@ -235,6 +227,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   userLocationDot: {
     width: 20,
