@@ -1,4 +1,4 @@
-import react, { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';

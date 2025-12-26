@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -72,7 +72,7 @@ export default function TripCard({ trip, hideActions = false }) {
 
   // 화면 포커스 시마다 현재 여행 새로고침
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       loadCurrentTrip();
     }, []),
   );

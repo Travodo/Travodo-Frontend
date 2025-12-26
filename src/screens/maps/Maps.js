@@ -1,210 +1,138 @@
 import { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import MapView from 'react-native-maps';
-import { View, StyleSheet, Text, ActivityIndicator, Pressable, Platform } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+  Pressable,
+  Platform,
+  Alert,
+} from 'react-native';
 import { colors } from '../../styles/colors';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import MyLocation from '../../../assets/ComponentsImage/MyLocation.svg';
 import { updateMyLocation, getMemberLocations, getCurrentTrip } from '../../services/api';
 import { useFocusEffect } from '@react-navigation/native';
 
+const SETTINGS_KEY = '@user_settings';
+
 function Maps() {
   const [myLocation, setMyLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [myStatus, setMyStatus] = useState('');
   const [members, setMembers] = useState([]);
   const [ongoingTrip, setOngoingTrip] = useState(null);
+  const [gpsConsent, setGpsConsent] = useState(false);
 
   const mapRef = useRef(null);
 
-  const message = myStatus === 'ongoing' ? '여행 진행 중' : '여행이 시작되지 않았어요.';
-
-  // 현재 진행중인 여행 가져오기
-  const loadCurrentTrip = async () => {
+  const loadInitialData = async () => {
     try {
+      const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
+      const { gpsAgree } = savedSettings ? JSON.parse(savedSettings) : { gpsAgree: false };
+      setGpsConsent(gpsAgree);
+
       const currentData = await getCurrentTrip();
-      if (currentData && currentData.id) {
-        setOngoingTrip({
-          id: currentData.id,
-          name: currentData.name,
-          status: currentData.status,
-          startDate: currentData.startDate,
-          endDate: currentData.endDate,
-        });
+      if (currentData?.id) {
+        setOngoingTrip(currentData);
         setMyStatus('ongoing');
-      } else {
-        setOngoingTrip(null);
-        setMyStatus('');
       }
     } catch (error) {
-      console.error('[Maps] 현재 여행 조회 실패:', error);
-      setOngoingTrip(null);
-      setMyStatus('');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // 화면 포커스 시 현재 여행 새로고침
   useFocusEffect(
-    React.useCallback(() => {
-      loadCurrentTrip();
+    useCallback(() => {
+      loadInitialData();
     }, []),
   );
 
-  const sendMyLocation = async (coords) => {
-    if (!ongoingTrip || !ongoingTrip.id) return;
-
-    try {
-      const { latitude, longitude } = coords;
-      await updateMyLocation(ongoingTrip.id, { latitude, longitude });
-    } catch (error) {
-      console.error('위치 전송 실패', error);
-    }
-  };
-
-  const fetchMemberLocations = async () => {
-    if (!ongoingTrip || !ongoingTrip.id) return;
-
-    try {
-      const data = await getMemberLocations(ongoingTrip.id);
-      const validMembers = Array.isArray(data)
-        ? data.filter((m) => m.latitude !== 0 && m.longitude !== 0)
-        : [];
-      setMembers(validMembers);
-    } catch (error) {
-      console.error('팀원 위치 조회 실패:', error);
-    }
-  };
-
   useEffect(() => {
-    (async () => {
-      try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          setErrorMsg('위치 접근 허용이 필요합니다.');
-          setIsLoading(false);
-          return;
-        }
-
-        let locationData = await Location.getLastKnownPositionAsync();
-
-        if (!locationData) {
-          locationData = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Balanced,
-          });
-        }
-
-        setMyLocation(locationData.coords);
-      } catch (error) {
-        console.log('위치 로딩 에러:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, []);
-
-  const moveToCurrentLocation = () => {
-    if (myLocation && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: myLocation.latitude,
-          longitude: myLocation.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        },
-        500,
-      );
-    } else {
-      if (isLoading) return;
-      alert('아직 위치를 못 찾았어요!');
-    }
-  };
-
-  useEffect(() => {
-    let myLocationSubscription = null;
-    let memberFetchInterval = null;
+    let subscription = null;
+    let interval = null;
 
     const startTracking = async () => {
-      if (myStatus === 'ongoing') {
-        myLocationSubscription = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.Balanced,
-            timeInterval: 10000,
-            distanceInterval: 10,
-          },
-          (newLocation) => {
-            setMyLocation(newLocation.coords);
-            sendMyLocation(newLocation.coords);
-          },
-        );
+      // 1. GPS 동의 + 여행 중일 때만 내 위치 추적
+      if (myStatus === 'ongoing' && gpsConsent) {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          subscription = await Location.watchPositionAsync(
+            { accuracy: Location.Accuracy.Balanced, timeInterval: 10000, distanceInterval: 10 },
+            (loc) => {
+              setMyLocation(loc.coords);
+              updateMyLocation(ongoingTrip.id, loc.coords);
+            },
+          );
+        }
+      }
 
+      // 2. 팀원 위치는 내 GPS 동의 여부와 상관없이 가져옴
+      if (myStatus === 'ongoing') {
         fetchMemberLocations();
-        memberFetchInterval = setInterval(fetchMemberLocations, 10000);
-      } else {
-        setMembers([]);
+        interval = setInterval(fetchMemberLocations, 10000);
       }
     };
 
     startTracking();
-
     return () => {
-      if (myLocationSubscription) {
-        myLocationSubscription.remove();
-      }
-      if (memberFetchInterval) {
-        clearInterval(memberFetchInterval);
-      }
+      subscription?.remove();
+      if (interval) clearInterval(interval);
     };
-  }, [myStatus, ongoingTrip]);
+  }, [myStatus, gpsConsent, ongoingTrip]);
 
-  if (isLoading) {
-    return (
-      <View style={[styles.screen, { justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.primary[700]} />
-      </View>
-    );
-  }
+  const fetchMemberLocations = async () => {
+    if (!ongoingTrip?.id) return;
+    try {
+      const data = await getMemberLocations(ongoingTrip.id);
+      setMembers(Array.isArray(data) ? data.filter((m) => m.latitude !== 0) : []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const moveToCurrentLocation = () => {
+    if (!gpsConsent) return Alert.alert('알림', '설정에서 GPS 동의를 켜주세요.');
+    if (myLocation) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: myLocation.latitude,
+          longitude: myLocation.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+        500,
+      );
+    }
+  };
+
+  if (isLoading) return <ActivityIndicator style={{ flex: 1 }} />;
 
   return (
     <View style={styles.screen}>
       <MapView
-        style={styles.map}
         ref={mapRef}
-        initialRegion={{
-          latitude: myLocation ? myLocation.latitude : 37.4877,
-          longitude: myLocation ? myLocation.longitude : 126.8251,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-        showsUserLocation={true}
+        style={styles.map}
+        showsUserLocation={gpsConsent}
         provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
       >
         {myStatus === 'ongoing' &&
-          members.map((member) => (
-            <Marker
-              key={member.memberId}
-              coordinate={{
-                latitude: member.latitude,
-                longitude: member.longitude,
-              }}
-              title={member.nickname}
-              description={member.nickname}
-            >
+          members.map((m) => (
+            <Marker key={m.memberId} coordinate={{ latitude: m.latitude, longitude: m.longitude }}>
               <View
                 style={[
                   styles.userLocationDot,
-                  { backgroundColor: member.color || colors.primary[700] },
+                  { backgroundColor: m.color || colors.primary[700] },
                 ]}
               />
             </Marker>
           ))}
       </MapView>
-
-      <View style={styles.textContainer}>
-        <Text style={styles.text}>{message}</Text>
-        {ongoingTrip && <Text style={[styles.text, { fontSize: 12 }]}>{ongoingTrip.name}</Text>}
-      </View>
-
       <Pressable onPress={moveToCurrentLocation} style={styles.button}>
         <MyLocation width={18} height={18} />
       </Pressable>
@@ -212,60 +140,22 @@ function Maps() {
   );
 }
 
-export default Maps;
-
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-  textContainer: {
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    backgroundColor: colors.primary[700],
-    borderRadius: 50,
-    position: 'absolute',
-    left: 12,
-    top: 54,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  text: {
-    fontFamily: 'Pretendard-SemiBold',
-    fontSize: 16,
-    color: '#fff',
-  },
+  screen: { flex: 1 },
+  map: { flex: 1 },
   button: {
     width: 40,
     height: 40,
-    borderRadius: 50,
+    borderRadius: 20,
     position: 'absolute',
-    right: 35,
-    bottom: 30,
+    right: 20,
+    bottom: 20,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
     elevation: 5,
   },
-  userLocationDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-    elevation: 2,
-  },
+  userLocationDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 3, borderColor: '#fff' },
 });
+
+export default Maps;
