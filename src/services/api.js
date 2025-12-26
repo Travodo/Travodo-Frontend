@@ -548,7 +548,7 @@ api.interceptors.request.use(
       console.log(`[api] ${config.method?.toUpperCase()} ${config.url} auth=${hasAuth}`);
       // 토큰의 앞부분만 로깅 (보안)
       if (token) {
-        console.log(`[api] Token: ${token.substring(0, 30)}...`);
+        console.log(`[api] Token: ${token}...`);
       }
     }
     return config;

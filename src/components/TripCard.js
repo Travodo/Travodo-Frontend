@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { colors } from '../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { useTrip } from '../contexts/TripContext';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { getCurrentTrip } from '../services/api';
 
 const calculateDDay = (startDateString) => {
   if (!startDateString) return null;
@@ -46,8 +46,7 @@ export default function TripCard({ trip, hideActions = false }) {
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(0);
-
-  const { ongoingTrip } = useTrip();
+  const [ongoingTrip, setOngoingTrip] = useState(null);
 
   const startDate = trip?.startDate;
   const endDate = trip?.endDate;
@@ -56,9 +55,30 @@ export default function TripCard({ trip, hideActions = false }) {
   const companions = Array.isArray(trip?.companions) ? trip.companions : [];
   const dDay = calculateDDay(startDate);
 
-  const isOngoingInContext = ongoingTrip && String(ongoingTrip.id) === String(trip.id);
+  // 현재 진행중인 여행 가져오기
+  const loadCurrentTrip = async () => {
+    try {
+      const currentData = await getCurrentTrip();
+      if (currentData && currentData.id) {
+        setOngoingTrip(currentData);
+      } else {
+        setOngoingTrip(null);
+      }
+    } catch (error) {
+      console.error('[TripCard] 현재 여행 조회 실패:', error);
+      setOngoingTrip(null);
+    }
+  };
 
-  const realStatus = isOngoingInContext ? 'ONGOING' : trip?.status || 'UPCOMING';
+  // 화면 포커스 시마다 현재 여행 새로고침
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCurrentTrip();
+    }, []),
+  );
+
+  const isOngoingInApi = ongoingTrip && String(ongoingTrip.id) === String(trip.id);
+  const realStatus = isOngoingInApi ? 'ONGOING' : trip?.status || 'UPCOMING';
 
   const onLayout = (event) => {
     const { height } = event.nativeEvent.layout;
@@ -103,10 +123,10 @@ export default function TripCard({ trip, hideActions = false }) {
     console.log('[TripCard] 이동 시도:', {
       realStatus,
       id: trip.id,
-      isOngoingInContext,
+      isOngoingInApi,
     });
 
-    const targetTripData = isOngoingInContext ? ongoingTrip : trip;
+    const targetTripData = isOngoingInApi ? ongoingTrip : trip;
 
     if (realStatus === 'ONGOING') {
       try {
@@ -227,7 +247,6 @@ export default function TripCard({ trip, hideActions = false }) {
                   <Text style={styles.shareText}>공유하기</Text>
                 </TouchableOpacity>
 
-                {/* 자세히 보기 버튼 클릭 시 navigateTrip 함수 호출 */}
                 <TouchableOpacity style={styles.disabledButton} onPress={navigateTrip}>
                   <Text style={styles.disabledText}>자세히 보기</Text>
                 </TouchableOpacity>
