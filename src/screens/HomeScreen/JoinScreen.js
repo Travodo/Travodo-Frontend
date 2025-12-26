@@ -17,7 +17,7 @@ import { joinTripByInviteCode } from '../../services/api';
 
 function JoinScreen() {
   const navigation = useNavigation();
-
+  
   const [code, setCode] = useState('');
   const CODE_LENGTH = 5;
   const [joining, setJoining] = useState(false);
@@ -44,7 +44,7 @@ function JoinScreen() {
       };
 
       // JoinScreen은 TripStack 내부이므로 PrepareScreen으로 바로 이동
-      navigation.replace('Prepare', { tripData });
+      navigation.replace('PrepareScreen', { tripData });
     } catch (e) {
       console.error('여행 참가 실패:', e);
       Alert.alert('실패', '여행 참가에 실패했습니다. 초대코드를 확인해주세요.');
@@ -67,11 +67,7 @@ function JoinScreen() {
           <CodeInput value={code} onChange={setCode} />
 
           <View style={{ alignItems: 'center', marginTop: 60 }}>
-            <Button
-              text={joining ? '참가 중...' : '참가하기'}
-              onPress={handleJoin}
-              disabled={joining}
-            />
+            <Button text={joining ? '참가 중...' : '참가하기'} onPress={handleJoin} disabled={joining} />
           </View>
 
           <TouchableOpacity

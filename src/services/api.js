@@ -259,11 +259,6 @@ export const createTrip = async (data) => {
   return response.data;
 };
 
-export const deleteTrip = async (tripId) => {
-  const response = await api.delete(`/trips/${tripId}`);
-  return response.data;
-};
-
 export const joinTripByInviteCode = async (inviteCode) => {
   const response = await api.post('/trips/join', { inviteCode });
   return response.data;
@@ -294,6 +289,7 @@ export const getCurrentTrip = async () => {
   const response = await api.get('/trips/current');
   return response.data;
 };
+
 export const getTripsByMonth = async (year, month) => {
   const response = await api.get('/trips/calendar', { params: { year, month } });
   return response.data;
@@ -480,6 +476,7 @@ export const unlikeComment = async (commentId) => {
   return response.data;
 };
 
+
 // -----------------------------
 // Upload (S3)
 // -----------------------------
@@ -500,68 +497,5 @@ export const uploadImages = async (imageUris = []) => {
   });
   return response.data;
 };
-
-// 요청 인터셉터: 토큰 추가
-api.interceptors.request.use(
-  async (config) => {
-    const token = await getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    if (__DEV__) {
-      const hasAuth = !!config.headers?.Authorization;
-      console.log(`[api] ${config.method?.toUpperCase()} ${config.url} auth=${hasAuth}`);
-      // 토큰의 앞부분만 로깅 (보안)
-      if (token) {
-        console.log(`[api] Token: ${token}...`);
-      }
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
-
-// 응답 인터셉터: 에러 처리 강화
-api.interceptors.response.use(
-  (response) => {
-    if (__DEV__) {
-      console.log(
-        `[api] ✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`,
-      );
-    }
-    return response;
-  },
-  async (error) => {
-    if (__DEV__) {
-      console.log('=== API 에러 상세 ===');
-      console.log('URL:', error.config?.url);
-      console.log('Method:', error.config?.method?.toUpperCase());
-      console.log('상태 코드:', error.response?.status);
-      console.log('에러 메시지:', error.response?.data?.message || error.message);
-      console.log('에러 상세:', JSON.stringify(error.response?.data, null, 2));
-    }
-
-    if (error.response?.status === 401) {
-      console.log('[api] 401 Unauthorized - 로그아웃 처리');
-      await removeToken();
-      if (typeof unauthorizedHandler === 'function') {
-        try {
-          unauthorizedHandler();
-        } catch (_) {
-          // noop
-        }
-      }
-    }
-
-    // 500 에러도 로깅
-    if (error.response?.status === 500) {
-      console.error('[api] 500 서버 에러 - 백엔드 확인 필요');
-    }
-
-    return Promise.reject(error);
-  },
-);
 
 export default api;

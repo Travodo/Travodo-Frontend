@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,7 @@ import {
 } from 'react-native';
 import { colors } from '../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { getCurrentTrip } from '../services/api';
+import { useNavigation } from '@react-navigation/native';
 
 const calculateDDay = (startDateString) => {
   if (!startDateString) return null;
@@ -46,39 +45,13 @@ export default function TripCard({ trip, hideActions = false }) {
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(0);
-  const [ongoingTrip, setOngoingTrip] = useState(null);
-
   const startDate = trip?.startDate;
   const endDate = trip?.endDate;
   const tripName = trip?.name ?? trip?.title ?? trip?.tripTitle ?? '여행';
   const destination = trip?.destination ?? trip?.place ?? trip?.location ?? '';
   const companions = Array.isArray(trip?.companions) ? trip.companions : [];
   const dDay = calculateDDay(startDate);
-
-  // 현재 진행중인 여행 가져오기
-  const loadCurrentTrip = async () => {
-    try {
-      const currentData = await getCurrentTrip();
-      if (currentData && currentData.id) {
-        setOngoingTrip(currentData);
-      } else {
-        setOngoingTrip(null);
-      }
-    } catch (error) {
-      console.error('[TripCard] 현재 여행 조회 실패:', error);
-      setOngoingTrip(null);
-    }
-  };
-
-  // 화면 포커스 시마다 현재 여행 새로고침
-  useFocusEffect(
-    useCallback(() => {
-      loadCurrentTrip();
-    }, []),
-  );
-
-  const isOngoingInApi = ongoingTrip && String(ongoingTrip.id) === String(trip.id);
-  const realStatus = isOngoingInApi ? 'ONGOING' : trip?.status || 'UPCOMING';
+  const myStatus = trip?.status ?? (dDay != null && dDay <= 0 ? 'ONGOING' : 'UPCOMING');
 
   const onLayout = (event) => {
     const { height } = event.nativeEvent.layout;
@@ -120,48 +93,41 @@ export default function TripCard({ trip, hideActions = false }) {
   };
 
   const navigateTrip = () => {
-    console.log('[TripCard] 이동 시도:', {
-      realStatus,
-      id: trip.id,
-      isOngoingInApi,
-    });
+    const state = navigation.getState?.();
+    const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
+    const canDirect = (screenName) => routeNames.includes(screenName);
 
-    const targetTripData = isOngoingInApi ? ongoingTrip : trip;
-
-    if (realStatus === 'ONGOING') {
-      try {
-        navigation.navigate('OnTrip', { trip: targetTripData });
-      } catch (e) {
-        console.warn('OnTrip 이동 실패, TripStack으로 시도합니다.');
-        navigation.navigate('TripStack', {
-          screen: 'OnTrip',
-          params: { trip: targetTripData },
-        });
+    if (myStatus === 'ONGOING') {
+      // TripCard가 TripStack 내부/외부 어디서 쓰이든 동작하도록 분기
+      if (canDirect('OnTripScreen')) {
+        navigation.navigate('OnTripScreen', { trip });
+      } else {
+      navigation.navigate('TripStack', { screen: 'OnTripScreen', params: { trip } });
       }
+      return;
+    }
+    if (canDirect('Prepare')) {
+      navigation.navigate('Prepare', { tripData: trip });
     } else {
-      try {
-        navigation.navigate('Prepare', { tripData: trip });
-      } catch (e) {
-        console.warn('Prepare 이동 실패, TripStack으로 시도합니다.');
-        navigation.navigate('TripStack', {
-          screen: 'Prepare',
-          params: { tripData: trip },
-        });
-      }
+    navigation.navigate('TripStack', { screen: 'Prepare', params: { tripData: trip } });
     }
   };
 
   const navigateToCommunityWrite = (tripData) => {
+    // TripCard는 여러 네비게이터(TripStack/HomeStack 등)에서 재사용되므로
+    // CommunityStack을 핸들하는 상위 네비게이터를 찾아서 이동
     let nav = navigation;
     for (let i = 0; i < 6 && nav; i += 1) {
       const state = nav.getState?.();
       const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
 
+      // 이미 CommunityStack 내부에 있는 경우
       if (routeNames.includes('CommunityWrite')) {
         nav.navigate('CommunityWrite', { tripData });
         return;
       }
 
+      // MainStack 등에서 CommunityStack을 직접 핸들할 수 있는 경우
       if (routeNames.includes('CommunityStack')) {
         nav.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
         return;
@@ -169,6 +135,8 @@ export default function TripCard({ trip, hideActions = false }) {
 
       nav = nav.getParent?.();
     }
+
+    // 최후의 fallback (개발 중 경고만 남기고 실패할 수 있음)
     navigation.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
   };
 
@@ -222,7 +190,9 @@ export default function TripCard({ trip, hideActions = false }) {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>동행자</Text>
               <Text style={styles.detailValue}>
-                {companions.length > 0 ? companions.join(', ') : '동행자 없음'}
+                {companions.length > 0
+                  ? companions.join(', ')
+                  : '동행자 없음'}
               </Text>
             </View>
             <View style={styles.divider} />
@@ -233,21 +203,22 @@ export default function TripCard({ trip, hideActions = false }) {
                   style={styles.shareButton}
                   onPress={() => {
                     navigateToCommunityWrite({
-                      id: trip?.id,
-                      tripId: trip?.id,
-                      tripTitle: tripName,
-                      location: destination,
-                      startDate,
-                      endDate,
-                      companions,
-                      circleColor: trip?.color,
+                          // CommunityWriteTripCard가 기대하는 형태
+                          id: trip?.id,
+                          tripId: trip?.id,
+                          tripTitle: tripName,
+                          location: destination,
+                          startDate,
+                          endDate,
+                          companions,
+                          circleColor: trip?.color,
                     });
                   }}
                 >
                   <Text style={styles.shareText}>공유하기</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.disabledButton} onPress={navigateTrip}>
+                <TouchableOpacity style={styles.disabledButton} onPress={() => navigateTrip()}>
                   <Text style={styles.disabledText}>자세히 보기</Text>
                 </TouchableOpacity>
               </View>
@@ -264,6 +235,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 5,
   },
+
   card: {
     backgroundColor: colors.grayscale[200],
     borderRadius: 14,
@@ -276,6 +248,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
+
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -283,12 +256,14 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
     paddingTop: 2,
   },
+
   circle: {
     width: 14,
     height: 14,
     borderRadius: 10,
     marginRight: 3,
   },
+
   name: {
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
@@ -296,6 +271,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 6,
   },
+
   dDay: {
     fontSize: 13,
     color: colors.primary[700],
@@ -306,6 +282,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginLeft: 6,
   },
+
   dDayPassed: {
     fontSize: 15,
     color: colors.grayscale[700],
@@ -316,6 +293,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     backgroundColor: colors.grayscale[200],
   },
+
   date: {
     marginTop: 0,
     marginBottom: 5,
@@ -323,21 +301,25 @@ const styles = StyleSheet.create({
     color: colors.grayscale[700],
     fontFamily: 'Pretendard-Regular',
   },
+
   detailBox: {
     overflow: 'hidden',
     borderRadius: 12,
     marginTop: 6,
     backgroundColor: colors.grayscale[100],
   },
+
   detailInner: {
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
+
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 17,
   },
+
   detailLabel: {
     fontFamily: 'Pretendard-SemiBold',
     color: colors.grayscale[900],
@@ -345,22 +327,26 @@ const styles = StyleSheet.create({
     minWidth: 60,
     marginRight: 10,
   },
+
   detailValue: {
     fontFamily: 'Pretendard-Medium',
     fontSize: 15,
     color: colors.grayscale[800],
   },
+
   divider: {
     height: 1,
     backgroundColor: colors.grayscale[400],
     marginVertical: 8,
   },
+
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 10,
     gap: 12,
   },
+
   shareButton: {
     backgroundColor: colors.primary[700],
     paddingVertical: 15,
@@ -369,11 +355,13 @@ const styles = StyleSheet.create({
     marginRight: 4,
     marginLeft: 5,
   },
+
   shareText: {
     color: colors.grayscale[100],
     fontFamily: 'Pretendard-SemiBold',
     fontSize: 14,
   },
+
   disabledButton: {
     backgroundColor: colors.grayscale[400],
     paddingVertical: 16,
@@ -382,6 +370,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     marginRight: 4,
   },
+
   disabledText: {
     color: colors.grayscale[100],
     fontFamily: 'Pretendard-SemiBold',

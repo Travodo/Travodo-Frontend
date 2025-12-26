@@ -95,29 +95,18 @@ function CommunityContent({ route, navigation }) {
       try {
         const [postData, commentData] = await Promise.all([
           getCommunityPost(postId),
-          getPostComments(postId, { page: 0, size: 50 }),
+          getPostComments(postId, { page: 0, size: 50 }), // 일단 넉넉히 50개 호출
         ]);
-
         setWriterId(postData?.author?.id);
         setScrapCount(postData?.likeCount ?? 0);
         setIsScrap(postData?.isLiked ?? false);
         setProfileImg(postData?.author?.profileImageUrl || null);
+        // API 응답의 imageUrls를 사용 (여러 이미지 지원)
         setPostImages(postData?.imageUrls || []);
-
-        // ---------------------------------------------------------
-        // [수정] 댓글 처리 로직을 여기(useEffect 안)로 가져왔습니다.
-        // ---------------------------------------------------------
         const rawComments = commentData?.content || commentData || [];
-
-        // 1. 날짜 기준 오름차순 정렬 (오래된 댓글이 위로)
-        rawComments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-
         console.log('서버에서 온 첫 번째 댓글 데이터:', rawComments[0]);
-
-        // 2. 데이터 매핑
         const mappedComments = rawComments.map((c) => ({
           id: c.id,
-          authorId: c.author?.id, // [추가] 비교를 위해 작성자 ID 저장
           nickname: c.author?.nickname || '익명',
           content: c.content,
           date: formatAgo(c.createdAt),
@@ -125,9 +114,7 @@ function CommunityContent({ route, navigation }) {
           isLiked: c.isLiked || false,
           profileImageUrl: c.author?.profileImageUrl,
         }));
-
         setCommentList(mappedComments);
-        // ---------------------------------------------------------
       } catch (error) {
         console.error('게시글 정보를 가져오는데 실패했습니다.', error);
       }
@@ -198,34 +185,36 @@ function CommunityContent({ route, navigation }) {
   };
 
   const handleEditComment = async (commentId, newContent) => {
-    try {
-      await updateComment(commentId, { content: newContent });
+  try {
+    await updateComment(commentId, { content: newContent });
 
-      setCommentList((prev) =>
-        prev.map((c) => (c.id === commentId ? { ...c, content: newContent } : c)),
-      );
-    } catch (e) {
-      Alert.alert('오류', '댓글 수정에 실패했습니다.');
-    }
-  };
+    setCommentList((prev) =>
+      prev.map((c) =>
+        c.id === commentId ? { ...c, content: newContent } : c,
+      ),
+    );
+  } catch (e) {
+    Alert.alert('오류', '댓글 수정에 실패했습니다.');
+  }
+};
 
-  const handleDeleteComment = async (commentId) => {
-    Alert.alert('댓글 삭제', '댓글을 삭제하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteComment(commentId);
-            setCommentList((prev) => prev.filter((c) => c.id !== commentId));
-          } catch (e) {
-            Alert.alert('오류', '댓글 삭제에 실패했습니다.');
-          }
-        },
+const handleDeleteComment = async (commentId) => {
+  Alert.alert('댓글 삭제', '댓글을 삭제하시겠습니까?', [
+    { text: '취소', style: 'cancel' },
+    {
+      text: '삭제',
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          await deleteComment(commentId);
+          setCommentList((prev) => prev.filter((c) => c.id !== commentId));
+        } catch (e) {
+          Alert.alert('오류', '댓글 삭제에 실패했습니다.');
+        }
       },
-    ]);
-  };
+    },
+  ]);
+};
 
   const handleScrap = async () => {
     const isCurrentlyLiked = isScrap;
@@ -276,86 +265,73 @@ function CommunityContent({ route, navigation }) {
     ]);
   };
   const handleCommentMore = (comment) => {
-    const isMyComment = String(userId) === String(comment.authorId);
-    if (isMyComment) {
-      Alert.alert('댓글 관리', null, [
-        {
-          text: '수정',
-          onPress: () => {
-            navigation.navigate('EditComment', {
-              comment,
-              onSave: (newContent) => handleEditComment(comment.id, newContent),
-            });
-          },
-        },
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: () => handleDeleteComment(comment.id),
-        },
-        { text: '취소', style: 'cancel' },
-      ]);
-    } else {
-      Alert.alert('댓글 메뉴', null, [
-        {
-          text: comment.isLiked ? '좋아요 취소' : '좋아요',
-          onPress: () => handleCommentLike(comment.id),
-        },
-        {
-          text: '신고',
-          style: 'destructive',
-          onPress: () => {
-            // 신고 기능이 있다면 연결, 없다면 알림만
-            Alert.alert('알림', '신고가 접수되었습니다.');
-          },
-        },
-        { text: '취소', style: 'cancel' },
-      ]);
-    }
-  };
+  Alert.alert('댓글 관리', null, [
+    {
+      text: '수정',
+      onPress: () => {
+        navigation.navigate('EditComment', {
+          comment,
+          onSave: (newContent) => handleEditComment(comment.id, newContent),
+        });
+      },
+    },
+    {
+      text: '삭제',
+      style: 'destructive',
+      onPress: () => handleDeleteComment(comment.id),
+    },
+    { text: '취소', style: 'cancel' },
+  ]);
+};
 
   const handleCommentLike = async (commentId) => {
-    const target = commentList.find((c) => c.id === commentId);
-    if (!target) return;
+  const target = commentList.find((c) => c.id === commentId);
+  if (!target) return;
+
+  setCommentList((prev) =>
+    prev.map((c) =>
+      c.id === commentId
+        ? {
+            ...c,
+            isLiked: !c.isLiked,
+            commentlike: c.isLiked
+              ? (c.commentlike || 0) - 1
+              : (c.commentlike || 0) + 1,
+          }
+        : c,
+    ),
+  );
+
+  try {
+    if (target.isLiked) {
+      await unlikeComment(commentId);
+    } else {
+      await likeComment(commentId);
+    }
+  } catch (error) {
+    console.error('댓글 좋아요 실패:', error);
 
     setCommentList((prev) =>
       prev.map((c) =>
         c.id === commentId
           ? {
               ...c,
-              isLiked: !c.isLiked,
-              commentlike: c.isLiked ? (c.commentlike || 0) - 1 : (c.commentlike || 0) + 1,
+              isLiked: target.isLiked,
+              commentlike: target.commentlike,
             }
           : c,
       ),
     );
 
-    try {
-      if (target.isLiked) {
-        await unlikeComment(commentId);
-      } else {
-        await likeComment(commentId);
-      }
-    } catch (error) {
-      console.error('댓글 좋아요 실패:', error);
+    Alert.alert('알림', '댓글 좋아요 처리에 실패했습니다.');
+  }
+};
 
-      setCommentList((prev) =>
-        prev.map((c) =>
-          c.id === commentId
-            ? {
-                ...c,
-                isLiked: target.isLiked,
-                commentlike: target.commentlike,
-              }
-            : c,
-        ),
-      );
-
-      Alert.alert('알림', '댓글 좋아요 처리에 실패했습니다.');
-    }
-  };
-
-  <CommentListItem data={commentList} onLike={handleCommentLike} onMore={handleCommentMore} />;
+<CommentListItem
+data={commentList}
+onLike={handleCommentLike}
+onMore={handleCommentMore}
+/>
 
   const Container = Platform.OS === 'android' ? SafeAreaView : View;
 
@@ -404,11 +380,7 @@ function CommunityContent({ route, navigation }) {
                 <Heart size={15} count={scrapCount} onPress={handleScrap} isScraped={isScrap} />
                 <Comment size={15} count={String(Number(cCount) + commentList.length)} />
               </View>
-              <CommentListItem
-                data={commentList}
-                onLike={handleCommentLike}
-                onMore={handleCommentMore}
-              />
+              <CommentListItem data={commentList} onLike={handleCommentLike} onMore={handleCommentMore} />
             </View>
           </Pressable>
         </ScrollView>
