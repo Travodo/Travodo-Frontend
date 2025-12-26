@@ -80,7 +80,12 @@ function HomeScreen({ route }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never" bounces={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+        bounces={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
         <CalendarView trips={allTrips} />
