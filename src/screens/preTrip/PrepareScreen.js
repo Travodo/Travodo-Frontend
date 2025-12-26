@@ -54,7 +54,6 @@ import {
   updateMemo,
   deleteMemo,
 } from '../../services/api';
-import { useTrip } from '../../contexts/TripContext';
 
 function PrepareScreen() {
   const route = useRoute();
