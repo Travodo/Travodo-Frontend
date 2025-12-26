@@ -5,8 +5,8 @@ import { colors } from '../../styles/colors';
 import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
 import MyLocation from '../../../assets/ComponentsImage/MyLocation.svg';
-import { updateMyLocation, getMemberLocations } from '../../services/api';
-import { useTrip } from '../../contexts/TripContext';
+import { updateMyLocation, getMemberLocations, getCurrentTrip } from '../../services/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 function Maps() {
   const [myLocation, setMyLocation] = useState(null);
@@ -14,19 +14,42 @@ function Maps() {
   const [isLoading, setIsLoading] = useState(true);
   const [myStatus, setMyStatus] = useState('');
   const [members, setMembers] = useState([]);
+  const [ongoingTrip, setOngoingTrip] = useState(null);
 
-  const { ongoingTrip, isLoaded: isContextLoaded } = useTrip();
   const mapRef = useRef(null);
 
   const message = myStatus === 'ongoing' ? '여행 진행 중' : '여행이 시작되지 않았어요.';
 
-  useEffect(() => {
-    if (ongoingTrip) {
-      setMyStatus('ongoing');
-    } else {
+  // 현재 진행중인 여행 가져오기
+  const loadCurrentTrip = async () => {
+    try {
+      const currentData = await getCurrentTrip();
+      if (currentData && currentData.id) {
+        setOngoingTrip({
+          id: currentData.id,
+          name: currentData.name,
+          status: currentData.status,
+          startDate: currentData.startDate,
+          endDate: currentData.endDate,
+        });
+        setMyStatus('ongoing');
+      } else {
+        setOngoingTrip(null);
+        setMyStatus('');
+      }
+    } catch (error) {
+      console.error('[Maps] 현재 여행 조회 실패:', error);
+      setOngoingTrip(null);
       setMyStatus('');
     }
-  }, [ongoingTrip]);
+  };
+
+  // 화면 포커스 시 현재 여행 새로고침
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCurrentTrip();
+    }, []),
+  );
 
   const sendMyLocation = async (coords) => {
     if (!ongoingTrip || !ongoingTrip.id) return;
@@ -134,7 +157,7 @@ function Maps() {
     };
   }, [myStatus, ongoingTrip]);
 
-  if (isLoading || !isContextLoaded) {
+  if (isLoading) {
     return (
       <View style={[styles.screen, { justifyContent: 'center' }]}>
         <ActivityIndicator size="large" color={colors.primary[700]} />

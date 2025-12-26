@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   Pressable,
-  TextInput,
   TouchableOpacity,
   Alert,
 } from 'react-native';
@@ -32,12 +31,10 @@ import {
   deleteTrip,
   updateTripStatus,
 } from '../../services/api';
-import { useTrip } from '../../contexts/TripContext';
 
 function PrepareScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { startTrip } = useTrip(); // Context 가져오기
 
   const trip = route?.params?.tripData;
   const tripId = trip?.id;
@@ -57,7 +54,7 @@ function PrepareScreen() {
   const [adding, setAdding] = useState(null);
   const [text, setText] = useState('');
   const [inviting, setInviting] = useState(false);
-  const [isStarting, setIsStarting] = useState(false); // 여행 시작 로딩 상태
+  const [isStarting, setIsStarting] = useState(false);
 
   const loadMembersAndShared = useCallback(async () => {
     if (!tripId) return;
@@ -237,13 +234,9 @@ function PrepareScreen() {
     try {
       console.log('[PrepareScreen] 여행 시작 요청 - tripId:', tripId);
 
-      // 1. 서버에 상태 변경 요청
+      // 서버에 상태 변경 요청
       await updateTripStatus(tripId, 'ONGOING');
       console.log('[PrepareScreen] 서버 상태 변경 완료');
-
-      // 2. Context에 ONGOING 여행 저장
-      await startTrip(trip);
-      console.log('[PrepareScreen] Context에 ONGOING 여행 저장 완료');
 
       Toast.show({
         type: 'success',
@@ -624,7 +617,7 @@ function PrepareScreen() {
               }
 
               try {
-                // 여행 시작 처리 (서버 + Context)
+                // 여행 시작 처리 (서버 상태 변경만)
                 await handlerStartTrip(tripId);
 
                 // 성공 후 StartTrip 화면으로 이동
@@ -696,42 +689,6 @@ const styles = StyleSheet.create({
   },
   invitePlusButtonDisabled: {
     opacity: 0.35,
-  },
-  centerPlusButton: {
-    width: '100%',
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    marginBottom: -15,
-  },
-  rightPlusButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-    flexShrink: 0,
-  },
-  travelerInputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginLeft: 'auto',
-  },
-  travelerInput: {
-    minWidth: 100,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayscale[300],
-    fontFamily: 'Pretendard-Regular',
-    paddingVertical: 4,
-  },
-  travelerInputBoxCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    justifyContent: 'center',
-    width: '100%',
   },
   buttonRow: {
     flexDirection: 'row',
