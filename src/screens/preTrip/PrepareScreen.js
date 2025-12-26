@@ -1,12 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   Pressable,
-  TextInput,
   TouchableOpacity,
   Alert,
 } from 'react-native';
@@ -30,8 +28,9 @@ import {
   regenerateInviteCode,
   unassignSharedItem,
   updateSharedItem,
+  deleteTrip,
+  updateTripStatus,
 } from '../../services/api';
-import { useTrip } from '../../contexts/TripContext';
 
 function PrepareScreen() {
   const route = useRoute();
@@ -39,12 +38,9 @@ function PrepareScreen() {
 
   const trip = route?.params?.tripData;
   const tripId = trip?.id;
-  const { getTripStatus, startTrip } = useTrip();
-  const status = getTripStatus(tripId);
 
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
-  // 선택 직후 바로 '담당자 지정'을 눌렀을 때도 최신 선택값을 쓰기 위해 ref로도 보관
   const selectedTravelerRef = useRef(null);
 
   const colorPool = ['#769FFF', '#FFE386', '#EE8787', '#A4C664'];
@@ -58,11 +54,12 @@ function PrepareScreen() {
   const [adding, setAdding] = useState(null);
   const [text, setText] = useState('');
   const [inviting, setInviting] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
   const loadMembersAndShared = useCallback(async () => {
     if (!tripId) return;
     try {
-      const members = await getTripMembers(tripId); // TripMemberResponse[]
+      const members = await getTripMembers(tripId);
       const mappedMembers = (members || [])
         .slice()
         .sort((a, b) => {
@@ -76,13 +73,13 @@ function PrepareScreen() {
           color: colorPool[idx % colorPool.length],
           isLeader: !!m.isLeader,
         }));
-      // 멤버 기반 색상맵은 "이번 로드 결과"로 계산해서 shared-items 매핑에 사용 (state 의존으로 루프 방지)
+
       const nextColorMap = {};
       mappedMembers.forEach((t) => {
         nextColorMap[String(t.id)] = t.color;
       });
 
-      const items = await getSharedItems(tripId); // SharedItemResponse[]
+      const items = await getSharedItems(tripId);
       const mappedShared = (items || []).map((it) => ({
         id: String(it.id),
         content: it.name,
@@ -99,7 +96,6 @@ function PrepareScreen() {
     }
   }, [tripId]);
 
-  // 화면 재진입 시에도 동기화 (초대코드로 들어온 사용자도 최신 데이터 보장)
   useFocusEffect(
     useCallback(() => {
       loadMembersAndShared();
@@ -123,7 +119,7 @@ function PrepareScreen() {
     if (!tripId || inviting) return;
     try {
       setInviting(true);
-      const res = await getTripInviteCode(tripId); // { inviteCode, expiresAt, expired, canRegenerate }
+      const res = await getTripInviteCode(tripId);
       const code = res?.inviteCode;
       if (!code) {
         Alert.alert('실패', '초대코드를 가져오지 못했습니다.');
@@ -164,7 +160,7 @@ function PrepareScreen() {
     if (!tripId || inviting) return;
     try {
       setInviting(true);
-      const res = await regenerateInviteCode(tripId); // { inviteCode }
+      const res = await regenerateInviteCode(tripId);
       const code = res?.inviteCode ?? res?.code ?? res;
       if (!code) {
         Alert.alert('실패', '초대코드를 재발급하지 못했습니다.');
@@ -195,7 +191,6 @@ function PrepareScreen() {
   const deleteItem = (list, setter, index) => {
     const item = list[index];
     if (setter === setShared) {
-      // 서버 연동: 공동 준비물 삭제
       (async () => {
         try {
           await deleteSharedItem(tripId, item.id);
@@ -208,6 +203,55 @@ function PrepareScreen() {
       return;
     }
     setter(list.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteTrip = async () => {
+    if (!tripId) {
+      Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
+      return;
+    }
+    try {
+      await deleteTrip(tripId);
+      setTravelers([]);
+      setNecessity([]);
+      setShared([]);
+      setPersonal([]);
+      setActivities([]);
+      setMemos([]);
+      navigation.goBack();
+    } catch (error) {
+      console.error('삭제 실패', error);
+    }
+  };
+
+  const handlerStartTrip = async (tripId) => {
+    if (!tripId) {
+      Alert.alert('오류', '여행 ID를 찾을 수 없습니다.');
+      return;
+    }
+
+    setIsStarting(true);
+    try {
+      console.log('[PrepareScreen] 여행 시작 요청 - tripId:', tripId);
+
+      // 서버에 상태 변경 요청
+      await updateTripStatus(tripId, 'ONGOING');
+      console.log('[PrepareScreen] 서버 상태 변경 완료');
+
+      Toast.show({
+        type: 'success',
+        text1: '여행이 시작되었습니다!',
+        text2: '즐거운 여행 되세요 🎉',
+        text1Style: { fontSize: 16 },
+        text2Style: { fontSize: 13 },
+      });
+    } catch (error) {
+      console.error('[PrepareScreen] 여행 상태 변경 실패:', error);
+      Alert.alert('실패', error.response?.data?.message || '여행 상태 변경에 실패했습니다.');
+      throw error;
+    } finally {
+      setIsStarting(false);
+    }
   };
 
   const editItem = (list, setter, index, newContent) => {
@@ -225,11 +269,10 @@ function PrepareScreen() {
                     checked: !!updated?.checked,
                     travelerId: updated?.assigneeId != null ? String(updated.assigneeId) : null,
                     travelerName: updated?.assigneeName ?? null,
-                    // travelerColor는 travelers state 기반으로 계산(없으면 그대로 유지)
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -261,7 +304,8 @@ function PrepareScreen() {
               travelerName: created?.assigneeName ?? null,
               travelerColor:
                 created?.assigneeId != null
-                  ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ?? null
+                  ? (travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
+                    null)
                   : null,
             },
           ]);
@@ -306,8 +350,8 @@ function PrepareScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -326,7 +370,6 @@ function PrepareScreen() {
   const assignTraveler = (list, setter, index) => {
     const item = list[index];
     if (setter === setShared) {
-      // 백엔드 정책: 담당자는 "본인"만 지정/해제 가능
       (async () => {
         try {
           const updated = item.travelerId
@@ -341,8 +384,8 @@ function PrepareScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))?.color ??
-                          null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -381,14 +424,14 @@ function PrepareScreen() {
 
   if (!trip) {
     return (
-      <SafeAreaView style={sharedStyles.container}>
+      <View style={sharedStyles.container}>
         <Text style={sharedStyles.pageTitle}>여행 정보를 불러올 수 없습니다</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={sharedStyles.container}>
+    <View style={sharedStyles.container}>
       <Text style={sharedStyles.pageTitle}>여행 준비 리스트</Text>
       <Text style={sharedStyles.subTitle}>신나는 여행을 준비해 봐요!</Text>
 
@@ -564,51 +607,58 @@ function PrepareScreen() {
 
         <View style={sharedStyles.sectionDivider} />
         <View style={styles.buttonRow}>
-  {status === 'BEFORE' && (
-    <TouchableOpacity
-      style={styles.startButton}
-      onPress={() => {
-        startTrip(tripId); // 전역 상태 업데이트
-        navigation.navigate('StartTrip', {
-          trip,
-          travelers,
-          necessity,
-          shared,
-          personal,
-          activities,
-          memos,
-        });
-      }}
-    >
-      <Text style={styles.startText}>여행 시작</Text>
-    </TouchableOpacity>
-  )}
+          <TouchableOpacity
+            style={[styles.startButton, isStarting && styles.startButtonDisabled]}
+            disabled={isStarting}
+            onPress={async () => {
+              if (!tripId) {
+                Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
+                return;
+              }
 
-  <TouchableOpacity
-    style={styles.deleteButton}
-    onPress={() => {
-      Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: () => {
-            setTravelers([]);
-            setNecessity([]);
-            setShared([]);
-            setPersonal([]);
-            setActivities([]);
-            setMemos([]);
-          },
-        },
-      ]);
-    }}
-  >
-    <Text style={styles.deleteText}>삭제하기</Text>
-  </TouchableOpacity>
-</View>
+              try {
+                // 여행 시작 처리 (서버 상태 변경만)
+                await handlerStartTrip(tripId);
+
+                // 성공 후 StartTrip 화면으로 이동
+                navigation.navigate('StartTrip', {
+                  trip: { ...trip, status: 'ONGOING' },
+                  travelers,
+                  necessity,
+                  shared,
+                  personal,
+                  activities,
+                  memos,
+                });
+              } catch (error) {
+                console.log('[PrepareScreen] 여행 시작 중단됨');
+              }
+            }}
+          >
+            <Text style={styles.startText}>{isStarting ? '여행 시작 중...' : '여행 시작'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.deleteButton}
+            disabled={isStarting}
+            onPress={() => {
+              Alert.alert('확인', '모든 데이터를 삭제하시겠습니까?', [
+                { text: '취소', style: 'cancel' },
+                {
+                  text: '삭제',
+                  style: 'destructive',
+                  onPress: () => {
+                    handleDeleteTrip();
+                  },
+                },
+              ]);
+            }}
+          >
+            <Text style={styles.deleteText}>삭제하기</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -640,55 +690,12 @@ const styles = StyleSheet.create({
   invitePlusButtonDisabled: {
     opacity: 0.35,
   },
-
-  centerPlusButton: {
-    width: '100%',
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    marginBottom: -15,
-  },
-
-  rightPlusButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-    flexShrink: 0,
-  },
-
-  travelerInputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginLeft: 'auto',
-  },
-
-  travelerInput: {
-    minWidth: 100,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayscale[300],
-    fontFamily: 'Pretendard-Regular',
-    paddingVertical: 4,
-  },
-
-  travelerInputBoxCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    justifyContent: 'center',
-    width: '100%',
-  },
-
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 12,
     marginTop: 10,
   },
-
   startButton: {
     backgroundColor: colors.primary[700],
     paddingVertical: 15,
@@ -696,13 +703,14 @@ const styles = StyleSheet.create({
     borderRadius: 23,
     marginHorizontal: 7,
   },
-
+  startButtonDisabled: {
+    opacity: 0.5,
+  },
   startText: {
     color: colors.grayscale[100],
     fontFamily: 'Pretendard-SemiBold',
     fontSize: 16,
   },
-
   deleteButton: {
     backgroundColor: colors.grayscale[400],
     paddingVertical: 15,
@@ -710,7 +718,6 @@ const styles = StyleSheet.create({
     borderRadius: 23,
     marginHorizontal: 7,
   },
-
   deleteText: {
     color: colors.grayscale[100],
     fontFamily: 'Pretendard-SemiBold',
