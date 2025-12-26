@@ -45,10 +45,7 @@ function OnTripScreen() {
   const [text, setText] = useState('');
 
   const tripId = trip?.id;
-  const colorPool = React.useMemo(
-  () => ['#769FFF', '#FFE386', '#EE8787', '#A4C664'],
-  [],
-);
+  const colorPool = ['#769FFF', '#FFE386', '#EE8787', '#A4C664'];
 
   const loadMembersAndShared = useCallback(async () => {
     if (!tripId) return;

@@ -5,7 +5,7 @@ import DotButton from './DotButton';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
-function CommentItem({ nickname, date, comment, hcount, onLike, isLiked, commentImageUri, onMore, isMine }) {
+function CommentItem({ nickname, date, comment, hcount, onLike, isLiked, commentImageUri, onMore }) {
   return (
     <View style={styles.container}>
       <View style={styles.profile}>
@@ -14,11 +14,9 @@ function CommentItem({ nickname, date, comment, hcount, onLike, isLiked, comment
           <Text style={styles.nickname}>{nickname}</Text>
           <Text style={styles.date}>{date}</Text>
         </View>
-        {isMine && (
         <View style={styles.button}>
           <DotButton onPress={onMore} />
         </View>
-        )}
       </View>
       <View>
         <Text style={styles.comment}>{comment}</Text>

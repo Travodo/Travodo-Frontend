@@ -10,7 +10,6 @@ import {
   Platform,
   StatusBar,
   Alert,
-  TextInput,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -44,22 +43,17 @@ import {
 import { formatAgo } from '../../utils/dateFormatter';
 
 function CommunityContent({ route, navigation }) {
-  const { post: passedPost, postId: passedPostId } = route.params || {};
-  const postId = passedPostId || passedPost?.id;
-  const post = passedPost || CommunityData.find((p) => p.id.toString() === postId?.toString());
-
   const [commentList, setCommentList] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [editingComment, setEditingComment] = useState(null);
-  const [editText, setEditText] = useState('');
   const [visibleModal, setVisibleModal] = useState(false);
   const [scrapCount, setScrapCount] = useState(Number(passedPost?.hCount || 0));
   const [isScrap, setIsScrap] = useState(passedPost?.isScraped || false);
   const [userId, setUserId] = useState('');
   const [writerId, setWriterId] = useState('');
   const [profileImg, setProfileImg] = useState(null);
-  const [postImages, setPostImages] = useState(passedPost?.images || []);
-
+  const { post: passedPost, postId: passedPostId } = route.params || {};
+  const postId = passedPostId || passedPost?.id;
+  const post = passedPost || CommunityData.find((p) => p.id.toString() === postId?.toString());
   if (!post) {
     return (
       <View style={styles.container}>
@@ -68,27 +62,8 @@ function CommunityContent({ route, navigation }) {
     );
   }
 
-  const handleSubmitEdit = async () => {
-    if (!editText.trim()) {
-      Alert.alert('알림', '댓글 내용을 입력해주세요');
-      return;
-    }
-
-    try {
-      await updateComment(editingComment.id, { content: editText });
-
-      setCommentList((prev) =>
-        prev.map((c) =>
-          c.id === editingComment.id ? { ...c, content: editText } : c,
-        ),
-      );
-
-      setEditingComment(null);
-      setEditText('');
-    } catch (e) {
-      Alert.alert('오류', '댓글 수정에 실패했습니다');
-    }
-  };
+  // 초기값으로 route에서 받은 images 설정
+  const [postImages, setPostImages] = useState(passedPost?.images || []);
 
   useEffect(() => {
     navigation.setOptions({
@@ -97,7 +72,7 @@ function CommunityContent({ route, navigation }) {
           style={[styles.headerButton, { transform: [{ rotate: '-45deg' }] }]}
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           onPress={() => navigation.goBack()}
-        />
+        ></Pressable>
       ),
     });
   }, []);
@@ -128,11 +103,21 @@ function CommunityContent({ route, navigation }) {
         setIsScrap(postData?.isLiked ?? false);
         setProfileImg(postData?.author?.profileImageUrl || null);
         setPostImages(postData?.imageUrls || []);
-        
+
+        // ---------------------------------------------------------
+        // [수정] 댓글 처리 로직을 여기(useEffect 안)로 가져왔습니다.
+        // ---------------------------------------------------------
         const rawComments = commentData?.content || commentData || [];
+
+        // 1. 날짜 기준 오름차순 정렬 (오래된 댓글이 위로)
+        rawComments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+        console.log('서버에서 온 첫 번째 댓글 데이터:', rawComments[0]);
+
+        // 2. 데이터 매핑
         const mappedComments = rawComments.map((c) => ({
           id: c.id,
-          authorId: c.author?.id,
+          authorId: c.author?.id, // [추가] 비교를 위해 작성자 ID 저장
           nickname: c.author?.nickname || '익명',
           content: c.content,
           date: formatAgo(c.createdAt),
@@ -164,6 +149,7 @@ function CommunityContent({ route, navigation }) {
     tripTitle,
   } = post;
 
+  // API에서 받은 imageUrls를 우선 사용, 없으면 route에서 받은 images 사용
   const images = postImages.length > 0 ? postImages : postImagesFromRoute || [];
 
   const toDotDate = (d) => (d ? String(d).replace(/-/g, '.') : '');
@@ -195,8 +181,7 @@ function CommunityContent({ route, navigation }) {
 
       const newComment = {
         id: res.id,
-        authorId: res.author?.id,
-        nickname: res.author?.nickname || '익명',
+        nickname: res.author?.nickname || '히히',
         content: res.content,
         date: '방금 전',
         commentlike: 0,
@@ -204,11 +189,23 @@ function CommunityContent({ route, navigation }) {
         profileImageUrl: res.author?.profileImageUrl,
       };
 
-      setCommentList((prev) => [...prev, newComment]);
+      setCommentList((prev) => [...prev, newComment]); // 목록 끝에 추가
       setInputText('');
       Keyboard.dismiss();
     } catch (error) {
       Alert.alert('알림', '댓글 등록에 실패했습니다.');
+    }
+  };
+
+  const handleEditComment = async (commentId, newContent) => {
+    try {
+      await updateComment(commentId, { content: newContent });
+
+      setCommentList((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, content: newContent } : c)),
+      );
+    } catch (e) {
+      Alert.alert('오류', '댓글 수정에 실패했습니다.');
     }
   };
 
@@ -266,6 +263,7 @@ function CommunityContent({ route, navigation }) {
         style: 'destructive',
         onPress: async () => {
           try {
+            console.log('삭제 시도 중, ID:', postId);
             await deleteCommunityPost(postId);
             Alert.alert('완료', '게시글이 삭제되었습니다.');
             navigation.goBack();
@@ -277,28 +275,43 @@ function CommunityContent({ route, navigation }) {
       },
     ]);
   };
-
   const handleCommentMore = (comment) => {
-    if (comment.authorId !== userId) {
-      Alert.alert('권한 없음', '내 댓글만 수정/삭제할 수 있습니다.');
-      return;
-    }
-
-    Alert.alert('댓글 관리', null, [
-      {
-        text: '수정',
-        onPress: () => {
-          setEditingComment(comment);
-          setEditText(comment.content);
+    const isMyComment = String(userId) === String(comment.authorId);
+    if (isMyComment) {
+      Alert.alert('댓글 관리', null, [
+        {
+          text: '수정',
+          onPress: () => {
+            navigation.navigate('EditComment', {
+              comment,
+              onSave: (newContent) => handleEditComment(comment.id, newContent),
+            });
+          },
         },
-      },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: () => handleDeleteComment(comment.id),
-      },
-      { text: '취소', style: 'cancel' },
-    ]);
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: () => handleDeleteComment(comment.id),
+        },
+        { text: '취소', style: 'cancel' },
+      ]);
+    } else {
+      Alert.alert('댓글 메뉴', null, [
+        {
+          text: comment.isLiked ? '좋아요 취소' : '좋아요',
+          onPress: () => handleCommentLike(comment.id),
+        },
+        {
+          text: '신고',
+          style: 'destructive',
+          onPress: () => {
+            // 신고 기능이 있다면 연결, 없다면 알림만
+            Alert.alert('알림', '신고가 접수되었습니다.');
+          },
+        },
+        { text: '취소', style: 'cancel' },
+      ]);
+    }
   };
 
   const handleCommentLike = async (commentId) => {
@@ -311,9 +324,7 @@ function CommunityContent({ route, navigation }) {
           ? {
               ...c,
               isLiked: !c.isLiked,
-              commentlike: c.isLiked
-                ? (c.commentlike || 0) - 1
-                : (c.commentlike || 0) + 1,
+              commentlike: c.isLiked ? (c.commentlike || 0) - 1 : (c.commentlike || 0) + 1,
             }
           : c,
       ),
@@ -343,6 +354,8 @@ function CommunityContent({ route, navigation }) {
       Alert.alert('알림', '댓글 좋아요 처리에 실패했습니다.');
     }
   };
+
+  <CommentListItem data={commentList} onLike={handleCommentLike} onMore={handleCommentMore} />;
 
   const Container = Platform.OS === 'android' ? SafeAreaView : View;
 
@@ -391,58 +404,21 @@ function CommunityContent({ route, navigation }) {
                 <Heart size={15} count={scrapCount} onPress={handleScrap} isScraped={isScrap} />
                 <Comment size={15} count={String(Number(cCount) + commentList.length)} />
               </View>
-              
-              <CommentListItem 
-                data={commentList} 
+              <CommentListItem
+                data={commentList}
                 onLike={handleCommentLike}
                 onMore={handleCommentMore}
-                myUserId={userId}
               />
             </View>
           </Pressable>
         </ScrollView>
-
-        <Modal
-          transparent
-          animationType="fade"
-          visible={!!editingComment}
-          onRequestClose={() => setEditingComment(null)}
-        >
-          <Pressable
-            style={styles.editOverlay}
-            onPress={() => setEditingComment(null)}
-          >
-            <Pressable onPress={(e) => e.stopPropagation()}>
-              <View style={styles.editModal}>
-                <Text style={styles.editTitle}>댓글 수정</Text>
-
-                <TextInput
-                  style={styles.editInput}
-                  value={editText}
-                  onChangeText={setEditText}
-                  multiline
-                  autoFocus
-                />
-
-                <View style={styles.editActions}>
-                  <Pressable onPress={() => setEditingComment(null)}>
-                    <Text style={styles.cancelText}>취소</Text>
-                  </Pressable>
-
-                  <Pressable onPress={handleSubmitEdit}>
-                    <Text style={styles.saveText}>저장</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </Pressable>
-          </Pressable>
-        </Modal>
-
         <Modal
           animationType="slide"
           transparent={true}
           visible={visibleModal}
-          onRequestClose={() => setVisibleModal(false)}
+          onRequestClose={() => {
+            setVisibleModal(false);
+          }}
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalbox}>
@@ -472,13 +448,8 @@ function CommunityContent({ route, navigation }) {
             </View>
           </View>
         </Modal>
-
         <View style={styles.commentInput}>
-          <CommentInput 
-            value={inputText} 
-            onChangeText={setInputText} 
-            onPress={handleSendComment} 
-          />
+          <CommentInput value={inputText} onChangeText={setInputText} onPress={handleSendComment} />
         </View>
       </View>
     </Container>
@@ -491,56 +462,9 @@ CommunityContent.propTypes = {
       postId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     }),
   }).isRequired,
-  navigation: PropTypes.object.isRequired,
 };
 
 const styles = StyleSheet.create({
-  editOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  editModal: {
-    width: '85%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-  },
-
-  editTitle: {
-    fontSize: 16,
-    fontFamily: 'Pretendard-SemiBold',
-    marginBottom: 12,
-  },
-
-  editInput: {
-    minHeight: 80,
-    borderWidth: 1,
-    borderColor: colors.grayscale[300],
-    borderRadius: 8,
-    padding: 10,
-    fontFamily: 'Pretendard-Regular',
-  },
-
-  editActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 16,
-    marginTop: 12,
-  },
-
-  cancelText: {
-    color: colors.grayscale[600],
-    fontFamily: 'Pretendard-Regular',
-  },
-
-  saveText: {
-    color: colors.primary[700],
-    fontFamily: 'Pretendard-SemiBold',
-  },
-
   dismiss: {
     flex: 1,
     backgroundColor: '#fff',
@@ -636,10 +560,6 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   },
   scrapText: {
-    fontFamily: 'Pretendard-Regular',
-    fontSize: 16,
-  },
-  deleteText: {
     fontFamily: 'Pretendard-Regular',
     fontSize: 16,
   },
