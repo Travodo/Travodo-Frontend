@@ -286,49 +286,14 @@ export const updateTripStatus = async (tripId, status) => {
 };
 
 export const getUpcomingTrips = async () => {
-  try {
-    const response = await api.get('/trips/upcoming');
-    console.log('[API] getUpcomingTrips 성공:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('[API] getUpcomingTrips 실패:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      message: error.response?.data?.message || error.message,
-      data: error.response?.data,
-    });
-    throw error;
-  }
+  const response = await api.get('/trips/upcoming');
+  return response.data;
 };
 
 export const getCurrentTrip = async () => {
-  try {
-    const response = await api.get('/trips/current');
-    console.log('[API] getCurrentTrip 성공:', response.data);
-    return response.data;
-  } catch (error) {
-    // 404는 진행중인 여행이 없는 정상 상황
-    if (error.response?.status === 404) {
-      console.log('[API] getCurrentTrip: 현재 진행중인 여행 없음');
-      return null;
-    }
-
-    // 500 에러는 로그만 남기고 null 반환 (앱은 계속 작동)
-    if (error.response?.status === 500) {
-      console.warn('[API] getCurrentTrip: 서버 오류 (500) - null 반환');
-      return null;
-    }
-
-    console.error('[API] getCurrentTrip 실패:', {
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message,
-    });
-
-    // 그 외 에러는 null 반환 (앱 중단 방지)
-    return null;
-  }
+  const response = await api.get('/trips/current');
+  return response.data;
 };
-
 export const getTripsByMonth = async (year, month) => {
   const response = await api.get('/trips/calendar', { params: { year, month } });
   return response.data;

@@ -29,19 +29,31 @@ function Maps() {
 
   const mapRef = useRef(null);
 
+  const message = myStatus === 'ongoing' ? '여행 진행 중' : '여행이 시작되지 않았어요.';
+
+  // 1. API로부터 현재 여행 정보를 가져와 ID 추출
   const loadInitialData = async () => {
     try {
+      // GPS 동의 여부는 설정값(AsyncStorage)에서 가져옴
       const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
       const { gpsAgree } = savedSettings ? JSON.parse(savedSettings) : { gpsAgree: false };
       setGpsConsent(gpsAgree);
 
+      // [API 호출] 현재 진행 중인 여행 확인
       const currentData = await getCurrentTrip();
-      if (currentData?.id) {
+
+      if (currentData && currentData.id) {
+        // 성공적으로 ID를 받아온 경우
         setOngoingTrip(currentData);
         setMyStatus('ongoing');
+        console.log('[Maps] 현재 여행 ID:', currentData.id);
+      } else {
+        setOngoingTrip(null);
+        setMyStatus('');
       }
     } catch (error) {
-      console.error(error);
+      console.error('[Maps] 데이터 로드 실패:', error);
+      setOngoingTrip(null);
     } finally {
       setIsLoading(false);
     }
@@ -53,46 +65,56 @@ function Maps() {
     }, []),
   );
 
+  // 2. 여행 ID를 기반으로 위치 추적 및 팀원 위치 조회
   useEffect(() => {
     let subscription = null;
     let interval = null;
 
+    // ongoingTrip.id가 있을 때만 실행
+    const tripId = ongoingTrip?.id;
+
     const startTracking = async () => {
-      // 1. GPS 동의 + 여행 중일 때만 내 위치 추적
-      if (myStatus === 'ongoing' && gpsConsent) {
+      if (!tripId) return; // ID가 없으면 아무것도 하지 않음
+
+      // [내 위치 전송] GPS 동의했을 때만 실행
+      if (gpsConsent) {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
           subscription = await Location.watchPositionAsync(
             { accuracy: Location.Accuracy.Balanced, timeInterval: 10000, distanceInterval: 10 },
             (loc) => {
               setMyLocation(loc.coords);
-              updateMyLocation(ongoingTrip.id, loc.coords);
+              // 추출한 tripId를 전달하여 내 위치 업데이트
+              updateMyLocation(tripId, loc.coords);
             },
           );
         }
       }
 
-      // 2. 팀원 위치는 내 GPS 동의 여부와 상관없이 가져옴
-      if (myStatus === 'ongoing') {
-        fetchMemberLocations();
-        interval = setInterval(fetchMemberLocations, 10000);
-      }
+      // [팀원 위치 조회] 추출한 tripId를 전달
+      fetchMemberLocations(tripId);
+      interval = setInterval(() => fetchMemberLocations(tripId), 10000);
     };
 
     startTracking();
+
     return () => {
       subscription?.remove();
       if (interval) clearInterval(interval);
     };
-  }, [myStatus, gpsConsent, ongoingTrip]);
+  }, [ongoingTrip?.id, gpsConsent]); // ID가 바뀔 때마다 트래킹 재설정
 
-  const fetchMemberLocations = async () => {
-    if (!ongoingTrip?.id) return;
+  // 팀원 위치 불러오기 함수 (매개변수로 tripId를 받음)
+  const fetchMemberLocations = async (id) => {
+    if (!id) return;
     try {
-      const data = await getMemberLocations(ongoingTrip.id);
-      setMembers(Array.isArray(data) ? data.filter((m) => m.latitude !== 0) : []);
+      const data = await getMemberLocations(id);
+      // 서버 응답에서 유효한 위치 정보만 필터링
+      setMembers(
+        Array.isArray(data) ? data.filter((m) => m.latitude !== 0 && m.longitude !== 0) : [],
+      );
     } catch (e) {
-      console.error(e);
+      console.error('[Maps] 팀원 위치 조회 실패:', e);
     }
   };
 
@@ -111,7 +133,7 @@ function Maps() {
     }
   };
 
-  if (isLoading) return <ActivityIndicator style={{ flex: 1 }} />;
+  if (isLoading) return <ActivityIndicator style={{ flex: 1 }} color={colors.primary[700]} />;
 
   return (
     <View style={styles.screen}>
@@ -123,7 +145,11 @@ function Maps() {
       >
         {myStatus === 'ongoing' &&
           members.map((m) => (
-            <Marker key={m.memberId} coordinate={{ latitude: m.latitude, longitude: m.longitude }}>
+            <Marker
+              key={m.memberId}
+              coordinate={{ latitude: m.latitude, longitude: m.longitude }}
+              title={m.nickname}
+            >
               <View
                 style={[
                   styles.userLocationDot,
@@ -133,6 +159,12 @@ function Maps() {
             </Marker>
           ))}
       </MapView>
+
+      <View style={styles.textContainer}>
+        <Text style={styles.text}>{message}</Text>
+        {ongoingTrip && <Text style={[styles.text, { fontSize: 12 }]}>{ongoingTrip.name}</Text>}
+      </View>
+
       <Pressable onPress={moveToCurrentLocation} style={styles.button}>
         <MyLocation width={18} height={18} />
       </Pressable>
@@ -143,6 +175,25 @@ function Maps() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   map: { flex: 1 },
+  textContainer: {
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    backgroundColor: colors.primary[700],
+    borderRadius: 50,
+    position: 'absolute',
+    left: 12,
+    top: 54,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  text: {
+    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 16,
+    color: '#fff',
+  },
   button: {
     width: 40,
     height: 40,
@@ -155,7 +206,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     elevation: 5,
   },
-  userLocationDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 3, borderColor: '#fff' },
+  userLocationDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#fff',
+    elevation: 3,
+  },
 });
 
 export default Maps;
