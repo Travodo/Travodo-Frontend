@@ -353,10 +353,7 @@ export const createPersonalItem = async (tripId, { name }) => {
 };
 
 export const updatePersonalItem = async (tripId, itemId, { name, checked }) => {
-  const response = await api.patch(
-    `/trips/${tripId}/personal-items/${itemId}`,
-    { name, checked },
-  );
+  const response = await api.patch(`/trips/${tripId}/personal-items/${itemId}`, { name, checked });
   return response.data;
 };
 

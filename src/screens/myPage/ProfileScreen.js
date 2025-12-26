@@ -6,10 +6,10 @@ import {
   Pressable,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StyleSheet,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import ProfileImage from '../../../assets/SettingImage/ProfileImage.svg';
@@ -176,13 +176,10 @@ function ProfileScreen() {
     </View>
   );
 }
-
 const InfoRow = ({ label, value }) => (
   <View style={styles.row}>
     <Text style={styles.label}>{label}</Text>
-    <View style={styles.valueContainer}>
-      <Text style={styles.value}>{value}</Text>
-    </View>
+    <Text style={styles.value}>{value}</Text>
   </View>
 );
 
@@ -201,8 +198,7 @@ const styles = StyleSheet.create({
 
   profileSection: {
     alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 20,
+    marginBottom: 28,
   },
 
   profileWrapper: {
@@ -245,7 +241,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-SemiBold',
     fontSize: 16,
     width: '30%',
-    textAlign: 'left',
   },
 
   valueContainer: {
@@ -259,9 +254,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[900],
     fontFamily: 'Pretendard-Medium',
     fontSize: 14,
-    width: '100%',
-    textAlign: 'left',
-    paddingLeft: '35%',
+    flex: 1,
   },
 
   link: {

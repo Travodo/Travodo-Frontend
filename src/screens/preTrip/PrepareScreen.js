@@ -139,6 +139,7 @@ function PrepareScreen() {
 }, [tripId, colorPool, getTripMembers, getSharedItems, getPersonalItems ]);
 
 
+  // 초대코드 복사
   const copyInviteCodeToClipboard = useCallback(async (code) => {
     const safe = String(code || '').trim();
     if (!safe) return;
@@ -775,7 +776,6 @@ if (setter === setNecessity) {
         }
 
         const traveler = travelers.find((t) => t.id === currentSelectedTraveler);
-
         if (!traveler) return item;
 
         return {
@@ -786,7 +786,9 @@ if (setter === setNecessity) {
         };
       }),
     );
-  };
+  }
+};
+
 
   if (!trip) {
     return (
@@ -1101,7 +1103,6 @@ if (setter === setNecessity) {
       </ScrollView>
     </View>
   );
-}
 
 export default PrepareScreen;
 
