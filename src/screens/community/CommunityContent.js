@@ -117,6 +117,7 @@ function CommunityContent({ route, navigation }) {
         // 2. 데이터 매핑
         const mappedComments = rawComments.map((c) => ({
           id: c.id,
+          authorId: c.author?.id, // [추가] 비교를 위해 작성자 ID 저장
           nickname: c.author?.nickname || '익명',
           content: c.content,
           date: formatAgo(c.createdAt),
@@ -275,23 +276,42 @@ function CommunityContent({ route, navigation }) {
     ]);
   };
   const handleCommentMore = (comment) => {
-    Alert.alert('댓글 관리', null, [
-      {
-        text: '수정',
-        onPress: () => {
-          navigation.navigate('EditComment', {
-            comment,
-            onSave: (newContent) => handleEditComment(comment.id, newContent),
-          });
+    const isMyComment = String(userId) === String(comment.authorId);
+    if (isMyComment) {
+      Alert.alert('댓글 관리', null, [
+        {
+          text: '수정',
+          onPress: () => {
+            navigation.navigate('EditComment', {
+              comment,
+              onSave: (newContent) => handleEditComment(comment.id, newContent),
+            });
+          },
         },
-      },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: () => handleDeleteComment(comment.id),
-      },
-      { text: '취소', style: 'cancel' },
-    ]);
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: () => handleDeleteComment(comment.id),
+        },
+        { text: '취소', style: 'cancel' },
+      ]);
+    } else {
+      Alert.alert('댓글 메뉴', null, [
+        {
+          text: comment.isLiked ? '좋아요 취소' : '좋아요',
+          onPress: () => handleCommentLike(comment.id),
+        },
+        {
+          text: '신고',
+          style: 'destructive',
+          onPress: () => {
+            // 신고 기능이 있다면 연결, 없다면 알림만
+            Alert.alert('알림', '신고가 접수되었습니다.');
+          },
+        },
+        { text: '취소', style: 'cancel' },
+      ]);
+    }
   };
 
   const handleCommentLike = async (commentId) => {
