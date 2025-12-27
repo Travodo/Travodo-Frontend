@@ -425,23 +425,47 @@ function PrepareScreen() {
 
 useFocusEffect(
   useCallback(() => {
+    let isActive = true;
+
     (async () => {
-      const serverOngoing = await getOngoingTrips();
+      try {
+        const serverOngoing = await getOngoingTrips();
+        console.log('[PrepareScreen] 서버 진행 중인 여행:', serverOngoing);
 
-      if (!serverOngoing || serverOngoing.length === 0) {
-        await clearOngoingTripFromStorage();
+        if (!isActive) return;
+
+        if (!serverOngoing || serverOngoing.length === 0) {
+          await clearOngoingTripFromStorage();
+          setHasOngoingTrip(false);
+          console.log('[PrepareScreen] 진행 중인 여행 없음');
+        } 
+        else {
+          const ongoingTripId = String(serverOngoing[0].id);
+          await setOngoingTripInStorage(true, ongoingTripId);
+          
+          const isOtherTripOngoing = ongoingTripId !== String(tripId);
+          setHasOngoingTrip(isOtherTripOngoing);
+          
+          console.log('[PrepareScreen] 진행 중인 여행 ID:', ongoingTripId);
+          console.log('[PrepareScreen] 현재 여행 ID:', tripId);
+          console.log('[PrepareScreen] 다른 여행 진행 중?', isOtherTripOngoing);
+        }
+
+        if (isActive) {
+          const currentTravelers = await loadMembersAndShared();
+          await loadTodos(currentTravelers);
+          await loadMemos();
+        }
+      } catch (error) {
+        console.error('[PrepareScreen] useFocusEffect 에러:', error);
         setHasOngoingTrip(false);
-      } else {
-        const ongoingTripId = String(serverOngoing[0].id);
-        await setOngoingTripInStorage(true, ongoingTripId);
-        setHasOngoingTrip(ongoingTripId !== String(tripId));
       }
-
-      const currentTravelers = await loadMembersAndShared();
-      await loadTodos(currentTravelers);
-      await loadMemos();
     })();
-  }, [tripId])
+
+    return () => {
+      isActive = false;
+    };
+  }, [tripId, loadMembersAndShared, loadTodos, loadMemos])
 );
 
 
