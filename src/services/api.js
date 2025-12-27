@@ -359,10 +359,34 @@ export const getMapPoints = async (tripId) => {
 // -----------------------------
 // Community
 // -----------------------------
-export const getCommunityPosts = async ({ tag, sort = 'recent', page = 0, size = 20 } = {}) => {
+export const getCommunityPosts = async ({
+  tag,
+  tags,
+  sort = 'recent',
+  page = 0,
+  size = 20,
+} = {}) => {
   const params = { sort, page, size };
-  if (tag) params.tag = tag; // TravelTag: SOLO | FRIEND | COUPLE | FAMILY | RELAXATION
-  const response = await api.get('/community/posts', { params });
+  if (tag) params.tag = tag; // TravelTag: 단일 태그
+  if (tags && Array.isArray(tags) && tags.length > 0) {
+    params.tags = tags;
+  }
+  const response = await api.get('/community/posts', {
+    params,
+    paramsSerializer: (params) => {
+      const searchParams = new URLSearchParams();
+      Object.keys(params).forEach((key) => {
+        const value = params[key];
+        if (Array.isArray(value)) {
+          // 배열인 경우 각 값을 개별 파라미터로 추가
+          value.forEach((item) => searchParams.append(key, item));
+        } else if (value != null) {
+          searchParams.append(key, value);
+        }
+      });
+      return searchParams.toString();
+    },
+  });
   return response.data;
 };
 
