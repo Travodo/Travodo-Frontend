@@ -286,49 +286,14 @@ export const updateTripStatus = async (tripId, status) => {
 };
 
 export const getUpcomingTrips = async () => {
-  try {
-    const response = await api.get('/trips/upcoming');
-    console.log('[API] getUpcomingTrips 성공:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('[API] getUpcomingTrips 실패:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      message: error.response?.data?.message || error.message,
-      data: error.response?.data,
-    });
-    throw error;
-  }
+  const response = await api.get('/trips/upcoming');
+  return response.data;
 };
 
 export const getCurrentTrip = async () => {
-  try {
-    const response = await api.get('/trips/current');
-    console.log('[API] getCurrentTrip 성공:', response.data);
-    return response.data;
-  } catch (error) {
-    // 404는 진행중인 여행이 없는 정상 상황
-    if (error.response?.status === 404) {
-      console.log('[API] getCurrentTrip: 현재 진행중인 여행 없음');
-      return null;
-    }
-
-    // 500 에러는 로그만 남기고 null 반환 (앱은 계속 작동)
-    if (error.response?.status === 500) {
-      console.warn('[API] getCurrentTrip: 서버 오류 (500) - null 반환');
-      return null;
-    }
-
-    console.error('[API] getCurrentTrip 실패:', {
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message,
-    });
-
-    // 그 외 에러는 null 반환 (앱 중단 방지)
-    return null;
-  }
+  const response = await api.get('/trips/current');
+  return response.data;
 };
-
 export const getTripsByMonth = async (year, month) => {
   const response = await api.get('/trips/calendar', { params: { year, month } });
   return response.data;
@@ -375,6 +340,104 @@ export const deleteSharedItem = async (tripId, itemId) => {
   return response.data;
 };
 
+
+// 개인 준비물(personal-items)
+export const getPersonalItems = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/personal-items`);
+  return response.data;
+};
+
+export const createPersonalItem = async (tripId, { name }) => {
+  const response = await api.post(`/trips/${tripId}/personal-items`, { name });
+  return response.data;
+};
+
+export const updatePersonalItem = async (tripId, itemId, { name, checked }) => {
+  const response = await api.patch(`/trips/${tripId}/personal-items/${itemId}`, { name, checked });
+  return response.data;
+};
+
+export const deletePersonalItem = async (tripId, itemId) => {
+  const response = await api.delete(
+    `/trips/${tripId}/personal-items/${itemId}`,
+  );
+  return response.data;
+};
+
+
+// 메모 관련
+export const getMemos = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/memos`);
+  return response.data;
+};
+
+export const getMemoDetail = async (tripId, memoId) => {
+  const response = await api.get(
+    `/trips/${tripId}/memos/${memoId}`,
+  );
+  return response.data;
+};
+
+export const createMemo = async (tripId, { title, content }) => {
+  const response = await api.post(
+    `/trips/${tripId}/memos`,
+    { title, content },
+  );
+  return response.data;
+};
+
+export const updateMemo = async (tripId, memoId, { title, content }) => {
+  const response = await api.put(
+    `/trips/${tripId}/memos/${memoId}`,
+    { title, content },
+  );
+  return response.data;
+};
+
+export const deleteMemo = async (tripId, memoId) => {
+  const response = await api.delete(
+    `/trips/${tripId}/memos/${memoId}`,
+  );
+  return response.data;
+};
+
+
+// TODO 관련
+export const getTodos = async (tripId) => {
+  const response = await api.get(`/trips/${tripId}/todo`);
+  return response.data;
+};
+
+export const createTodo = async (tripId, { name, category }) => {
+  const response = await api.post(`/trips/${tripId}/todo`, { name, category });
+  return response.data;
+};
+
+export const updateTodo = async (tripId, todoId, { name, checked, category }) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}`, {
+    name,
+    checked,
+    category,
+  });
+  return response.data;
+};
+
+export const deleteTodo = async (tripId, todoId) => {
+  const response = await api.delete(`/trips/${tripId}/todo/${todoId}`);
+  return response.data;
+};
+
+export const assignTodo = async (tripId, todoId) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}/assign`);
+  return response.data;
+};
+
+export const unassignTodo = async (tripId, todoId) => {
+  const response = await api.patch(`/trips/${tripId}/todo/${todoId}/unassign`);
+  return response.data;
+};
+
+
 // 위치 업데이트 / 동행자 위치 / POI
 export const updateMyLocation = async (tripId, { latitude, longitude }) => {
   const response = await api.post(`/trips/${tripId}/location`, { latitude, longitude });
@@ -394,10 +457,34 @@ export const getMapPoints = async (tripId) => {
 // -----------------------------
 // Community
 // -----------------------------
-export const getCommunityPosts = async ({ tag, sort = 'recent', page = 0, size = 20 } = {}) => {
+export const getCommunityPosts = async ({
+  tag,
+  tags,
+  sort = 'recent',
+  page = 0,
+  size = 20,
+} = {}) => {
   const params = { sort, page, size };
-  if (tag) params.tag = tag; // TravelTag: SOLO | FRIEND | COUPLE | FAMILY | RELAXATION
-  const response = await api.get('/community/posts', { params });
+  if (tag) params.tag = tag; // TravelTag: 단일 태그
+  if (tags && Array.isArray(tags) && tags.length > 0) {
+    params.tags = tags;
+  }
+  const response = await api.get('/community/posts', {
+    params,
+    paramsSerializer: (params) => {
+      const searchParams = new URLSearchParams();
+      Object.keys(params).forEach((key) => {
+        const value = params[key];
+        if (Array.isArray(value)) {
+          // 배열인 경우 각 값을 개별 파라미터로 추가
+          value.forEach((item) => searchParams.append(key, item));
+        } else if (value != null) {
+          searchParams.append(key, value);
+        }
+      });
+      return searchParams.toString();
+    },
+  });
   return response.data;
 };
 
@@ -548,7 +635,7 @@ api.interceptors.request.use(
       console.log(`[api] ${config.method?.toUpperCase()} ${config.url} auth=${hasAuth}`);
       // 토큰의 앞부분만 로깅 (보안)
       if (token) {
-        console.log(`[api] Token: ${token.substring(0, 30)}...`);
+        console.log(`[api] Token: ${token}...`);
       }
     }
     return config;

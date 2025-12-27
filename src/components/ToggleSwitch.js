@@ -1,23 +1,18 @@
 import { View, Pressable, Animated, StyleSheet } from 'react-native';
-import { useRef, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { colors } from '../styles/colors';
 import PropTypes from 'prop-types';
 
-function ToggleSwitch({ onPress }) {
-  const [isToggled, setIsToggled] = useState(false);
-  const toggleAnim = useRef(new Animated.Value(0)).current;
-
-  function Togglepress() {
-    const toValue = isToggled ? 0 : 1;
-
+function ToggleSwitch({ value, onValueChange }) {
+  const toggleAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
+  useEffect(() => {
     Animated.timing(toggleAnim, {
-      toValue,
+      toValue: value ? 1 : 0,
       duration: 200,
       useNativeDriver: false,
     }).start();
+  }, [value]);
 
-    setIsToggled(!isToggled);
-  }
   const circlePosition = toggleAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [3, 18],
@@ -32,9 +27,8 @@ function ToggleSwitch({ onPress }) {
     <View style={styles.container}>
       <Pressable
         onPress={() => {
-          Togglepress();
-          if (onPress) {
-            onPress();
+          if (onValueChange) {
+            onValueChange(!value);
           }
         }}
       >
@@ -47,7 +41,8 @@ function ToggleSwitch({ onPress }) {
 }
 
 ToggleSwitch.propTypes = {
-  onPress: PropTypes.func,
+  value: PropTypes.bool,
+  onValueChange: PropTypes.func,
 };
 
 const styles = StyleSheet.create({

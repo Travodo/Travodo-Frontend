@@ -142,13 +142,17 @@ function CommunityWrite({ route, navigation }) {
     if (submitting) return;
     setSubmitting(true);
 
-    // UI 태그 → 서버 TravelTag 매핑 (최소한의 매핑)
+    // UI 태그 -> 서버 TravelTag 매핑
     const mapTag = (t) => {
-      if (t.includes('휴양') || t.includes('힐링') || t.includes('호캉스')) return 'RELAXATION';
-      if (t.includes('친구') || t.includes('지인')) return 'FRIEND';
-      if (t.includes('커플') || t.includes('연인')) return 'COUPLE';
-      if (t.includes('가족') || t.includes('친지')) return 'FAMILY';
-      return 'SOLO';
+      if (t.includes('휴양') || t.includes('힐링')) return 'RELAXATION_HEALING';
+      if (t.includes('액티비티')) return 'ACTIVITY';
+      if (t.includes('역사') || t.includes('문화')) return 'HISTORY_CULTURE';
+      if (t.includes('쇼핑')) return 'SHOPPING';
+      if (t.includes('자연') || t.includes('캠핑')) return 'NATURE_CAMPING';
+      if (t.includes('호캉스')) return 'HOCANCES';
+      if (t.includes('미식')) return 'GOURMET';
+      // 기본값 (발생하지 않아야 함)
+      return 'RELAXATION_HEALING';
     };
     const tags = selectedTags.map(mapTag);
 
@@ -183,8 +187,12 @@ function CommunityWrite({ route, navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.container}>
-        <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 120, flexGrow: 1 }}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
+          <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
             <CommunityWriteTripCard data={tripData} />
             <View style={styles.titleBox}>
               <TextInput
@@ -216,8 +224,8 @@ function CommunityWrite({ route, navigation }) {
                 </View>
               ))}
             </View>
-          </ScrollView>
-        </Pressable>
+          </Pressable>
+        </ScrollView>
         <View style={[styles.bottomBar, { bottom: keyboardHeight }]}>
           <CameraBottomBar onCameraPress={pickImage} onMorePress={openSetting} />
         </View>

@@ -1,18 +1,17 @@
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import CalendarView from '../../components/Calendar';
 import TripCard from '../../components/TripCard';
 import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { getUpcomingTrips } from '../../services/api';
-import { useTrip } from '../../contexts/TripContext';
+import { getUpcomingTrips, getCurrentTrip } from '../../services/api';
 
 function HomeScreen({ route }) {
   const navigation = useNavigation();
-  const { ongoingTrip, isLoaded } = useTrip();
 
   const [upcomingTrips, setUpcomingTrips] = useState([]);
+  const [ongoingTrip, setOngoingTrip] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadTripsData = useCallback(async () => {
@@ -20,6 +19,23 @@ function HomeScreen({ route }) {
     try {
       console.log('[HomeScreen] 여행 데이터 로딩 시작...');
 
+      // 1. 현재 진행중인 여행 조회
+      const currentData = await getCurrentTrip();
+
+      // NULL이 아니면 매핑
+      if (currentData && currentData.id) {
+        setOngoingTrip({
+          id: currentData.id,
+          name: currentData.name,
+          status: currentData.status,
+          startDate: String(currentData.startDate || '').replace(/-/g, '.'),
+          endDate: String(currentData.endDate || '').replace(/-/g, '.'),
+        });
+      } else {
+        setOngoingTrip(null);
+      }
+
+      // 2. 다가오는 여행 조회
       const upcomingData = await getUpcomingTrips();
 
       const list = Array.isArray(upcomingData)
@@ -40,25 +56,23 @@ function HomeScreen({ route }) {
         companions: [],
       }));
 
+      console.log('[HomeScreen] ONGOING 여행:', ongoingTrip ? ongoingTrip.name : '없음');
       console.log('[HomeScreen] UPCOMING 여행:', mappedUpcoming.length, '개');
-      console.log('[HomeScreen] Context ONGOING 여행:', ongoingTrip ? ongoingTrip.name : '없음');
 
       setUpcomingTrips(mappedUpcoming);
     } catch (e) {
       console.error('[HomeScreen] 여행 데이터 로딩 실패:', e.message);
       setUpcomingTrips([]);
+      setOngoingTrip(null);
     } finally {
       setLoading(false);
     }
-  }, [ongoingTrip]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      // Context가 로드될 때까지 대기
-      if (isLoaded) {
-        loadTripsData();
-      }
-    }, [loadTripsData, isLoaded]),
+      loadTripsData();
+    }, [loadTripsData]),
   );
 
   // 캘린더에는 모든 여행 표시
@@ -66,7 +80,12 @@ function HomeScreen({ route }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} overScrollMode="never" bounces={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+        bounces={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
         <Text style={styles.headerText}>나의 캘린더</Text>
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
         <CalendarView trips={allTrips} />
