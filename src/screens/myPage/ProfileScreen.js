@@ -27,7 +27,7 @@ function ProfileScreen() {
   const navigation = useNavigation();
   const { logout } = useAuth();
   const [me, setMe] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isMeLoading, setIsLoading] = useState(true);
 
   const refreshMe = useCallback(async () => {
     try {
@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginTop: 50,
   },
 
   editText: {

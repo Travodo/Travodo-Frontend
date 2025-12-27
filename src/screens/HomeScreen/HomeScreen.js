@@ -168,6 +168,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Pretendard-Medium',
     color: colors.primary[700],
-    marginBottom: 80,
   },
 });
