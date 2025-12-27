@@ -27,7 +27,7 @@ function TripStack() {
       <Stack.Screen name="StartTrip" component={StartTripScreen} />
       <Stack.Screen name="ChecklistScreen" component={ChecklistSection} />
       <Stack.Screen name="MemoScreen" component={MemoScreen} />
-      <Stack.Screen name="OnTripScreen" component={OnTripScreen} />
+      <Stack.Screen name="OnTrip" component={OnTripScreen} />
       <Stack.Screen name="Prepare" component={PrepareScreen} />
     </Stack.Navigator>
   );

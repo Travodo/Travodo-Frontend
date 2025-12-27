@@ -438,13 +438,6 @@ export const unassignTodo = async (tripId, todoId) => {
 };
 
 
-// 진행 중인 여행 조회
-export const getOngoingTrips = async () => {
-  const response = await api.get('/trips?status=ONGOING');
-  return response.data;
-};
-
-
 // 위치 업데이트 / 동행자 위치 / POI
 export const updateMyLocation = async (tripId, { latitude, longitude }) => {
   const response = await api.post(`/trips/${tripId}/location`, { latitude, longitude });
