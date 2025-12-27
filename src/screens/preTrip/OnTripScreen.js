@@ -11,37 +11,29 @@ import sharedStyles from './sharedStyles';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
 import { clearOngoingTripFromStorage } from './PrepareScreen';
 import {
-  // 공동 준비물
   assignSharedItem,
   createSharedItem,
   deleteSharedItem,
   getSharedItems,
   unassignSharedItem,
   updateSharedItem,
-  // 개인 준비물
   createPersonalItem,
   deletePersonalItem,
   getPersonalItems,
   updatePersonalItem,
-  // Todo (필수 할 일, 여행 활동)
   assignTodo,
   createTodo,
   deleteTodo,
   getTodos,
   unassignTodo,
   updateTodo,
-  // 메모
   createMemo,
   deleteMemo,
   getMemos,
-  // 기타
   getTripMembers,
   updateTripStatus,
 } from '../../services/api';
 
-// ============================================
-// 상수 정의
-// ============================================
 const TODO_CATEGORY = {
   NECESSITY: 'NECESSITY',
   ACTIVITY: 'ACTIVITY',
@@ -69,19 +61,18 @@ function OnTripScreen() {
   const [activities, setActivities] = useState(initActivities);
   const [memos, setMemos] = useState(initMemos);
 
-  const [adding, setAdding] = useState(null);
-  const [text, setText] = useState('');
-  const [isEnding, setIsEnding] = useState(false);
+  const [adding, setAdding] = useState(null); // 현재 추가 모드인 섹션
+  const [text, setText] = useState(''); // 입력 중인 텍스트
+  const [isEnding, setIsEnding] = useState(false); // 여행 종료 중 여부
 
-  // 초기 로딩 여부 추적
-  const hasLoadedRef = useRef(false);
+  const hasLoadedRef = useRef(false); // 데이터 로딩 완료 여부 (중복 방지)
 
   const tripId = trip?.id;
   const colorPool = React.useMemo(() => ['#769FFF', '#FFE386', '#EE8787', '#A4C664'], []);
 
-  // ============================================
   // 데이터 정규화 함수
-  // ============================================
+  
+  /** API 응답을 UI 형식으로 변환 (content, checked, 담당자 정보 추가) */
   const normalizeItem = (item, sectionKey, travelersList) => {
     const base = {
       id: String(item.id),
@@ -89,7 +80,7 @@ function OnTripScreen() {
       checked: item.status === 'DONE' || !!item.checked,
     };
 
-    // 담당자 정보가 필요한 섹션
+    // 담당자 정보가 필요한 섹션 (공동 준비물, 필수 할 일)
     if (['shared', 'necessity'].includes(sectionKey)) {
       return {
         ...base,
@@ -102,7 +93,7 @@ function OnTripScreen() {
       };
     }
 
-    // 개인 준비물, 여행 활동
+    // 담당자 정보가 필요 없는 섹션 (개인 준비물, 여행 활동)
     return {
       ...base,
       travelerId: null,
@@ -111,17 +102,16 @@ function OnTripScreen() {
     };
   };
 
-  // ============================================
   // 데이터 로딩
-  // ============================================
+  /** 멤버, 준비물, Todo, 메모 전체 데이터 조회 (최초 1회만 실행) */
   const loadMembersAndItems = useCallback(async () => {
     if (!tripId) return;
     
     try {
       console.log('[OnTripScreen] 데이터 로딩 시작');
 
-      // 1. 멤버 조회
-      let mappedMembers = travelers; // 기본값은 현재 travelers
+      // 1. 멤버 조회 및 색상 할당
+      let mappedMembers = travelers;
       try {
         const membersResponse = await getTripMembers(tripId);
         const members = membersResponse?.data || membersResponse || [];
@@ -171,7 +161,7 @@ function OnTripScreen() {
         console.error('[OnTripScreen] 준비물 조회 실패:', e);
       }
 
-      // 3. Todo 조회
+      // 3. Todo 조회 (필수 할 일, 여행 활동)
       try {
         const todosRes = await getTodos(tripId);
         const todos = todosRes?.data || todosRes || [];
@@ -221,7 +211,7 @@ function OnTripScreen() {
     }
   }, [tripId, colorPool, travelers]);
 
-  // 화면 포커스 시 데이터 로딩 (최초 1회만)
+  /** 화면 포커스 시 데이터 로딩 (최초 1회만) */
   useFocusEffect(
     useCallback(() => {
       if (!hasLoadedRef.current) {
@@ -230,10 +220,9 @@ function OnTripScreen() {
     }, [loadMembersAndItems]),
   );
 
-  // ============================================
   // CRUD 작업
-  // ============================================
 
+  /** 아이템 추가 (섹션별 분기 처리) */
   const addItem = async (setter, list, sectionKey) => {
     if (!text.trim()) return;
 
@@ -259,7 +248,7 @@ function OnTripScreen() {
             title: text.trim(),
             category: TODO_CATEGORY.NECESSITY,
           });
-
+          // 백엔드가 category를 반환하지 않으면 클라이언트에서 추가
           const necessityItem = normalizeItem(created, 'necessity', travelers);
           necessityItem.category = TODO_CATEGORY.NECESSITY;
           setNecessity((prev) => [...prev, necessityItem]);
@@ -272,11 +261,12 @@ function OnTripScreen() {
             title: text.trim(),
             category: TODO_CATEGORY.ACTIVITY,
           });
+          // 백엔드가 category를 반환하지 않으면 클라이언트에서 추가
           const activityItem = normalizeItem(created, 'activities', travelers);
-  activityItem.category = TODO_CATEGORY.ACTIVITY; 
-  setActivities((prev) => [...prev, activityItem]);
-  console.log('[OnTripScreen] 여행 활동 추가 완료:', created);
-  break;
+          activityItem.category = TODO_CATEGORY.ACTIVITY; 
+          setActivities((prev) => [...prev, activityItem]);
+          console.log('[OnTripScreen] 여행 활동 추가 완료:', created);
+          break;
       }
 
       setText('');
@@ -287,6 +277,7 @@ function OnTripScreen() {
     }
   };
 
+  /** 아이템 삭제 (섹션별 분기 처리) */
   const deleteItem = async (list, setter, index, sectionKey) => {
     const item = list[index];
 
@@ -315,6 +306,7 @@ function OnTripScreen() {
     }
   };
 
+  /** 아이템 수정 (섹션별 분기 처리) */
   const editItem = async (list, setter, index, value, sectionKey) => {
     const item = list[index];
 
@@ -371,6 +363,7 @@ function OnTripScreen() {
     }
   };
 
+  /** 체크 상태 토글 (섹션별 분기 처리) */
   const toggleCheck = async (list, setter, index, sectionKey) => {
     const item = list[index];
 
@@ -427,6 +420,7 @@ function OnTripScreen() {
     }
   };
 
+  /** 담당자 할당/해제 토글 (공동 준비물, 필수 할 일만 지원) */
   const assignTraveler = async (list, setter, index, sectionKey) => {
     const item = list[index];
 
@@ -463,9 +457,9 @@ function OnTripScreen() {
     }
   };
 
-  // ============================================
   // 여행 종료
-  // ============================================
+  
+  /** 여행 종료 (상태를 FINISHED로 변경 후 EndTrip 화면으로 이동) */
   const handleEndTrip = () => {
     Alert.alert('여행 종료', '여행을 종료하시겠습니까?', [
       { text: '취소', style: 'cancel' },
@@ -506,9 +500,7 @@ function OnTripScreen() {
     ]);
   };
 
-  // ============================================
   // 렌더링
-  // ============================================
   return (
     <View style={sharedStyles.container}>
       <Text style={sharedStyles.pageTitle}>여행 TODO 시작</Text>
@@ -519,6 +511,7 @@ function OnTripScreen() {
       </View>
 
       <ScrollView contentContainerStyle={sharedStyles.content}>
+        {/* 여행자 목록 */}
         <Text style={sharedStyles.sectionTitle}>여행자</Text>
         <View style={sharedStyles.travelerList}>
           {travelers.map((t) => (
@@ -528,6 +521,7 @@ function OnTripScreen() {
 
         <View style={sharedStyles.sectionDivider} />
 
+        {/* 필수 할 일 */}
         {renderSection({
           title: '필수 할 일',
           list: necessity,
@@ -547,6 +541,7 @@ function OnTripScreen() {
         })}
         <View style={sharedStyles.sectionDivider} />
 
+        {/* 공동 준비물 */}
         {renderSection({
           title: '공동 준비물',
           list: shared,
@@ -566,6 +561,7 @@ function OnTripScreen() {
         })}
         <View style={sharedStyles.sectionDivider} />
 
+        {/* 개인 준비물 */}
         {renderSection({
           title: '개인 준비물',
           list: personal,
@@ -583,6 +579,7 @@ function OnTripScreen() {
         })}
         <View style={sharedStyles.sectionDivider} />
 
+        {/* 여행 활동 */}
         {renderSection({
           title: '여행 활동',
           list: activities,
@@ -600,6 +597,7 @@ function OnTripScreen() {
         })}
         <View style={sharedStyles.sectionDivider} />
 
+        {/* 메모장 */}
         <Text style={sharedStyles.sectionTitle}>메모장</Text>
 
         {memos.map((memo) => (
@@ -659,6 +657,7 @@ function OnTripScreen() {
 
         <View style={sharedStyles.sectionDivider} />
 
+        {/* 여행 종료 버튼 */}
         <View style={styles.endButtonWrapper}>
           <Pressable
             style={[styles.endButton, isEnding && styles.endButtonDisabled]}
@@ -679,7 +678,6 @@ const styles = StyleSheet.create({
   endButtonWrapper: {
     marginTop: 16,
   },
-
   endButton: {
     backgroundColor: colors.primary[700],
     paddingVertical: 16,
@@ -688,11 +686,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 100,
     marginVertical: 20,
   },
-
   endButtonDisabled: {
     opacity: 0.6,
   },
-
   endButtonText: {
     color: colors.grayscale[100],
     fontSize: 16,

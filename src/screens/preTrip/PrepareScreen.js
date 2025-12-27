@@ -48,6 +48,7 @@ import {
   getOngoingTrips,
 } from '../../services/api';
 
+// 상수 정의
 const TODO_CATEGORY = {
   NECESSITY: 'NECESSITY',
   ACTIVITY: 'ACTIVITY',
@@ -62,6 +63,9 @@ const SECTION_NAMES = {
 
 const ONGOING_TRIP_KEY = '@ongoing_trip_status';
 
+// AsyncStorage 유틸리티
+
+// 진행 중인 여행 상태를 AsyncStorage에 저장
 const setOngoingTripInStorage = async (isOngoing, tripId = null) => {
   try {
     await AsyncStorage.setItem(ONGOING_TRIP_KEY, JSON.stringify({ isOngoing, tripId }));
@@ -70,6 +74,7 @@ const setOngoingTripInStorage = async (isOngoing, tripId = null) => {
   }
 };
 
+/** AsyncStorage에서 진행 중인 여행 상태 조회 */
 const getOngoingTripFromStorage = async () => {
   try {
     const value = await AsyncStorage.getItem(ONGOING_TRIP_KEY);
@@ -83,6 +88,7 @@ const getOngoingTripFromStorage = async () => {
   }
 };
 
+/** AsyncStorage에서 진행 중인 여행 상태 삭제 */
 const clearOngoingTripFromStorage = async () => {
   try {
     await AsyncStorage.removeItem(ONGOING_TRIP_KEY);
@@ -91,6 +97,7 @@ const clearOngoingTripFromStorage = async () => {
   }
 };
 
+// API 매핑 - 각 섹션별 CRUD API 함수 매핑
 const API_MAP = {
   shared: {
     create: createSharedItem,
@@ -120,6 +127,9 @@ const API_MAP = {
   },
 };
 
+// 유틸리티 함수
+
+/** API 응답을 UI 형식으로 변환 (content, checked, 담당자 정보 추가) */
 const normalizeItem = (item, sectionKey, travelers = []) => {
   const base = {
     id: String(item.id),
@@ -127,6 +137,7 @@ const normalizeItem = (item, sectionKey, travelers = []) => {
     checked: item.status === 'DONE' || !!item.checked,
   };
 
+  // 담당자 정보가 필요한 섹션 (공동 준비물, 필수 할 일)
   if (['shared', 'necessity'].includes(sectionKey)) {
     return {
       ...base,
@@ -139,6 +150,7 @@ const normalizeItem = (item, sectionKey, travelers = []) => {
     };
   }
 
+  // 담당자 정보가 필요 없는 섹션 (개인 준비물, 여행 활동)
   return {
     ...base,
     travelerId: null,
@@ -147,6 +159,7 @@ const normalizeItem = (item, sectionKey, travelers = []) => {
   };
 };
 
+/** 멤버 데이터를 UI 형식으로 변환 (방장 우선 정렬, 색상 할당) */
 const normalizeMembers = (members, colorPool) => {
   return (members || [])
     .slice()
@@ -163,6 +176,7 @@ const normalizeMembers = (members, colorPool) => {
     }));
 };
 
+/** 여행자 ID별 색상 매핑 객체 생성 */
 const createColorMap = (travelers) => {
   const colorMap = {};
   travelers.forEach((t) => {
@@ -171,9 +185,13 @@ const createColorMap = (travelers) => {
   return colorMap;
 };
 
+// 커스텀 훅: 아이템 CRUD 작업
+
+/** 섹션별 아이템 생성/수정/삭제/체크/담당자 할당 기능 제공 */
 const useItemOperations = (tripId, sectionKey, setter, travelers) => {
   const apiMethods = API_MAP[sectionKey];
 
+  /** 아이템 생성 */
   const create = useCallback(
     async (text) => {
       if (!text.trim()) return;
@@ -191,6 +209,7 @@ const useItemOperations = (tripId, sectionKey, setter, travelers) => {
     [tripId, sectionKey, setter, travelers, apiMethods],
   );
 
+  /** 아이템 수정 */
   const update = useCallback(
     async (itemId, updates) => {
       try {
@@ -212,6 +231,7 @@ const useItemOperations = (tripId, sectionKey, setter, travelers) => {
     [tripId, sectionKey, setter, travelers, apiMethods],
   );
 
+  /** 아이템 삭제 */
   const remove = useCallback(
     async (itemId) => {
       try {
@@ -226,6 +246,7 @@ const useItemOperations = (tripId, sectionKey, setter, travelers) => {
     [tripId, sectionKey, setter, apiMethods],
   );
 
+  /** 체크 상태 토글 */
   const toggleCheck = useCallback(
     async (itemId, currentChecked) => {
       try {
@@ -238,6 +259,7 @@ const useItemOperations = (tripId, sectionKey, setter, travelers) => {
     [update],
   );
 
+  /** 담당자 할당/해제 토글 */
   const toggleAssign = useCallback(
     async (itemId, isCurrentlyAssigned) => {
       if (!apiMethods.assign || !apiMethods.unassign) {
@@ -272,6 +294,7 @@ const useItemOperations = (tripId, sectionKey, setter, travelers) => {
   };
 };
 
+// 메인 컴포넌트
 function PrepareScreen() {
   const route = useRoute();
   const navigation = useNavigation();
@@ -279,6 +302,7 @@ function PrepareScreen() {
   const trip = route?.params?.tripData;
   const tripId = trip?.id;
 
+  // State
   const [travelers, setTravelers] = useState([]);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
   const selectedTravelerRef = useRef(null);
@@ -297,13 +321,17 @@ function PrepareScreen() {
   const [isStarting, setIsStarting] = useState(false);
 
   const [hasOngoingTrip, setHasOngoingTrip] = useState(false);
-  const skipNextTodoLoadRef = useRef(false);
+  const skipNextTodoLoadRef = useRef(false); // Todo 로딩 스킵 플래그 (중복 로딩 방지)
 
+  // 커스텀 훅 인스턴스 - 각 섹션별 CRUD 작업 함수 생성
   const sharedOps = useItemOperations(tripId, 'shared', setShared, travelers);
   const personalOps = useItemOperations(tripId, 'personal', setPersonal, travelers);
   const necessityOps = useItemOperations(tripId, 'necessity', setNecessity, travelers);
   const activitiesOps = useItemOperations(tripId, 'activities', setActivities, travelers);
 
+  // 데이터 로딩
+
+  /** 여행 멤버, 공동/개인 준비물 데이터 조회 */
   const loadMembersAndShared = useCallback(async () => {
     if (!tripId) return [];
 
@@ -353,6 +381,7 @@ function PrepareScreen() {
     }
   }, [tripId, colorPool]);
 
+  /** Todo 데이터 조회 (필수 할 일, 여행 활동) */
   const loadTodos = useCallback(
     async (currentTravelers = []) => {
       if (!tripId) return;
@@ -371,26 +400,27 @@ function PrepareScreen() {
         const colorMap = createColorMap(currentTravelers);
         
         const list = data.map((it) => ({
-        id: String(it.id),
-        content: it.title ?? it.name ?? it.content ?? '',
-        checked: it.status === 'DONE',
-        travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
-        travelerName: it.assigneeName ?? null,
-        travelerColor: it.assigneeId != null ? (colorMap[String(it.assigneeId)] ?? null) : null,
-        category: it.category ?? it.type ?? null,
-      }));
+          id: String(it.id),
+          content: it.title ?? it.name ?? it.content ?? '',
+          checked: it.status === 'DONE',
+          travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
+          travelerName: it.assigneeName ?? null,
+          travelerColor: it.assigneeId != null ? (colorMap[String(it.assigneeId)] ?? null) : null,
+          category: it.category ?? it.type ?? null,
+        }));
 
-      setNecessity(list.filter((x) => x.category === TODO_CATEGORY.NECESSITY));
-      setActivities(list.filter((x) => x.category === TODO_CATEGORY.ACTIVITY));
-    } catch (e) {
-      console.error('Todo(필수/활동) 조회 실패:', e);
-      setNecessity([]);
-      setActivities([]);
-    }
-  },
-  [tripId],
-);
+        setNecessity(list.filter((x) => x.category === TODO_CATEGORY.NECESSITY));
+        setActivities(list.filter((x) => x.category === TODO_CATEGORY.ACTIVITY));
+      } catch (e) {
+        console.error('Todo(필수/활동) 조회 실패:', e);
+        setNecessity([]);
+        setActivities([]);
+      }
+    },
+    [tripId],
+  );
 
+  /** 메모 데이터 조회 */
   const loadMemos = useCallback(async () => {
     if (!tripId) return;
     try {
@@ -417,30 +447,36 @@ function PrepareScreen() {
     }
   }, [tripId]);
 
+  /** 화면 포커스 시 데이터 로드 */
   useFocusEffect(
-  useCallback(() => {
-    (async () => {
-      const storedStatus = await getOngoingTripFromStorage();
+    useCallback(() => {
+      (async () => {
+        // AsyncStorage에서 진행 중인 여행 상태 확인
+        const storedStatus = await getOngoingTripFromStorage();
 
-      if (storedStatus.isOngoing && String(storedStatus.tripId) !== String(tripId)) {
-        setHasOngoingTrip(true);
-      } else {
-        setHasOngoingTrip(false);
-      }
+        if (storedStatus.isOngoing && String(storedStatus.tripId) !== String(tripId)) {
+          setHasOngoingTrip(true);
+        } else {
+          setHasOngoingTrip(false);
+        }
 
-      const currentTravelers = await loadMembersAndShared();
+        const currentTravelers = await loadMembersAndShared();
 
-      if (skipNextTodoLoadRef.current) {
-        skipNextTodoLoadRef.current = false;
-      } else {
-        await loadTodos(currentTravelers);
-      }
+        // 아이템 추가 직후에는 Todo 로딩 스킵 (중복 방지)
+        if (skipNextTodoLoadRef.current) {
+          skipNextTodoLoadRef.current = false;
+        } else {
+          await loadTodos(currentTravelers);
+        }
 
-      await loadMemos();
-    })();
-  }, [loadMembersAndShared, loadTodos, loadMemos, tripId]),
-);
+        await loadMemos();
+      })();
+    }, [loadMembersAndShared, loadTodos, loadMemos, tripId]),
+  );
 
+  // 초대 코드 관련
+
+  /** 초대코드를 클립보드에 복사 */
   const copyInviteCodeToClipboard = useCallback(async (code) => {
     const safe = String(code || '').trim();
     if (!safe) return;
@@ -454,6 +490,7 @@ function PrepareScreen() {
     });
   }, []);
 
+  /** 초대코드 조회 및 복사 */
   const fetchAndCopyInviteCode = useCallback(async () => {
     if (!tripId || inviting) return;
     try {
@@ -495,6 +532,7 @@ function PrepareScreen() {
     }
   }, [tripId, inviting, copyInviteCodeToClipboard]);
 
+  /** 초대코드 재발급 및 복사 */
   const regenerateAndCopyInviteCode = useCallback(async () => {
     if (!tripId || inviting) return;
     try {
@@ -519,6 +557,7 @@ function PrepareScreen() {
     }
   }, [tripId, inviting, copyInviteCodeToClipboard]);
 
+  /** 초대 액션 다이얼로그 표시 */
   const openInviteActions = useCallback(() => {
     Alert.alert('여행자 추가', '초대코드를 복사해서 친구에게 보내주세요.', [
       { text: '초대코드 복사', onPress: fetchAndCopyInviteCode },
@@ -531,6 +570,9 @@ function PrepareScreen() {
     ]);
   }, [fetchAndCopyInviteCode, regenerateAndCopyInviteCode]);
 
+  // 아이템 작업 핸들러
+
+  /** 섹션에 맞는 operations 객체 반환 */
   const getOperations = (sectionKey) => {
     switch (sectionKey) {
       case 'shared':
@@ -546,6 +588,7 @@ function PrepareScreen() {
     }
   };
 
+  /** 아이템 추가 */
   const addItem = async (setter, list, sectionKey) => {
     if (!text.trim()) return;
 
@@ -554,7 +597,7 @@ function PrepareScreen() {
 
     try {
       await ops.create(text.trim());
-      skipNextTodoLoadRef.current = true;
+      skipNextTodoLoadRef.current = true; // 다음 Todo 로딩 스킵
 
       setText('');
       setAdding(null);
@@ -562,6 +605,7 @@ function PrepareScreen() {
     }
   };
 
+  /** 아이템 삭제 */
   const deleteItem = async (list, setter, index, sectionKey) => {
     const item = list[index];
     const ops = getOperations(sectionKey);
@@ -573,6 +617,7 @@ function PrepareScreen() {
     }
   };
 
+  /** 아이템 수정 */
   const editItem = async (list, setter, index, newContent, sectionKey) => {
     const item = list[index];
     const ops = getOperations(sectionKey);
@@ -584,6 +629,7 @@ function PrepareScreen() {
     }
   };
 
+  /** 체크 상태 토글 */
   const toggleCheck = async (list, setter, index, sectionKey) => {
     const item = list[index];
     const ops = getOperations(sectionKey);
@@ -595,6 +641,7 @@ function PrepareScreen() {
     }
   };
 
+  /** 담당자 할당/해제 */
   const assignTraveler = async (list, setter, index, sectionKey) => {
     const item = list[index];
     const ops = getOperations(sectionKey);
@@ -603,9 +650,12 @@ function PrepareScreen() {
     try {
       await ops.toggleAssign(item.id, !!item.travelerId);
     } catch (e) {
+      // 에러는 ops.toggleAssign에서 처리됨
     }
   };
 
+  // 여행 관리
+  /** 여행 시작 (상태를 ONGOING으로 변경) */
   const handleStartTrip = async (tripId) => {
     if (!tripId) {
       Alert.alert('오류', '여행 ID를 찾을 수 없습니다.');
@@ -638,6 +688,7 @@ function PrepareScreen() {
     }
   };
 
+  /** 모든 준비물/Todo/메모 데이터 삭제 */
   const handleDeleteAllData = async () => {
     if (!tripId) {
       Alert.alert('실패', 'tripId가 없습니다');
@@ -666,6 +717,7 @@ function PrepareScreen() {
     }
   };
 
+  /** 여행 자체를 삭제 (미사용) */
   const handleDeleteTrip = async () => {
     if (!tripId) {
       Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
@@ -684,6 +736,8 @@ function PrepareScreen() {
       console.error('삭제 실패', error);
     }
   };
+
+  // 렌더링
 
   if (!trip) {
     return (
