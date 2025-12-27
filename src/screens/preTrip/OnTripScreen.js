@@ -85,8 +85,8 @@ function OnTripScreen() {
   const normalizeItem = (item, sectionKey, travelersList) => {
     const base = {
       id: String(item.id),
-      content: item.name,
-      checked: !!item.checked,
+      content: item.title || item.name || '',
+      checked: item.status === 'DONE' || !!item.checked,
     };
 
     // 담당자 정보가 필요한 섹션
@@ -198,7 +198,7 @@ function OnTripScreen() {
       // 4. 메모 조회
       try {
         const memosRes = await getMemos(tripId);
-        const memosData = memosRes?.data || memosRes || [];
+        const memosData = memosRes?.data?.memos || memosRes?.memos || memosRes?.data || memosRes || [];
         
         if (Array.isArray(memosData)) {
           const memosList = memosData.map((m) => ({
@@ -256,20 +256,27 @@ function OnTripScreen() {
         case 'necessity':
           created = await createTodo(tripId, {
             name: text.trim(),
+            title: text.trim(),
             category: TODO_CATEGORY.NECESSITY,
           });
-          setNecessity((prev) => [...prev, normalizeItem(created, 'necessity', travelers)]);
+
+          const necessityItem = normalizeItem(created, 'necessity', travelers);
+          necessityItem.category = TODO_CATEGORY.NECESSITY;
+          setNecessity((prev) => [...prev, necessityItem]);
           console.log('[OnTripScreen] 필수 할 일 추가 완료:', created);
           break;
 
         case 'activities':
           created = await createTodo(tripId, {
             name: text.trim(),
+            title: text.trim(),
             category: TODO_CATEGORY.ACTIVITY,
           });
-          setActivities((prev) => [...prev, normalizeItem(created, 'activities', travelers)]);
-          console.log('[OnTripScreen] 여행 활동 추가 완료:', created);
-          break;
+          const activityItem = normalizeItem(created, 'activities', travelers);
+  activityItem.category = TODO_CATEGORY.ACTIVITY; 
+  setActivities((prev) => [...prev, activityItem]);
+  console.log('[OnTripScreen] 여행 활동 추가 완료:', created);
+  break;
       }
 
       setText('');

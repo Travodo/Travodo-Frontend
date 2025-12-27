@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,16 @@ import {
   Animated,
   KeyboardAvoidingView,
 } from 'react-native';
-import { colors } from '../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { colors } from '../styles/colors';
 import { getCurrentTrip } from '../services/api';
 
 const calculateDDay = (startDateString) => {
   if (!startDateString) return null;
 
   const dateParts = startDateString.match(/\d+/g);
-  if (!dateParts || dateParts.length < 3) {
-    console.error('날짜 형식이 올바르지 않습니다:', startDateString);
-    return null;
-  }
+  if (!dateParts || dateParts.length < 3) return null;
 
   const year = parseInt(dateParts[0], 10);
   const month = parseInt(dateParts[1], 10) - 1;
@@ -30,67 +27,74 @@ const calculateDDay = (startDateString) => {
   today.setHours(0, 0, 0, 0);
   startDate.setHours(0, 0, 0, 0);
 
-  const timeDiff = startDate.getTime() - today.getTime();
-  const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
-  if (isNaN(dayDiff)) {
-    console.error('날짜 계산 중 오류 발생 (NaN)', startDateString);
-    return null;
-  }
-
-  return dayDiff;
+  const diff = startDate.getTime() - today.getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
 export default function TripCard({ trip, hideActions = false }) {
   const navigation = useNavigation();
-  const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
+
+  const [expanded, setExpanded] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
   const [ongoingTrip, setOngoingTrip] = useState(null);
 
-  const startDate = trip?.startDate;
-  const endDate = trip?.endDate;
-  const tripName = trip?.name ?? trip?.title ?? trip?.tripTitle ?? '여행';
-  const destination = trip?.destination ?? trip?.place ?? trip?.location ?? '';
-  const companions = Array.isArray(trip?.companions) ? trip.companions : [];
-  const dDay = calculateDDay(startDate);
-
-  // 현재 진행중인 여행 가져오기
-  const loadCurrentTrip = async () => {
-    try {
-      const currentData = await getCurrentTrip();
-      if (currentData && currentData.id) {
-        setOngoingTrip(currentData);
-      } else {
-        setOngoingTrip(null);
-      }
-    } catch (error) {
-      console.error('[TripCard] 현재 여행 조회 실패:', error);
-      setOngoingTrip(null);
-    }
-  };
-
-  // 화면 포커스 시마다 현재 여행 새로고침
   useFocusEffect(
     useCallback(() => {
-      loadCurrentTrip();
+      (async () => {
+        try {
+          const data = await getCurrentTrip();
+          setOngoingTrip(data?.id ? data : null);
+        } catch {
+          setOngoingTrip(null);
+        }
+      })();
     }, []),
   );
 
-  const isOngoingInApi = ongoingTrip && String(ongoingTrip.id) === String(trip.id);
-  const realStatus = isOngoingInApi ? 'ONGOING' : trip?.status || 'UPCOMING';
+  const isOngoingInApi =
+    ongoingTrip && String(ongoingTrip.id) === String(trip?.id);
 
-  const onLayout = (event) => {
-    const { height } = event.nativeEvent.layout;
-    if (height !== contentHeight) {
-      setContentHeight(height);
-    }
-  };
+  const targetTripData = isOngoingInApi
+    ? {
+        ...ongoingTrip,
+        name:
+          ongoingTrip?.name ??
+          ongoingTrip?.title ??
+          trip?.name ??
+          trip?.title ??
+          trip?.tripTitle,
+        destination:
+          ongoingTrip?.destination ??
+          trip?.destination ??
+          trip?.place ??
+          trip?.location,
+        companions: ongoingTrip?.companions ?? trip?.companions,
+        color: ongoingTrip?.color ?? trip?.color,
+      }
+    : trip;
+
+  const startDate = targetTripData?.startDate;
+  const endDate = targetTripData?.endDate;
+  const tripName =
+    targetTripData?.name ??
+    targetTripData?.title ??
+    targetTripData?.tripTitle ??
+    '여행';
+  const destination =
+    targetTripData?.destination ??
+    targetTripData?.place ??
+    targetTripData?.location ??
+    '';
+  const companions = Array.isArray(targetTripData?.companions)
+    ? targetTripData.companions
+    : [];
+  const dDay = calculateDDay(startDate);
 
   const toggleExpand = () => {
-    const finalValue = expanded ? 0 : 1;
+    const toValue = expanded ? 0 : 1;
     Animated.timing(animation, {
-      toValue: finalValue,
+      toValue,
       duration: 240,
       useNativeDriver: false,
     }).start();
@@ -109,67 +113,19 @@ export default function TripCard({ trip, hideActions = false }) {
 
   const renderDDay = () => {
     if (dDay === null) return null;
-
-    let dDayText;
-    if (dDay > 0) dDayText = `D-${dDay}`;
-    else if (dDay === 0) dDayText = '오늘!';
-    else dDayText = `D+${Math.abs(dDay)}`;
-
-    const dDayStyle = dDay > 0 ? styles.dDay : styles.dDayPassed;
-    return <Text style={dDayStyle}>{dDayText}</Text>;
+    if (dDay > 0) return <Text style={styles.dDay}>{`D-${dDay}`}</Text>;
+    if (dDay === 0) return <Text style={styles.dDay}>오늘!</Text>;
+    return <Text style={styles.dDayPassed}>{`D+${Math.abs(dDay)}`}</Text>;
   };
 
   const navigateTrip = () => {
-    console.log('[TripCard] 이동 시도:', {
-      realStatus,
-      id: trip.id,
-      isOngoingInApi,
-    });
+    const status = isOngoingInApi ? 'ONGOING' : trip?.status || 'UPCOMING';
 
-    const targetTripData = isOngoingInApi ? ongoingTrip : trip;
-
-    if (realStatus === 'ONGOING') {
-      try {
-        navigation.navigate('OnTrip', { trip: targetTripData });
-      } catch (e) {
-        console.warn('OnTrip 이동 실패, TripStack으로 시도합니다.');
-        navigation.navigate('TripStack', {
-          screen: 'OnTrip',
-          params: { trip: targetTripData },
-        });
-      }
+    if (status === 'ONGOING') {
+      navigation.navigate('OnTrip', { trip: targetTripData });
     } else {
-      try {
-        navigation.navigate('Prepare', { tripData: trip });
-      } catch (e) {
-        console.warn('Prepare 이동 실패, TripStack으로 시도합니다.');
-        navigation.navigate('TripStack', {
-          screen: 'Prepare',
-          params: { tripData: trip },
-        });
-      }
+      navigation.navigate('Prepare', { tripData: targetTripData });
     }
-  };
-
-  const navigateToCommunityWrite = (tripData) => {
-    let nav = navigation;
-    for (let i = 0; i < 6 && nav; i += 1) {
-      const state = nav.getState?.();
-      const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
-
-      if (routeNames.includes('CommunityWrite')) {
-        nav.navigate('CommunityWrite', { tripData });
-        return;
-      }
-
-      if (routeNames.includes('CommunityStack')) {
-        nav.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
-        return;
-      }
-
-      nav = nav.getParent?.();
-    }
-    navigation.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
   };
 
   return (
@@ -178,33 +134,41 @@ export default function TripCard({ trip, hideActions = false }) {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={toggleExpand}
-          style={[styles.card, { borderLeftColor: trip.color || colors.primary[700] }]}
+          style={[
+            styles.card,
+            { borderLeftColor: targetTripData?.color || colors.primary[700] },
+          ]}
         >
           <View style={styles.headerRow}>
-            <View style={[styles.circle, { backgroundColor: trip.color || colors.primary[700] }]} />
+            <View
+              style={[
+                styles.circle,
+                { backgroundColor: targetTripData?.color || colors.primary[700] },
+              ]}
+            />
             <Text style={styles.name}>{tripName}</Text>
             {renderDDay()}
             <MaterialIcons
               name={expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
               size={24}
               color={colors.grayscale[900]}
-              style={styles.expendIcon}
             />
           </View>
           <Text style={styles.date}>
             {startDate} - {endDate}
           </Text>
         </TouchableOpacity>
+
         <Animated.View
           style={[
             styles.detailBox,
-            {
-              height: heightInterpolate,
-              opacity: opacityInterpolate,
-            },
+            { height: heightInterpolate, opacity: opacityInterpolate },
           ]}
         >
-          <View style={styles.detailInner} onLayout={onLayout}>
+          <View
+            style={styles.detailInner}
+            onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
+          >
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>여행지</Text>
               <Text style={styles.detailValue}>{destination}</Text>
@@ -222,32 +186,35 @@ export default function TripCard({ trip, hideActions = false }) {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>동행자</Text>
               <Text style={styles.detailValue}>
-                {companions.length > 0 ? companions.join(', ') : '동행자 없음'}
+                {companions.length ? companions.join(', ') : '동행자 없음'}
               </Text>
             </View>
-            <View style={styles.divider} />
 
             {!hideActions && (
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={styles.shareButton}
-                  onPress={() => {
-                    navigateToCommunityWrite({
-                      id: trip?.id,
-                      tripId: trip?.id,
-                      tripTitle: tripName,
-                      location: destination,
-                      startDate,
-                      endDate,
-                      companions,
-                      circleColor: trip?.color,
-                    });
-                  }}
+                  onPress={() =>
+                    navigation.navigate('CommunityWrite', {
+                      tripData: {
+                        id: targetTripData?.id,
+                        tripTitle: tripName,
+                        location: destination,
+                        startDate,
+                        endDate,
+                        companions,
+                        circleColor: targetTripData?.color,
+                      },
+                    })
+                  }
                 >
                   <Text style={styles.shareText}>공유하기</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.disabledButton} onPress={navigateTrip}>
+                <TouchableOpacity
+                  style={styles.disabledButton}
+                  onPress={navigateTrip}
+                >
                   <Text style={styles.disabledText}>자세히 보기</Text>
                 </TouchableOpacity>
               </View>
