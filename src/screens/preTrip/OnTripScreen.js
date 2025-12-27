@@ -2,12 +2,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 import TripCard from '../../components/TripCard';
 import TravelerAvatar from '../../components/TravelerAvatar';
 import { renderSection } from '../../utils/renderSection';
 import { colors } from '../../styles/colors';
 import sharedStyles from './sharedStyles';
 import Plus from '../../../assets/ProfileImg/Plus.svg';
+import { clearOngoingTripFromStorage } from './PrepareScreen';
 import {
   assignSharedItem,
   createSharedItem,
@@ -43,12 +45,13 @@ function OnTripScreen() {
 
   const [adding, setAdding] = useState(null);
   const [text, setText] = useState('');
+  const [isEnding, setIsEnding] = useState(false);
 
   const tripId = trip?.id;
   const colorPool = React.useMemo(
-  () => ['#769FFF', '#FFE386', '#EE8787', '#A4C664'],
-  [],
-);
+    () => ['#769FFF', '#FFE386', '#EE8787', '#A4C664'],
+    [],
+  );
 
   const loadMembersAndShared = useCallback(async () => {
     if (!tripId) return;
@@ -79,7 +82,8 @@ function OnTripScreen() {
         checked: !!it.checked,
         travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
         travelerName: it.assigneeName ?? null,
-        travelerColor: it.assigneeId != null ? (nextColorMap[String(it.assigneeId)] ?? null) : null,
+        travelerColor:
+          it.assigneeId != null ? nextColorMap[String(it.assigneeId)] ?? null : null,
       }));
 
       setTravelers(mappedMembers);
@@ -87,7 +91,7 @@ function OnTripScreen() {
     } catch (e) {
       console.error('여행 멤버/공동 준비물 조회 실패:', e);
     }
-  }, [tripId]);
+  }, [tripId, colorPool]);
 
   useFocusEffect(
     useCallback(() => {
@@ -111,8 +115,8 @@ function OnTripScreen() {
               travelerName: created?.assigneeName ?? null,
               travelerColor:
                 created?.assigneeId != null
-                  ? (travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
-                    null)
+                  ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
+                    null
                   : null,
             },
           ]);
@@ -164,8 +168,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
-                            ?.color ?? null)
+                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null
                         : null,
                   }
                 : x,
@@ -197,8 +201,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
-                            ?.color ?? null)
+                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null
                         : null,
                   }
                 : x,
@@ -231,8 +235,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
-                            ?.color ?? null)
+                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null
                         : null,
                   }
                 : x,
@@ -245,8 +249,6 @@ function OnTripScreen() {
       })();
       return;
     }
-    // 진행 중 화면에서는 로컬 할일(필수)만 사용: 선택된 여행자 할당
-    // 기존 PrepareScreen과 동일 로직을 유지하기 위해 여기서는 no-op 또는 추후 통합 가능
     Alert.alert('안내', '이 화면에서는 담당자 할당을 지원하지 않습니다.');
   };
 
@@ -257,14 +259,36 @@ function OnTripScreen() {
         text: '종료',
         style: 'destructive',
         onPress: async () => {
+          if (isEnding) return; 
+          
           try {
-            if (trip?.id != null) {
-              await updateTripStatus(trip.id, 'FINISHED');
+            setIsEnding(true);
+
+            if (!trip?.id) {
+              Alert.alert('오류', '여행 정보를 찾을 수 없습니다.');
+              return;
             }
-          } catch (e) {
-            console.error(e);
-          } finally {
+
+            await updateTripStatus(trip.id, 'FINISHED');
+            console.log('[OnTripScreen] 서버 상태 변경 완료 - FINISHED');
+
+            await clearOngoingTripFromStorage();
+            console.log('[OnTripScreen] AsyncStorage 클리어 완료');
+
+            Toast.show({
+              type: 'success',
+              text1: '여행이 종료되었습니다',
+              text2: '즐거운 추억 되셨나요? 😊',
+              text1Style: { fontSize: 16 },
+              text2Style: { fontSize: 13 },
+            });
+
             navigation.navigate('EndTrip', { trip });
+          } catch (e) {
+            console.error('[OnTripScreen] 여행 종료 실패:', e);
+            Alert.alert('실패', '여행 종료에 실패했습니다.');
+          } finally {
+            setIsEnding(false);
           }
         },
       },
@@ -370,6 +394,7 @@ function OnTripScreen() {
               style={sharedStyles.memoLeft}
               onPress={() =>
                 navigation.navigate('MemoScreen', {
+                  tripId,
                   memo,
                   onSave: (updatedMemo) => {
                     setMemos((prev) =>
@@ -397,6 +422,7 @@ function OnTripScreen() {
             style={sharedStyles.plusButton}
             onPress={() =>
               navigation.navigate('MemoScreen', {
+                tripId,
                 onSave: (newMemo) => {
                   setMemos((prev) => [...prev, newMemo]);
                 },
@@ -410,8 +436,14 @@ function OnTripScreen() {
         <View style={sharedStyles.sectionDivider} />
 
         <View style={styles.endButtonWrapper}>
-          <Pressable style={styles.endButton} onPress={handleEndTrip}>
-            <Text style={styles.endButtonText}>여행 종료</Text>
+          <Pressable
+            style={[styles.endButton, isEnding && styles.endButtonDisabled]}
+            onPress={handleEndTrip}
+            disabled={isEnding}
+          >
+            <Text style={styles.endButtonText}>
+              {isEnding ? '종료 중...' : '여행 종료'}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -433,6 +465,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 100,
     marginVertical: 20,
+  },
+
+  endButtonDisabled: {
+    opacity: 0.6,
   },
 
   endButtonText: {
