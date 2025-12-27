@@ -48,10 +48,7 @@ function OnTripScreen() {
   const [isEnding, setIsEnding] = useState(false);
 
   const tripId = trip?.id;
-  const colorPool = React.useMemo(
-    () => ['#769FFF', '#FFE386', '#EE8787', '#A4C664'],
-    [],
-  );
+  const colorPool = React.useMemo(() => ['#769FFF', '#FFE386', '#EE8787', '#A4C664'], []);
 
   const loadMembersAndShared = useCallback(async () => {
     if (!tripId) return;
@@ -82,8 +79,7 @@ function OnTripScreen() {
         checked: !!it.checked,
         travelerId: it.assigneeId != null ? String(it.assigneeId) : null,
         travelerName: it.assigneeName ?? null,
-        travelerColor:
-          it.assigneeId != null ? nextColorMap[String(it.assigneeId)] ?? null : null,
+        travelerColor: it.assigneeId != null ? (nextColorMap[String(it.assigneeId)] ?? null) : null,
       }));
 
       setTravelers(mappedMembers);
@@ -115,8 +111,8 @@ function OnTripScreen() {
               travelerName: created?.assigneeName ?? null,
               travelerColor:
                 created?.assigneeId != null
-                  ? travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
-                    null
+                  ? (travelers.find((t) => String(t.id) === String(created.assigneeId))?.color ??
+                    null)
                   : null,
             },
           ]);
@@ -168,8 +164,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))
-                            ?.color ?? null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -201,8 +197,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))
-                            ?.color ?? null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -235,8 +231,8 @@ function OnTripScreen() {
                     travelerName: updated?.assigneeName ?? null,
                     travelerColor:
                       updated?.assigneeId != null
-                        ? travelers.find((t) => String(t.id) === String(updated.assigneeId))
-                            ?.color ?? null
+                        ? (travelers.find((t) => String(t.id) === String(updated.assigneeId))
+                            ?.color ?? null)
                         : null,
                   }
                 : x,
@@ -252,6 +248,7 @@ function OnTripScreen() {
     Alert.alert('안내', '이 화면에서는 담당자 할당을 지원하지 않습니다.');
   };
 
+  // ✅ 수정된 여행 종료 핸들러
   const handleEndTrip = () => {
     Alert.alert('여행 종료', '여행을 종료하시겠습니까?', [
       { text: '취소', style: 'cancel' },
@@ -259,8 +256,8 @@ function OnTripScreen() {
         text: '종료',
         style: 'destructive',
         onPress: async () => {
-          if (isEnding) return; 
-          
+          if (isEnding) return; // 중복 클릭 방지
+
           try {
             setIsEnding(true);
 
@@ -269,12 +266,15 @@ function OnTripScreen() {
               return;
             }
 
+            // 1. 서버에 여행 종료 요청
             await updateTripStatus(trip.id, 'FINISHED');
             console.log('[OnTripScreen] 서버 상태 변경 완료 - FINISHED');
 
+            // 2. AsyncStorage에서 진행 중인 여행 상태 삭제
             await clearOngoingTripFromStorage();
             console.log('[OnTripScreen] AsyncStorage 클리어 완료');
 
+            // 3. 성공 메시지
             Toast.show({
               type: 'success',
               text1: '여행이 종료되었습니다',
@@ -283,6 +283,7 @@ function OnTripScreen() {
               text2Style: { fontSize: 13 },
             });
 
+            // 4. EndTrip 화면으로 이동
             navigation.navigate('EndTrip', { trip });
           } catch (e) {
             console.error('[OnTripScreen] 여행 종료 실패:', e);
@@ -441,9 +442,7 @@ function OnTripScreen() {
             onPress={handleEndTrip}
             disabled={isEnding}
           >
-            <Text style={styles.endButtonText}>
-              {isEnding ? '종료 중...' : '여행 종료'}
-            </Text>
+            <Text style={styles.endButtonText}>{isEnding ? '종료 중...' : '여행 종료'}</Text>
           </Pressable>
         </View>
       </ScrollView>
