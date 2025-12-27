@@ -27,7 +27,7 @@ function ProfileScreen() {
   const navigation = useNavigation();
   const { logout } = useAuth();
   const [me, setMe] = useState(null);
-  const [isMeLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   const refreshMe = useCallback(async () => {
     try {
