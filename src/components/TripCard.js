@@ -11,6 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors } from '../styles/colors';
 import { getCurrentTrip } from '../services/api';
+import PropTypes from 'prop-types';
 
 const calculateDDay = (startDateString) => {
   if (!startDateString) return null;
@@ -52,23 +53,14 @@ export default function TripCard({ trip, hideActions = false }) {
     }, []),
   );
 
-  const isOngoingInApi =
-    ongoingTrip && String(ongoingTrip.id) === String(trip?.id);
+  const isOngoingInApi = ongoingTrip && String(ongoingTrip.id) === String(trip?.id);
 
   const targetTripData = isOngoingInApi
     ? {
         ...ongoingTrip,
         name:
-          ongoingTrip?.name ??
-          ongoingTrip?.title ??
-          trip?.name ??
-          trip?.title ??
-          trip?.tripTitle,
-        destination:
-          ongoingTrip?.destination ??
-          trip?.destination ??
-          trip?.place ??
-          trip?.location,
+          ongoingTrip?.name ?? ongoingTrip?.title ?? trip?.name ?? trip?.title ?? trip?.tripTitle,
+        destination: ongoingTrip?.destination ?? trip?.destination ?? trip?.place ?? trip?.location,
         companions: ongoingTrip?.companions ?? trip?.companions,
         color: ongoingTrip?.color ?? trip?.color,
       }
@@ -77,18 +69,10 @@ export default function TripCard({ trip, hideActions = false }) {
   const startDate = targetTripData?.startDate;
   const endDate = targetTripData?.endDate;
   const tripName =
-    targetTripData?.name ??
-    targetTripData?.title ??
-    targetTripData?.tripTitle ??
-    '여행';
+    targetTripData?.name ?? targetTripData?.title ?? targetTripData?.tripTitle ?? '여행';
   const destination =
-    targetTripData?.destination ??
-    targetTripData?.place ??
-    targetTripData?.location ??
-    '';
-  const companions = Array.isArray(targetTripData?.companions)
-    ? targetTripData.companions
-    : [];
+    targetTripData?.destination ?? targetTripData?.place ?? targetTripData?.location ?? '';
+  const companions = Array.isArray(targetTripData?.companions) ? targetTripData.companions : [];
   const dDay = calculateDDay(startDate);
 
   const toggleExpand = () => {
@@ -134,10 +118,7 @@ export default function TripCard({ trip, hideActions = false }) {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={toggleExpand}
-          style={[
-            styles.card,
-            { borderLeftColor: targetTripData?.color || colors.primary[700] },
-          ]}
+          style={[styles.card, { borderLeftColor: targetTripData?.color || colors.primary[700] }]}
         >
           <View style={styles.headerRow}>
             <View
@@ -160,10 +141,7 @@ export default function TripCard({ trip, hideActions = false }) {
         </TouchableOpacity>
 
         <Animated.View
-          style={[
-            styles.detailBox,
-            { height: heightInterpolate, opacity: opacityInterpolate },
-          ]}
+          style={[styles.detailBox, { height: heightInterpolate, opacity: opacityInterpolate }]}
         >
           <View
             style={styles.detailInner}
@@ -191,44 +169,58 @@ export default function TripCard({ trip, hideActions = false }) {
             </View>
 
             {!hideActions && (
-  <View style={styles.buttonRow}>
-    <TouchableOpacity
-      style={styles.shareButton}
-      onPress={() => {
-        navigation.navigate('CommunityStack', {
-          screen: 'CommunityWrite',
-          params: {
-            tripData: {
-              id: targetTripData?.id,
-              tripTitle: tripName,
-              location: destination,
-              startDate,
-              endDate,
-              companions,
-              circleColor: targetTripData?.color,
-            },
-          },
-        });
-      }}
-    >
-      <Text style={styles.shareText}>공유하기</Text>
-    </TouchableOpacity>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={styles.shareButton}
+                  onPress={() => {
+                    navigation.navigate('CommunityStack', {
+                      screen: 'CommunityWrite',
+                      params: {
+                        tripData: {
+                          id: targetTripData?.id,
+                          tripTitle: tripName,
+                          location: destination,
+                          startDate,
+                          endDate,
+                          companions,
+                          circleColor: targetTripData?.color,
+                        },
+                      },
+                    });
+                  }}
+                >
+                  <Text style={styles.shareText}>공유하기</Text>
+                </TouchableOpacity>
 
-    <TouchableOpacity
-      style={styles.disabledButton}
-      onPress={navigateTrip}
-    >
-      <Text style={styles.disabledText}>자세히 보기</Text>
-    </TouchableOpacity>
-  </View>
-)}
-
+                <TouchableOpacity style={styles.disabledButton} onPress={navigateTrip}>
+                  <Text style={styles.disabledText}>자세히 보기</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </Animated.View>
       </View>
     </KeyboardAvoidingView>
   );
 }
+
+TripCard.propTypes = {
+  trip: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    name: PropTypes.string,
+    title: PropTypes.string,
+    tripTitle: PropTypes.string,
+    startDate: PropTypes.string,
+    endDate: PropTypes.string,
+    destination: PropTypes.string,
+    place: PropTypes.string,
+    location: PropTypes.string,
+    companions: PropTypes.arrayOf(PropTypes.string),
+    color: PropTypes.string,
+    status: PropTypes.string,
+  }),
+  hideActions: PropTypes.bool,
+};
 
 const styles = StyleSheet.create({
   wrapper: {

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const scale = SCREEN_WIDTH / 375;
@@ -100,6 +101,14 @@ export default function DatePickerModal({ isVisible, onConfirm, onCancel, mode, 
     </Modal>
   );
 }
+
+DatePickerModal.propTypes = {
+  isVisible: PropTypes.bool.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  mode: PropTypes.oneOf(['start', 'end']),
+  initialDate: PropTypes.string,
+};
 
 const styles = StyleSheet.create({
   overlay: {

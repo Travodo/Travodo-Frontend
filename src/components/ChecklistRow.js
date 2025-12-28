@@ -52,9 +52,7 @@ export default function ChecklistRow({
             }}
             style={{ flex: 1 }}
           >
-            <Text style={[styles.text, checked && styles.checkedText]}>
-              {text}
-            </Text>
+            <Text style={[styles.text, checked && styles.checkedText]}>{text}</Text>
           </Pressable>
         )}
       </View>
@@ -65,32 +63,35 @@ export default function ChecklistRow({
             <Pressable onPress={onAssign} style={styles.assignButton}>
               {travelerName ? (
                 <View style={[styles.badge, { backgroundColor: travelerColor + '33' }]}>
-                  <Text style={[styles.badgeText, { color: travelerColor }]}>
-                    {travelerName}
-                  </Text>
+                  <Text style={[styles.badgeText, { color: travelerColor }]}>{travelerName}</Text>
                 </View>
               ) : (
-                <MaterialIcons
-                  name="person-add"
-                  size={20}
-                  color={colors.grayscale[500]}
-                />
+                <MaterialIcons name="person-add" size={20} color={colors.grayscale[500]} />
               )}
             </Pressable>
           )}
 
           <Pressable onPress={onDelete} style={styles.deleteButton}>
-            <MaterialIcons
-              name="delete-outline"
-              size={20}
-              color={colors.grayscale[600]}
-            />
+            <MaterialIcons name="delete-outline" size={20} color={colors.grayscale[600]} />
           </Pressable>
         </View>
       )}
     </View>
   );
 }
+
+ChecklistRow.propTypes = {
+  content: PropTypes.string.isRequired,
+  travelerName: PropTypes.string,
+  travelerColor: PropTypes.string,
+  showAssignee: PropTypes.bool,
+  onAssign: PropTypes.func,
+  onDelete: PropTypes.func,
+  onEdit: PropTypes.func,
+  readonly: PropTypes.bool,
+  checked: PropTypes.bool.isRequired,
+  onCheck: PropTypes.func,
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -153,6 +154,6 @@ const styles = StyleSheet.create({
 
   deleteButton: {
     padding: 4,
-    color: colors.grayscale[700]
+    color: colors.grayscale[700],
   },
 });

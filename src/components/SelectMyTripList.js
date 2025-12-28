@@ -1,6 +1,6 @@
 import { FlatList } from 'react-native';
 import SelectMyTrip from './SelectMyTrip';
-import propTypes from 'prop-types';
+import PropTypes from 'prop-types';
 
 function SelectMyTripList({ data, selectedId, onSelect }) {
   return (
@@ -23,5 +23,19 @@ function SelectMyTripList({ data, selectedId, onSelect }) {
     />
   );
 }
+
+SelectMyTripList.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      tripTitle: PropTypes.string.isRequired,
+      startDate: PropTypes.string,
+      endDate: PropTypes.string,
+      circleColor: PropTypes.string,
+    }),
+  ).isRequired,
+  selectedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onSelect: PropTypes.func.isRequired,
+};
 
 export default SelectMyTripList;
