@@ -25,20 +25,20 @@ function HomeScreen({ route }) {
     
     if (currentData?.id) {
       if (storedTripData) {
-        try {
-          const parsedTrip = JSON.parse(storedTripData);
-          if (String(parsedTrip.id) === String(currentData.id)) {
-            console.log('[HomeScreen] 저장된 trip 데이터 사용 (API 호출 최소화)');
-            setOngoingTrip(parsedTrip);
-          } else {
-            setOngoingTrip(currentData);
-          }
-        } catch (e) {
-          setOngoingTrip(currentData);
-        }
-      } else {
-        setOngoingTrip(currentData);
-      }
+  try {
+    const parsedTrip = JSON.parse(storedTripData);
+    if (String(parsedTrip.id) === String(currentData.id)) {
+      console.log('[HomeScreen] 저장된 trip 데이터 사용 (API 호출 최소화)');
+      setOngoingTrip({ ...parsedTrip, status: 'ONGOING' }); // ⭐ status 명시
+    } else {
+      setOngoingTrip({ ...currentData, status: 'ONGOING' }); // ⭐ status 명시
+    }
+  } catch (e) {
+    setOngoingTrip({ ...currentData, status: 'ONGOING' }); // ⭐ status 명시
+  }
+} else {
+  setOngoingTrip({ ...currentData, status: 'ONGOING' }); // ⭐ status 명시
+}
     } else {
       setOngoingTrip(null);
       await AsyncStorage.removeItem('@current_trip_data');
