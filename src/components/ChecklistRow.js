@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Checkbox from './Checkbox';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
 export default function ChecklistRow({
   content,
