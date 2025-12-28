@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -374,16 +374,6 @@ function OnTripScreen() {
     }, [loadMembersAndItems]),
   );
 
-useEffect(() => {
-  if (trip) {
-    AsyncStorage.setItem('@current_trip_data', JSON.stringify(trip))
-      .catch(e => console.error('[OnTrip] trip 저장 실패:', e));
-  }
-
-  return () => {
-  };
-}, [trip]);
-
   const addItem = async (setter, list, sectionKey) => {
     if (!text.trim()) return;
     setText('');
@@ -428,7 +418,6 @@ useEffect(() => {
             }
             await updateTripStatus(trip.id, 'FINISHED');
             await AsyncStorage.removeItem(ONGOING_TRIP_KEY);
-            await AsyncStorage.removeItem('@current_trip_data');
             Toast.show({
               type: 'success',
               text1: '여행이 종료되었습니다',
