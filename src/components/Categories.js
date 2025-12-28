@@ -1,6 +1,5 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { colors } from '../styles/colors';
-import { useState } from 'react';
 import PropTypes from 'prop-types';
 
 function Categories({ property, onPress, disable }) {

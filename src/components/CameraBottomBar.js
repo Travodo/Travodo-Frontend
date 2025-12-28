@@ -1,5 +1,6 @@
 import { View, Pressable, StyleSheet, Text, Platform } from 'react-native';
 import Camera from '../../assets/ComponentsImage/Camera.svg';
+import PropTypes from 'prop-types';
 
 function CameraBottomBar({ onCameraPress, onMorePress }) {
   return (
@@ -7,17 +8,17 @@ function CameraBottomBar({ onCameraPress, onMorePress }) {
       <Pressable onPress={onCameraPress}>
         <Camera width={18} height={15} />
       </Pressable>
-      
-      <Pressable
-  style={{ alignItems: 'center', justifyContent: 'center' }}
-  onPress={onMorePress}
->
-  <Text style={styles.dotButton}>· · ·</Text>
-</Pressable>
-
+      <Pressable style={{ alignItems: 'center', justifyContent: 'center' }} onPress={onMorePress}>
+        <Text style={styles.dotButton}>· · ·</Text>
+      </Pressable>
     </View>
   );
 }
+
+CameraBottomBar.propTypes = {
+  onCameraPress: PropTypes.func,
+  onMorePress: PropTypes.func,
+};
 
 const styles = StyleSheet.create({
   container: {

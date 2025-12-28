@@ -3,6 +3,7 @@ import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import ToggleSwitch from './ToggleSwitch';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
 function SettingItem({ label, type, value, onToggle, onPress }) {
   return (
@@ -22,6 +23,14 @@ function SettingItem({ label, type, value, onToggle, onPress }) {
     </TouchableOpacity>
   );
 }
+
+SettingItem.propTypes = {
+  label: PropTypes.string.isRequired,
+  type: PropTypes.oneOf(['toggle', 'navigation']).isRequired,
+  value: PropTypes.bool,
+  onToggle: PropTypes.func,
+  onPress: PropTypes.func,
+};
 
 export default SettingItem;
 

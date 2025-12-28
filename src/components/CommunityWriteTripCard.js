@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { colors } from '../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
+import PropTypes from 'prop-types';
 
 function CommunityWriteTripCard({ data }) {
   if (!data) return null;
@@ -108,6 +109,18 @@ function CommunityWriteTripCard({ data }) {
     </View>
   );
 }
+
+CommunityWriteTripCard.propTypes = {
+  data: PropTypes.shape({
+    tripTitle: PropTypes.string.isRequired,
+    startDate: PropTypes.string.isRequired,
+    endDate: PropTypes.string.isRequired,
+    location: PropTypes.string,
+    companions: PropTypes.array,
+    circleColor: PropTypes.string,
+    todo: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  }),
+};
 
 const styles = StyleSheet.create({
   wrapper: {

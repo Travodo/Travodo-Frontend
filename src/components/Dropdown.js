@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
 function Dropdown({
   label,
@@ -71,6 +72,16 @@ function Dropdown({
     </View>
   );
 }
+
+Dropdown.propTypes = {
+  label: PropTypes.string,
+  options: PropTypes.arrayOf(PropTypes.string),
+  selectedOption: PropTypes.string,
+  visible: PropTypes.bool.isRequired,
+  onToggle: PropTypes.func.isRequired,
+  onSelect: PropTypes.func,
+  dropdownStyle: PropTypes.object,
+};
 
 export default Dropdown;
 

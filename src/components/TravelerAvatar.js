@@ -3,8 +3,16 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import DefaultProfile from '../../assets/ProfileImg/profile.svg';
 import DeleteProfile from '../../assets/ProfileImg/delete.svg';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
-export default function TravelerAvatar({ name, color, selected, onPress, onDelete, showDelete = false }) {
+export default function TravelerAvatar({
+  name,
+  color,
+  selected,
+  onPress,
+  onDelete,
+  showDelete = false,
+}) {
   return (
     <Pressable onPress={onPress}>
       {({ pressed }) => (
@@ -18,10 +26,9 @@ export default function TravelerAvatar({ name, color, selected, onPress, onDelet
                 pressed && styles.pressed,
               ]}
             >
-              <DefaultProfile width={24} height={24} 
-              color={colors.grayscale[100]} />
+              <DefaultProfile width={24} height={24} color={colors.grayscale[100]} />
             </View>
-            
+
             {showDelete && (
               <Pressable
                 style={styles.deleteButton}
@@ -35,13 +42,22 @@ export default function TravelerAvatar({ name, color, selected, onPress, onDelet
               </Pressable>
             )}
           </View>
-          
+
           <Text style={[styles.name, selected && styles.selectedName]}>{name}</Text>
         </View>
       )}
     </Pressable>
   );
 }
+
+TravelerAvatar.propTypes = {
+  name: PropTypes.string.isRequired,
+  color: PropTypes.string,
+  selected: PropTypes.bool,
+  onPress: PropTypes.func,
+  onDelete: PropTypes.func,
+  showDelete: PropTypes.bool,
+};
 
 const styles = StyleSheet.create({
   wrapper: {

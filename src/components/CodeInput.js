@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
 const CODE_LENGTH = 5;
 
@@ -44,6 +45,11 @@ function CodeInput({ value, onChange }) {
     </View>
   );
 }
+
+CodeInput.propTypes = {
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+};
 
 export default CodeInput;
 

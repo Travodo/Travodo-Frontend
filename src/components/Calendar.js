@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { colors } from '../styles/colors';
+import PropTypes from 'prop-types';
 
 const toDateKey = (dateString) => {
   const [y, m, d] = dateString.split('.').map(Number);
@@ -80,3 +81,17 @@ export default function CalendarView({ trips = [], selectedRange }) {
     </View>
   );
 }
+
+CalendarView.propTypes = {
+  trips: PropTypes.arrayOf(
+    PropTypes.shape({
+      startDate: PropTypes.string,
+      endDate: PropTypes.string,
+      color: PropTypes.string,
+    }),
+  ),
+  selectedRange: PropTypes.shape({
+    start: PropTypes.string,
+    end: PropTypes.string,
+  }),
+};
