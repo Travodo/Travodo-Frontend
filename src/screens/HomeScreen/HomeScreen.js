@@ -6,6 +6,7 @@ import FAB from '../../components/FAB';
 import { colors } from '../../styles/colors';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getUpcomingTrips, getCurrentTrip } from '../../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function HomeScreen({ route }) {
   const navigation = useNavigation();
@@ -15,59 +16,52 @@ function HomeScreen({ route }) {
   const [loading, setLoading] = useState(true);
 
   const loadTripsData = useCallback(async () => {
-    setLoading(true);
-    try {
-      console.log('[HomeScreen] 여행 데이터 로딩 시작...');
+  setLoading(true);
+  try {
+    console.log('[HomeScreen] 여행 데이터 로딩 시작...');
 
-      // 1. 현재 진행중인 여행 조회
-      const currentData = await getCurrentTrip();
-
-      // NULL이 아니면 매핑
-      if (currentData && currentData.id) {
-        setOngoingTrip({
-          id: currentData.id,
-          name: currentData.name,
-          status: currentData.status,
-          startDate: String(currentData.startDate || '').replace(/-/g, '.'),
-          endDate: String(currentData.endDate || '').replace(/-/g, '.'),
-        });
+    const storedTripData = await AsyncStorage.getItem('@current_trip_data');
+    const currentData = await getCurrentTrip();
+    
+    if (currentData?.id) {
+      if (storedTripData) {
+        try {
+          const parsedTrip = JSON.parse(storedTripData);
+          if (String(parsedTrip.id) === String(currentData.id)) {
+            console.log('[HomeScreen] 저장된 trip 데이터 사용 (API 호출 최소화)');
+            setOngoingTrip(parsedTrip);
+          } else {
+            setOngoingTrip(currentData);
+          }
+        } catch (e) {
+          setOngoingTrip(currentData);
+        }
       } else {
-        setOngoingTrip(null);
+        setOngoingTrip(currentData);
       }
-
-      // 2. 다가오는 여행 조회
-      const upcomingData = await getUpcomingTrips();
-
-      const list = Array.isArray(upcomingData)
-        ? upcomingData
-        : (upcomingData?.trips ?? upcomingData?.data ?? []);
-
-      const mappedUpcoming = list.map((t) => ({
-        id: t.id,
-        name: t.name,
-        destination: t.place,
-        place: t.place,
-        startDate: String(t.startDate || '').replace(/-/g, '.'),
-        endDate: String(t.endDate || '').replace(/-/g, '.'),
-        dDay: t.dDay,
-        color: t.color,
-        status: t.status,
-        maxMembers: t.maxMembers,
-        companions: [],
-      }));
-
-      console.log('[HomeScreen] ONGOING 여행:', ongoingTrip ? ongoingTrip.name : '없음');
-      console.log('[HomeScreen] UPCOMING 여행:', mappedUpcoming.length, '개');
-
-      setUpcomingTrips(mappedUpcoming);
-    } catch (e) {
-      console.error('[HomeScreen] 여행 데이터 로딩 실패:', e.message);
-      setUpcomingTrips([]);
+    } else {
       setOngoingTrip(null);
-    } finally {
-      setLoading(false);
+      await AsyncStorage.removeItem('@current_trip_data');
     }
-  }, []);
+
+    const upcomingData = await getUpcomingTrips();
+    const list = Array.isArray(upcomingData)
+      ? upcomingData
+      : (upcomingData?.trips ?? upcomingData?.data ?? []);
+
+    setUpcomingTrips(list);
+
+    console.log('[HomeScreen] ONGOING 여행:', ongoingTrip ? ongoingTrip.name : '없음');
+    console.log('[HomeScreen] UPCOMING 여행:', list.length, '개');
+
+  } catch (e) {
+    console.error('[HomeScreen] 여행 데이터 로딩 실패:', e.message);
+    setUpcomingTrips([]);
+    setOngoingTrip(null);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -75,7 +69,6 @@ function HomeScreen({ route }) {
     }, [loadTripsData]),
   );
 
-  // 캘린더에는 모든 여행 표시
   const allTrips = ongoingTrip ? [ongoingTrip, ...upcomingTrips] : upcomingTrips;
 
   return (
@@ -85,16 +78,14 @@ function HomeScreen({ route }) {
         <Text style={styles.subText}>오늘의 일정을 확인해보세요!</Text>
         <CalendarView trips={allTrips} />
 
-        {/* 진행 중인 여행 섹션 */}
         {ongoingTrip && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>진행 중인 여행</Text>
             <Text style={styles.sectionSub}>현재 여행을 즐기고 계시네요! 🎉</Text>
-            <TripCard trip={ongoingTrip} />
+            <TripCard trip={ongoingTrip} skipApiCall={true} />
           </View>
         )}
 
-        {/* 다가오는 여행 섹션 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>다가오는 여행</Text>
           <Text style={styles.sectionSub}>곧 설레는 여행이 시작됩니다!</Text>

@@ -14,10 +14,10 @@ import {
 import CalendarView from '../../components/Calendar';
 import Button from '../../components/Button';
 import { colors } from '../../styles/colors';
-import { getRandomColor } from '../../styles/cardColors';
+import { colorPalette } from '../../styles/cardColors'; 
 import DatePickerModal from '../../components/DatePickerModal';
 import { useNavigation } from '@react-navigation/native';
-import { createTrip } from '../../services/api';
+import { createTrip, getCurrentTrip, getUpcomingTrips } from '../../services/api'; 
 
 function TravelCreateScreen() {
   const navigation = useNavigation();
@@ -63,28 +63,73 @@ function TravelCreateScreen() {
     setTripData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleCreateTrip = async () => {
+  const getAvailableColor = async () => {
     try {
-      const toIsoDate = (d) => String(d || '').replace(/\./g, '-');
-      const toDotDate = (d) => String(d || '').replace(/-/g, '.');
-
-      if (!tripData?.name?.trim() || !tripData?.destination?.trim() || !startDate || !endDate) {
-        Alert.alert('알림', '여행 이름, 여행지, 날짜를 모두 입력해주세요.');
-        return;
-      }
-
-      const maxMembers = 10; // TODO: UI에서 입력받으면 반영
-      const response = await createTrip({
-        name: tripData.name,
-        place: tripData.destination,
-        startDate: toIsoDate(startDate), // YYYY-MM-DD 형태여야 함
-        endDate: toIsoDate(endDate),
-        maxMembers,
+      const [currentTrip, upcomingTrips] = await Promise.all([
+        getCurrentTrip().catch(() => null),
+        getUpcomingTrips().catch(() => []),
+      ]);
+      
+      const usedColors = [];
+      if (currentTrip?.color) usedColors.push(currentTrip.color);
+      
+      const upcoming = Array.isArray(upcomingTrips) 
+        ? upcomingTrips 
+        : (upcomingTrips?.trips ?? upcomingTrips?.data ?? []);
+      
+      upcoming.forEach(trip => {
+        if (trip?.color) usedColors.push(trip.color);
       });
+      
+      const availableColors = colorPalette.filter(
+        color => !usedColors.includes(color)
+      );
+      
+      if (availableColors.length > 0) {
+        const randomIndex = Math.floor(Math.random() * availableColors.length);
+        return availableColors[randomIndex];
+      } else {
+        const randomIndex = Math.floor(Math.random() * colorPalette.length);
+        return colorPalette[randomIndex];
+      }
+    } catch (e) {
+      console.error('[TravelCreate] 색상 선택 실패:', e);
+      const randomIndex = Math.floor(Math.random() * colorPalette.length);
+      return colorPalette[randomIndex];
+    }
+  };
 
-      // 백엔드 응답: { trip: TripResponse, inviteCode: string }
-      const createdTrip = response?.trip;
-      const inviteCode = response?.inviteCode;
+  const handleCreateTrip = async () => {
+  try {
+    const toIsoDate = (d) => String(d || '').replace(/\./g, '-');
+    const toDotDate = (d) => String(d || '').replace(/-/g, '.');
+
+    if (!tripData?.name?.trim() || !tripData?.destination?.trim() || !startDate || !endDate) {
+      Alert.alert('알림', '여행 이름, 여행지, 날짜를 모두 입력해주세요.');
+      return;
+    }
+
+    const selectedColor = await getAvailableColor();
+    console.log('[TravelCreate] 선택된 색상:', selectedColor); 
+
+    const maxMembers = 10;
+    const requestBody = {
+      name: tripData.name,
+      place: tripData.destination,
+      startDate: toIsoDate(startDate),
+      endDate: toIsoDate(endDate),
+      maxMembers,
+      color: selectedColor,
+    };
+    
+    console.log('[TravelCreate] 요청 데이터:', requestBody); 
+    
+    const response = await createTrip(requestBody);
+    
+    console.log('[TravelCreate] 백엔드 응답:', response); 
+
+    const createdTrip = response?.trip;
+    const inviteCode = response?.inviteCode;
 
       navigation.navigate('TravelComplete', {
         tripData: {
@@ -94,7 +139,7 @@ function TravelCreateScreen() {
           startDate: toDotDate(createdTrip?.startDate),
           endDate: toDotDate(createdTrip?.endDate),
           code: inviteCode,
-          color: createdTrip?.color || getRandomColor(),
+          color: createdTrip?.color || selectedColor, 
           companions: (tripData.companions ?? '')
             .split(',')
             .map((c) => c.trim())
