@@ -448,33 +448,36 @@ function PrepareScreen() {
   }, [handleInviteAction]);
 
   const handleStartTrip = async () => {
-    if (!tripId) return;
-    setIsStarting(true);
-    try {
-      const stored = await getOngoingTripFromStorage();
-      if (stored.isOngoing && String(stored.tripId) !== String(tripId)) {
-        Alert.alert('시작 불가', '다른 여행이 진행 중입니다.');
-        setHasOngoingTrip(true);
-        return;
-      }
-      await updateTripStatus(tripId, 'ONGOING');
-      await setOngoingTripInStorage(true, String(tripId));
-      Toast.show({ type: 'success', text1: '여행 시작!', text2: '즐거운 여행 되세요 🎉' });
-      navigation.navigate('OnTrip', {
-        trip,
-        travelers,
-        necessity,
-        shared,
-        personal,
-        activities,
-        memos,
-      });
-    } catch (e) {
-      Alert.alert('실패', e.response?.data?.message || '시작 실패');
-    } finally {
-      setIsStarting(false);
+  if (!tripId) return;
+  setIsStarting(true);
+  try {
+    const stored = await getOngoingTripFromStorage();
+    if (stored.isOngoing && String(stored.tripId) !== String(tripId)) {
+      Alert.alert('시작 불가', '다른 여행이 진행 중입니다.');
+      setHasOngoingTrip(true);
+      return;
     }
-  };
+    await updateTripStatus(tripId, 'ONGOING');
+    await setOngoingTripInStorage(true, String(tripId));
+    
+    await AsyncStorage.setItem('@current_trip_data', JSON.stringify(trip));
+    
+    Toast.show({ type: 'success', text1: '여행 시작!', text2: '즐거운 여행 되세요 🎉' });
+    navigation.navigate('OnTrip', {
+      trip,
+      travelers,
+      necessity,
+      shared,
+      personal,
+      activities,
+      memos,
+    });
+  } catch (e) {
+    Alert.alert('실패', e.response?.data?.message || '시작 실패');
+  } finally {
+    setIsStarting(false);
+  }
+};
 
   const handleDeleteAllData = async () => {
     if (!tripId) return;
