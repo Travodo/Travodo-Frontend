@@ -463,7 +463,9 @@ function PrepareScreen() {
     await AsyncStorage.setItem('@current_trip_data', JSON.stringify(trip));
     
     Toast.show({ type: 'success', text1: '여행 시작!', text2: '즐거운 여행 되세요 🎉' });
-    navigation.navigate('OnTrip', {
+    
+    // ✅ 여기를 수정!
+    navigation.navigate('StartTrip', {  // OnTrip → StartTrip
       trip,
       travelers,
       necessity,
