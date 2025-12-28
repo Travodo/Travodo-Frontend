@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   startText: {
-    color: '#FFFFFF',
+    color: colors.grayscale[100],
     fontSize: 16,
     fontFamily: 'Pretendard-SemiBold',
   },
