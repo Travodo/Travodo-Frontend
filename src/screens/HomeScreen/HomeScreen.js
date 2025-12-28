@@ -163,10 +163,11 @@ const styles = StyleSheet.create({
     color: colors.grayscale[800],
   },
   emptyText: {
-    marginTop: 36,
+    marginTop: 40,
     textAlign: 'center',
     fontSize: 18,
     fontFamily: 'Pretendard-Medium',
     color: colors.primary[700],
+    marginBottom: 100,
   },
 });

@@ -191,34 +191,38 @@ export default function TripCard({ trip, hideActions = false }) {
             </View>
 
             {!hideActions && (
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.shareButton}
-                  onPress={() =>
-                    navigation.navigate('CommunityWrite', {
-                      tripData: {
-                        id: targetTripData?.id,
-                        tripTitle: tripName,
-                        location: destination,
-                        startDate,
-                        endDate,
-                        companions,
-                        circleColor: targetTripData?.color,
-                      },
-                    })
-                  }
-                >
-                  <Text style={styles.shareText}>공유하기</Text>
-                </TouchableOpacity>
+  <View style={styles.buttonRow}>
+    <TouchableOpacity
+      style={styles.shareButton}
+      onPress={() => {
+        navigation.navigate('CommunityStack', {
+          screen: 'CommunityWrite',
+          params: {
+            tripData: {
+              id: targetTripData?.id,
+              tripTitle: tripName,
+              location: destination,
+              startDate,
+              endDate,
+              companions,
+              circleColor: targetTripData?.color,
+            },
+          },
+        });
+      }}
+    >
+      <Text style={styles.shareText}>공유하기</Text>
+    </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.disabledButton}
-                  onPress={navigateTrip}
-                >
-                  <Text style={styles.disabledText}>자세히 보기</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+    <TouchableOpacity
+      style={styles.disabledButton}
+      onPress={navigateTrip}
+    >
+      <Text style={styles.disabledText}>자세히 보기</Text>
+    </TouchableOpacity>
+  </View>
+)}
+
           </View>
         </Animated.View>
       </View>
