@@ -32,7 +32,7 @@ const calculateDDay = (startDateString) => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
-export default function TripCard({ trip, hideActions = false, skipApiCall = false }) {
+export default function TripCard({ trip, hideActions = false }) {
   const navigation = useNavigation();
   const animation = useRef(new Animated.Value(0)).current;
 
@@ -42,8 +42,6 @@ export default function TripCard({ trip, hideActions = false, skipApiCall = fals
 
   useFocusEffect(
     useCallback(() => {
-      if (skipApiCall) return;
-      
       (async () => {
         try {
           const data = await getCurrentTrip();
@@ -52,7 +50,7 @@ export default function TripCard({ trip, hideActions = false, skipApiCall = fals
           setOngoingTrip(null);
         }
       })();
-    }, [skipApiCall]),
+    }, []),
   );
 
   const isOngoingInApi = ongoingTrip && String(ongoingTrip.id) === String(trip?.id);
