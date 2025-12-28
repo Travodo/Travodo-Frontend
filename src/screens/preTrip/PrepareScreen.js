@@ -49,6 +49,7 @@ import {
   getTripInviteCode,
   regenerateInviteCode,
   updateTripStatus,
+  deleteTrip,
 } from '../../services/api';
 
 const SECTION_NAMES = {
@@ -478,19 +479,9 @@ function PrepareScreen() {
   const handleDeleteAllData = async () => {
     if (!tripId) return;
     try {
-      await Promise.all([
-        ...necessity.map((i) => deleteTodo(tripId, i.id)),
-        ...activities.map((i) => deleteActivity(tripId, i.id)),
-        ...shared.map((i) => deleteSharedItem(tripId, i.id)),
-        ...personal.map((i) => deletePersonalItem(tripId, i.id)),
-        ...memos.map((i) => deleteMemo(tripId, i.id)),
-      ]);
-      setNecessity([]);
-      setActivities([]);
-      setShared([]);
-      setPersonal([]);
-      setMemos([]);
-      Alert.alert('완료', '모든 데이터가 삭제되었습니다.');
+      navigation.goBack();
+      await deleteTrip(tripId);
+      Alert.alert('여행 삭제가 완료되었습니다.');
     } catch (e) {
       Alert.alert('실패', '일부 데이터 삭제 실패');
     }
