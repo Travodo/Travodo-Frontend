@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import TripCard from '../../components/TripCard';
 import { colors } from '../../styles/colors';
 import TravodoLogo from '../../../assets/Logo/TravodoLogo.svg';
@@ -11,26 +11,34 @@ function EndTripScreen() {
   const { trip } = route.params || {};
 
   const navigateToCommunityWrite = (tripData) => {
-    // EndTripScreen도 TripStack 내부에서 열리므로 상위 네비게이터에서 CommunityStack을 찾아 이동
-    let nav = navigation;
-    for (let i = 0; i < 6 && nav; i += 1) {
-      const state = nav.getState?.();
-      const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
-
-      if (routeNames.includes('CommunityWrite')) {
-        nav.navigate('CommunityWrite', { tripData });
-        return;
-      }
-
-      if (routeNames.includes('CommunityStack')) {
-        nav.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
-        return;
-      }
-
-      nav = nav.getParent?.();
-    }
-
-    navigation.navigate('CommunityStack', { screen: 'CommunityWrite', params: { tripData } });
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { 
+            name: 'BottomTab',
+            state: {
+              routes: [
+                { 
+                  name: 'HomeTab',
+                  state: {
+                    routes: [{ name: 'HomeMain' }]
+                  }
+                }
+              ]
+            }
+          },
+          { 
+            name: 'CommunityStack',
+            state: {
+              routes: [
+                { name: 'CommunityWrite', params: { tripData } }
+              ]
+            }
+          }
+        ]
+      })
+    );
   };
 
   if (!trip) {
@@ -57,14 +65,14 @@ function EndTripScreen() {
           style={styles.shareButton}
           onPress={() =>
             navigateToCommunityWrite({
-                  id: trip?.id,
-                  tripId: trip?.id,
-                  tripTitle: trip?.name ?? trip?.title ?? '여행',
-                  location: trip?.destination ?? trip?.place ?? trip?.location ?? '',
-                  startDate: trip?.startDate,
-                  endDate: trip?.endDate,
-                  companions: Array.isArray(trip?.companions) ? trip.companions : [],
-                  circleColor: trip?.color,
+              id: trip?.id,
+              tripId: trip?.id,
+              tripTitle: trip?.name ?? trip?.title ?? '여행',
+              location: trip?.destination ?? trip?.place ?? trip?.location ?? '',
+              startDate: trip?.startDate,
+              endDate: trip?.endDate,
+              companions: Array.isArray(trip?.companions) ? trip.companions : [],
+              circleColor: trip?.color,
             })
           }
         >
@@ -74,10 +82,12 @@ function EndTripScreen() {
         <Pressable
           style={styles.skipButton}
           onPress={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'BottomTab' }],
-            })
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'BottomTab' }],
+              })
+            )
           }
         >
           <Text style={styles.skipText}>건너뛰기</Text>
