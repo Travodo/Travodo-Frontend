@@ -34,7 +34,7 @@ Travodo는 여행을 여행 전, 여행 중, 여행 후의 세 단계로 나누�
 
 ```bash
 git clone <저장소 주소>
-cd Travodo-Frontend-2
+cd Travodo-Frontend
 npm install
 npm start
 ```
